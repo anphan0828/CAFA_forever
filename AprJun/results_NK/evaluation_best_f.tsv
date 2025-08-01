@@ -1,0 +1,10 @@
+filename	ns	tau	n	tp	fp	fn	pr	rc	cov	mi	ru	f	s	pr_micro	rc_micro	f_micro	cov_max
+blast_predictions.tsv	biological_process	0.550	189.000	5.685	39.052	12.945	0.279	0.312	0.496	39.052	12.945	0.295	41.142	0.127	0.305	0.179	0.997
+blast_predictions.tsv	cellular_component	0.460	364.000	6.750	14.165	4.204	0.448	0.624	0.758	14.165	4.204	0.522	14.775	0.323	0.616	0.424	0.996
+blast_predictions.tsv	molecular_function	0.490	196.000	3.778	7.000	2.976	0.484	0.540	0.660	7.000	2.976	0.511	7.607	0.351	0.559	0.431	0.997
+goa_nonexp_predictions.tsv	biological_process	0.010	305.000	6.018	7.593	12.612	0.490	0.345	0.801	7.593	12.612	0.405	14.721	0.442	0.323	0.373	0.801
+goa_nonexp_predictions.tsv	cellular_component	0.010	407.000	6.048	2.465	4.906	0.757	0.584	0.848	2.465	4.906	0.659	5.490	0.710	0.552	0.621	0.848
+goa_nonexp_predictions.tsv	molecular_function	0.010	241.000	4.327	6.104	2.428	0.531	0.584	0.811	6.104	2.428	0.556	6.569	0.415	0.641	0.504	0.811
+naive_predictions.tsv	biological_process	0.010	381.000	5.142	55.858	13.488	0.084	0.313	1.000	55.858	13.488	0.133	57.464	0.084	0.276	0.129	1.000
+naive_predictions.tsv	cellular_component	0.170	480.000	6.175	3.825	4.779	0.617	0.620	1.000	3.825	4.779	0.619	6.121	0.617	0.564	0.589	1.000
+naive_predictions.tsv	molecular_function	0.070	297.000	1.822	1.178	4.933	0.607	0.396	1.000	1.178	4.933	0.479	5.071	0.607	0.270	0.373	1.000
