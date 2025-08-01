@@ -15,5 +15,5 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 echo "Environment setup complete!"
-echo "To activate: source venv/bin/activate"
+echo "To activate: source lafa/bin/activate"
 echo "To run app: streamlit run streamlit_plot.py"
