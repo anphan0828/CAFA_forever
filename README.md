@@ -17,7 +17,7 @@ Interactive visualization of CAFA (Critical Assessment of Functional Annotation)
 
 2. **Activate Environment:**
    ```bash
-   source venv/bin/activate
+   source lafa/bin/activate
    ```
 
 3. **Run Application:**
