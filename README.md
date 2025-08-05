@@ -5,8 +5,16 @@ Interactive visualization of CAFA (Critical Assessment of Functional Annotation)
 ## Quick Start
 
 ### Local Development
+1. **Clone Directory:**
+   ```bash
+   # Clone this directory
+   git clone https://github.com/anphan0828/CAFA_forever.git
 
-1. **Setup Environment:**
+   # Change directory into this folder
+   cd CAFA_forever/
+   ```
+   
+2. **Setup Environment:**
    ```bash
    # Make setup script executable (if not already)
    chmod +x setup_env.sh
@@ -15,12 +23,12 @@ Interactive visualization of CAFA (Critical Assessment of Functional Annotation)
    ./setup_env.sh
    ```
 
-2. **Activate Environment:**
+3. **Activate Environment:**
    ```bash
    source lafa/bin/activate
    ```
 
-3. **Run Application:**
+4. **Run Application:**
    ```bash
    streamlit run streamlit_plot.py
    ```
@@ -56,6 +64,7 @@ To add a new evaluation timepoint (e.g., JunAug):
 ## Dependencies
 
 - Python 3.9+
+- Python 3.9-venv
 - Streamlit ≥1.28.0
 - Pandas ≥1.5.0
 - Plotly ≥5.15.0
