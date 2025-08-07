@@ -2,3 +2,4 @@ filename	method_name
 blast_predictions.tsv	BLAST
 goa_nonexp_predictions.tsv	GOA Non-exp
 naive_predictions.tsv	Naive
+prott5_predictions.tsv	ProtT5

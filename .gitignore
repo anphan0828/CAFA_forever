@@ -4,6 +4,7 @@
 
 # Prediction results (can be large)
 */predictions/*
+tmp*
 
 # Large CAFA6 data
 cafa6/*
