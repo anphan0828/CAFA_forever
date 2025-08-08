@@ -21,8 +21,8 @@ DATA_DATES = {
     'AprJun': {
         'go_start': '2025-03-16',
         'go_end': '2025-06-01',
-        'uniprot_start': '2025_02',
-        'uniprot_end': '2025_03',
+        'uniprot_start': '2025_02 (2025-04-09)',
+        'uniprot_end': '2025_03 (2025-06-18)',
     }
 }
 
