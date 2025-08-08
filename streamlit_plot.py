@@ -18,7 +18,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
 from pathlib import Path
-from config import get_available_timepoints, STREAMLIT_CONFIG, GO_ASPECTS
+from config import get_available_timepoints, STREAMLIT_CONFIG, GO_ASPECTS, DATA_DATES
 
 # Configure Streamlit page
 st.set_page_config(**STREAMLIT_CONFIG)
@@ -167,26 +167,28 @@ def create_interactive_target_count_plot(nk_data, lk_data, nk_gt_stats, lk_gt_st
             )
         fig.update_xaxes(
             row=1, col=col, 
-            tickfont=dict(size=16), 
-            title_font=dict(size=16),
+            tickfont=dict(size=16, color='black'), 
+            title_font=dict(size=16, color='black'),
             tickvals=x_range, 
-            ticktext=selected_methods
+            ticktext=selected_methods,
+            linecolor='black'
         )
         
     fig.update_layout(
-        height=400,
+        height=350,
         barmode='group',
         legend=dict(
             orientation="h",
-            yanchor="bottom",
-            y=-0.3,
+            yanchor="top",
+            y=1.5,
             xanchor="center",
             x=0.5,
         ),
         legend_font=dict(size=16),
     )
     fig.update_yaxes(title_text="Number of Predicted Proteins", row=1, col=1, range=[0, y_max],
-                     tickfont=dict(size=16),title_font=dict(size=18))
+                     tickfont=dict(size=16, color='black'),title_font=dict(size=18, color='black'),
+                     linecolor='black')
     
     
     return fig
@@ -209,6 +211,45 @@ def create_interactive_performance_plot(nk_data, lk_data, selected_methods, sele
     x_pos = np.arange(len(selected_methods))
     dodge_offset = 0.1  # offset for dodging points
     
+    # Add legend traces for knowledge types (only once)
+    fig.add_trace(
+        go.Scatter(
+            name='No Knowledge Proteins',
+            x=[None], y=[None],
+            mode='markers',
+            marker=dict(color='red', size=12, symbol='circle'),
+            showlegend=True,
+            legendgroup='NK_legend'
+        ),
+        row=1, col=1
+    )
+    
+    fig.add_trace(
+        go.Scatter(
+            name='Limited Knowledge Proteins',
+            x=[None], y=[None],
+            mode='markers',
+            marker=dict(color='blue', size=12, symbol='circle'),
+            showlegend=True,
+            legendgroup='LK_legend'
+        ),
+        row=1, col=1
+    )
+    
+    # Add legend traces for aspect symbols (only once)
+    for i, (aspect, symbol, label) in enumerate(zip(aspects, aspect_symbols, aspect_labels)):
+        fig.add_trace(
+            go.Scatter(
+                name=f'{label} ({ASPECT_NAMES[aspect]})',
+                x=[None], y=[None],
+                mode='markers',
+                marker=dict(color='black', size=12, symbol=symbol),
+                showlegend=True,
+                legendgroup=f'aspect_{i}'
+            ),
+            row=1, col=1
+        )
+    
     for i, aspect in enumerate(aspects):
         col = i + 1
         
@@ -230,10 +271,10 @@ def create_interactive_performance_plot(nk_data, lk_data, selected_methods, sele
             nk_x_positions.append(j - dodge_offset)
             lk_x_positions.append(j + dodge_offset)
 
-        # Add NK scatter points
+        # Add NK scatter points (no legend)
         fig.add_trace(
             go.Scatter(
-                name=f'No Knowledge Proteins' if i == 0 else '',
+                name='',
                 x=nk_x_positions, 
                 y=nk_values,
                 mode='markers', 
@@ -241,7 +282,7 @@ def create_interactive_performance_plot(nk_data, lk_data, selected_methods, sele
                     color='red', size=12, symbol=aspect_symbols[i],
                     line=dict(color='darkred', width=1)
                 ),
-                showlegend=(i == 0),
+                showlegend=False,
                 legendgroup='NK',
                 text=[f'{val:.3f}, {aspect_labels[i]}' for val in nk_values], 
                 hoverinfo='text',
@@ -250,10 +291,10 @@ def create_interactive_performance_plot(nk_data, lk_data, selected_methods, sele
             row=1, col=col
         )
         
-        # Add LK scatter points
+        # Add LK scatter points (no legend)
         fig.add_trace(
             go.Scatter(
-                name=f'Limited Knowledge Proteins' if i == 0 else '',
+                name='',
                 x=lk_x_positions, 
                 y=lk_values,
                 mode='markers',
@@ -261,7 +302,7 @@ def create_interactive_performance_plot(nk_data, lk_data, selected_methods, sele
                     color='blue', size=12, symbol=aspect_symbols[i],
                     line=dict(color='darkblue', width=1)
                 ),
-                showlegend=(i == 0),
+                showlegend=False,
                 legendgroup='LK',
                 text=[f'{val:.3f}, {aspect_labels[i]}' for val in lk_values], 
                 hoverinfo='text',
@@ -272,10 +313,11 @@ def create_interactive_performance_plot(nk_data, lk_data, selected_methods, sele
         
         fig.update_xaxes(
             row=1, col=col, 
-            tickfont=dict(size=16), 
-            title_font=dict(size=16),
+            tickfont=dict(size=16, color='black'), 
+            title_font=dict(size=16, color='black'),
             tickvals=x_pos, 
-            ticktext=selected_methods
+            ticktext=selected_methods,
+            linecolor='black'
         )
 
     
@@ -292,7 +334,8 @@ def create_interactive_performance_plot(nk_data, lk_data, selected_methods, sele
         legend_font=dict(size=16)
     )
     fig.update_yaxes(title_text=selected_metric.upper(), row=1, col=1, range=[0, 1],
-                     tickfont=dict(size=16), title_font=dict(size=18))
+                     tickfont=dict(size=16, color='black'), title_font=dict(size=18, color='black'),
+                     linecolor='black')
     
     return fig
 
@@ -314,6 +357,45 @@ def create_consolidated_performance_plot(nk_data, lk_data, selected_methods):
     # Prepare data for plotting with dodging
     x_pos = np.arange(len(selected_methods))
     dodge_offset = 0.15  # offset for dodging points
+    
+    # Add legend traces for knowledge types (only once)
+    fig.add_trace(
+        go.Scatter(
+            name='No Knowledge Proteins',
+            x=[None], y=[None],
+            mode='markers',
+            marker=dict(color='red', size=12, symbol='circle'),
+            showlegend=True,
+            legendgroup='NK_legend'
+        ),
+        row=1, col=1
+    )
+    
+    fig.add_trace(
+        go.Scatter(
+            name='Limited Knowledge Proteins',
+            x=[None], y=[None],
+            mode='markers',
+            marker=dict(color='blue', size=12, symbol='circle'),
+            showlegend=True,
+            legendgroup='LK_legend'
+        ),
+        row=1, col=1
+    )
+    
+    # Add legend traces for aspect symbols (only once)
+    for j, (aspect, symbol, label) in enumerate(zip(aspects, aspect_symbols, aspect_labels)):
+        fig.add_trace(
+            go.Scatter(
+                name=f'{label} ({ASPECT_NAMES[aspect]})',
+                x=[None], y=[None],
+                mode='markers',
+                marker=dict(color='black', size=12, symbol=symbol),
+                showlegend=True,
+                legendgroup=f'aspect_{j}'
+            ),
+            row=1, col=1
+        )
     
     for i, metric in enumerate(metrics):
         col = i + 1
@@ -338,10 +420,10 @@ def create_consolidated_performance_plot(nk_data, lk_data, selected_methods):
                 nk_x_positions.append(k - dodge_offset)
                 lk_x_positions.append(k + dodge_offset)
             
-            # Add NK scatter points for this aspect
+            # Add NK scatter points for this aspect (no legend)
             fig.add_trace(
                 go.Scatter(
-                    name=f'No Knowledge Proteins' if i == 0 else '',
+                    name='',
                     x=nk_x_positions,
                     y=nk_values,
                     mode='markers', 
@@ -349,7 +431,7 @@ def create_consolidated_performance_plot(nk_data, lk_data, selected_methods):
                         color='red', size=10, symbol=aspect_symbols[j],
                         line=dict(color='darkred', width=1)
                     ),
-                    showlegend=(i == 0),
+                    showlegend=False,
                     legendgroup='NK',
                     text=[f'{val:.3f}, {aspect_labels[j]}' for val in nk_values],
                     hoverinfo='text',
@@ -358,10 +440,10 @@ def create_consolidated_performance_plot(nk_data, lk_data, selected_methods):
                 row=1, col=col
             )
             
-            # Add LK scatter points for this aspect
+            # Add LK scatter points for this aspect (no legend)
             fig.add_trace(
                 go.Scatter(
-                    name=f'Limited Knowledge Proteins' if i == 0 else '',
+                    name='',
                     x=lk_x_positions,
                     y=lk_values,
                     mode='markers',
@@ -369,7 +451,7 @@ def create_consolidated_performance_plot(nk_data, lk_data, selected_methods):
                         color='blue', size=10, symbol=aspect_symbols[j],
                         line=dict(color='darkblue', width=1)
                     ),
-                    showlegend=(i == 0),
+                    showlegend=False,
                     legendgroup='LK',
                     text=[f'{val:.3f}, {aspect_labels[j]}' for val in lk_values], 
                     hoverinfo='text',
@@ -381,10 +463,11 @@ def create_consolidated_performance_plot(nk_data, lk_data, selected_methods):
         # Update x-axis with proper tick positions and labels
         fig.update_xaxes(
             row=1, col=col, 
-            tickfont=dict(size=16), 
-            title_font=dict(size=16),
+            tickfont=dict(size=16, color='black'), 
+            title_font=dict(size=16, color='black'),
             tickvals=x_pos, 
-            ticktext=selected_methods
+            ticktext=selected_methods,
+            linecolor='black'
         )
     
     fig.update_layout(
@@ -400,123 +483,245 @@ def create_consolidated_performance_plot(nk_data, lk_data, selected_methods):
         legend_font=dict(size=16)
     )
     fig.update_yaxes(title_text="Score", row=1, col=1, range=[0, 1],
-                     tickfont=dict(size=16), title_font=dict(size=18))
+                     tickfont=dict(size=16, color='black'), title_font=dict(size=18, color='black'),
+                     linecolor='black')
     
     return fig
 
-def create_interactive_precision_recall_plot(all_data, selected_methods, subset_name, selected_aspect):
-    """Create interactive precision-recall curves."""
+def create_interactive_precision_recall_plot(nk_all_data, lk_all_data, selected_methods):
+    """Create interactive precision-recall curves for all subsets and aspects."""
     
     # Configuration for precision-recall curves
     metric = 'f'
     cols = ['rc', 'pr']
     cumulate = True
-    add_extreme_points = True
+    add_extreme_points = False
     coverage_threshold = 0.01
     
-    # Set method information
-    all_data['group'] = all_data['method']
-    all_data['label'] = all_data['method']
+    aspects = ['biological_process', 'molecular_function', 'cellular_component']
+    subsets = [('NK', nk_all_data), ('LK', lk_all_data)]
     
-    df = all_data.drop(columns='filename').set_index(['group', 'label', 'ns', 'tau'])
+    # Create subplots: 2 rows (NK, LK) x 3 cols (aspects)
+    fig = make_subplots(
+        rows=2, cols=3,
+        subplot_titles=[f"{ONTOLOGY_DICT.get(aspect, aspect)} - No Knowledge" for aspect in aspects] + 
+                      [f"{ONTOLOGY_DICT.get(aspect, aspect)} - Limited Knowledge" for aspect in aspects],
+        shared_xaxes=True,
+        shared_yaxes=True,
+        vertical_spacing=0.1,
+        horizontal_spacing=0.05
+    )
     
-    # Filter by coverage and aspect
-    df = df[df['cov'] >= coverage_threshold]
-    df = df[df.index.get_level_values('ns') == selected_aspect]
+    fig.update_annotations(font_size=16, font_color='black')
+    colors = px.colors.qualitative.Set1
     
-    # Filter by selected methods
-    df = df[df.index.get_level_values('group').isin(selected_methods)]
-    
-    if df.empty:
-        st.warning(f"No data available for selected methods in {selected_aspect}")
-        return go.Figure()
-    
-    # Identify the best methods and thresholds
-    index_best = df.groupby(level=['group', 'ns'])[metric].idxmax()
-    
-    # Filter the dataframe for the best methods
-    df_methods = df.reset_index('tau').loc[[ele[:-1] for ele in index_best], ['tau', 'cov'] + cols + [metric]].sort_index()
-    
-    # Makes the curves monotonic
-    if cumulate:
-        df_methods[cols[-1]] = df_methods.groupby(level=['label', 'ns'])[cols[-1]].cummax()
-    
-    # Add extreme points
-    def add_points(df_):
-        df_ = pd.concat([df_.iloc[0:1], df_])
-        df_.iloc[0, df_.columns.get_indexer(['tau', cols[0], cols[1]])] = [0, 1, 0]  # tau, rc, pr
-        df_ = pd.concat([df_, df_.iloc[-1:]])
-        df_.iloc[-1, df_.columns.get_indexer(['tau', cols[0], cols[1]])] = [1.1, 0, 1]
-        return df_
-    
-    if add_extreme_points:
-        df_methods = df_methods.reset_index().groupby(['group', 'label', 'ns'], as_index=False).apply(add_points).set_index(['group', 'label', 'ns'])
-    
-    # Filter the dataframe for the best method and threshold
-    df_best = df.loc[index_best, ['cov'] + cols + [metric]]
-    
-    # Calculate average precision score 
-    df_best['aps'] = df_methods.groupby(level=['group', 'label', 'ns'])[[cols[0], cols[1]]].apply(lambda x: (x[cols[0]].diff(-1).shift(1) * x[cols[1]]).sum())
-    
-    # Calculate the max coverage across all thresholds
-    df_best['max_cov'] = df_methods.groupby(level=['group', 'label', 'ns'])['cov'].max()
-    
-    # Create the plot
-    fig = go.Figure()
-    
-    # Add F-score contour lines
+    # F-score contour lines (same for all subplots)
     x = np.arange(0.01, 1, 0.01)
     y = np.arange(0.01, 1, 0.01)
     X, Y = np.meshgrid(x, y)
     Z = 2 * X * Y / (X + Y)
     
-    fig.add_trace(go.Contour(
-        x=x, y=y, z=Z,
-        contours=dict(start=0.1, end=0.9, size=0.1),
-        showscale=False,
-        line=dict(color='gray', width=1),
-        opacity=0.3,
-        name="F-score contours"
-    ))
+    for subset_idx, (subset_name, all_data) in enumerate(subsets):
+        for aspect_idx, selected_aspect in enumerate(aspects):
+            row = subset_idx + 1
+            col = aspect_idx + 1
+            
+            # Set method information
+            all_data_copy = all_data.copy()
+            all_data_copy['group'] = all_data_copy['method']
+            all_data_copy['label'] = all_data_copy['method']
+            
+            df = all_data_copy.drop(columns='filename').set_index(['group', 'label', 'ns', 'tau'])
+            
+            # Filter by coverage and aspect
+            df = df[df['cov'] >= coverage_threshold]
+            df = df[df.index.get_level_values('ns') == selected_aspect]
+            
+            # Filter by selected methods
+            df = df[df.index.get_level_values('group').isin(selected_methods)]
+            
+            if df.empty:
+                continue
+            
+            # Identify the best methods and thresholds
+            index_best = df.groupby(level=['group', 'ns'])[metric].idxmax()
+            
+            # Filter the dataframe for the best methods
+            df_methods = df.reset_index('tau').loc[[ele[:-1] for ele in index_best], ['tau', 'cov'] + cols + [metric]].sort_index()
+            
+            # Makes the curves monotonic
+            if cumulate:
+                df_methods[cols[-1]] = df_methods.groupby(level=['label', 'ns'])[cols[-1]].cummax()
+            
+            # Add extreme points
+            def add_points(df_):
+                df_ = pd.concat([df_.iloc[0:1], df_])
+                df_.iloc[0, df_.columns.get_indexer(['tau', cols[0], cols[1]])] = [0, 1, 0]  # tau, rc, pr
+                df_ = pd.concat([df_, df_.iloc[-1:]])
+                df_.iloc[-1, df_.columns.get_indexer(['tau', cols[0], cols[1]])] = [1.1, 0, 1]
+                return df_
+            
+            if add_extreme_points:
+                df_methods = df_methods.reset_index().groupby(['group', 'label', 'ns'], as_index=False).apply(add_points).set_index(['group', 'label', 'ns'])
+            
+            # Filter the dataframe for the best method and threshold
+            df_best = df.loc[index_best, ['cov'] + cols + [metric]]
+            
+            # Calculate average precision score 
+            df_best['aps'] = df_methods.groupby(level=['group', 'label', 'ns'])[[cols[0], cols[1]]].apply(lambda x: (x[cols[0]].diff(-1).shift(1) * x[cols[1]]).sum())
+            df_best['aps'] = df_best['aps'].apply(round, ndigits=3)
+
+            # Calculate the max coverage across all thresholds
+            df_best['max_cov'] = df_methods.groupby(level=['group', 'label', 'ns'])['cov'].max()
+            df_best['max_cov'] = df_best['max_cov'].apply(round, ndigits=4)
+            
+            # Add colors and labels to df_best for sorting (like in matplotlib version)
+            df_best['colors'] = [colors[i % len(colors)] for i in range(len(df_best))]
+            df_best['label'] = df_best.index.get_level_values('group')
+            
+            # Add F-score contour lines with labels (equivalent to matplotlib contour + clabel)
+            contour_levels = np.arange(0.1, 1.0, 0.1)
+            fig.add_trace(go.Contour(
+                x=x, y=y, z=Z,
+                contours=dict(
+                    start=0.1, 
+                    end=0.9, 
+                    size=0.1,
+                    showlabels=True,
+                    labelfont=dict(size=16, color='gray')
+                ),
+                showscale=False,
+                line=dict(color='gray', width=1),
+                colorscale=[[0, 'rgba(128,128,128,0)'], [1, 'rgba(128,128,128,0)']],
+                name="F-score contours",
+                showlegend=False,
+                hoverinfo='skip'
+            ), row=row, col=col)
+            
+            # Sort methods by metric and max_cov (matching matplotlib implementation)
+            df_best_sorted = df_best.sort_values(by=[metric, 'max_cov'], ascending=[False, False])
+            
+            # Create legend text for this subplot
+            legend_text = []
+            
+            # Plot curves for each method in sorted order
+            for i, (index, row_data) in enumerate(df_best_sorted.iterrows()):
+                method_name = index[0]  # group name
+                method_data = df_methods.loc[index[:-1]]  # Remove ns from index to match df_methods
+                
+                # Add to legend text with F-score and coverage
+                legend_text.append(f"{method_name} (F={row_data[metric]:.3f}, Cov={row_data['max_cov']:.4f})")
+
+                # Plot precision-recall curve with thick line (lw=2 -> width=4 for plotly equivalent)
+                fig.add_trace(go.Scatter(
+                    x=method_data[cols[0]], 
+                    y=method_data[cols[1]],
+                    mode='lines',
+                    name=f"{method_name}",
+                    line=dict(color=row_data['colors'], width=2),
+                    showlegend=False,  # Turn off global legend
+                    legendgroup=f"method_{method_name}_{row}_{col}",
+                    hovertemplate=f"<b>{method_name}</b><br>Recall: %{{x:.3f}}<br>Precision: %{{y:.3f}}<extra></extra>"
+                ), row=row, col=col)
+                
+                # Add F-max dots (two markers for hollow + filled effect)
+                # Outer hollow marker (equivalent to mfc='none')
+                fig.add_trace(go.Scatter(
+                    x=[row_data[cols[0]]], 
+                    y=[row_data[cols[1]]],
+                    mode='markers',
+                    marker=dict(
+                        color='rgba(0,0,0,0)',  # transparent fill
+                        size=12,  # markersize=12 -> size=24 for plotly
+                        symbol='circle',
+                        line=dict(color=row_data['colors'], width=3)
+                    ),
+                    showlegend=False,
+                    name=f"{method_name} F-max outer",
+                    legendgroup=f"method_{method_name}_{row}_{col}",
+                    hovertemplate=f"<b>{method_name} F-max</b><br>Recall: %{{x:.3f}}<br>Precision: %{{y:.3f}}<br>F-score: {row_data[metric]:.3f}<extra></extra>"
+                ), row=row, col=col)
+                
+                # Inner filled marker
+                fig.add_trace(go.Scatter(
+                    x=[row_data[cols[0]]], 
+                    y=[row_data[cols[1]]],
+                    mode='markers',
+                    marker=dict(
+                        color=row_data['colors'], 
+                        size=6,  # markersize=6 -> size=12 for plotly
+                        symbol='circle'
+                    ),
+                    showlegend=False,
+                    name=f"{method_name} F-max inner",
+                    legendgroup=f"method_{method_name}_{row}_{col}",
+                    hoverinfo='skip'
+                ), row=row, col=col)
+            
+            # Add custom legend as annotation for each subplot
+            if legend_text:
+                # Create colored legend with method colors
+                legend_html = "<br>".join([
+                    f"<span style='color:{df_best_sorted.iloc[i]['colors']};'>●</span> {text}" 
+                    for i, text in enumerate(legend_text)
+                ])
+                
+                # Calculate subplot reference
+                if row == 1 and col == 1:
+                    xref, yref = "x", "y"
+                elif row == 1:
+                    xref, yref = f"x{col}", f"y{col}"
+                elif col == 1:
+                    xref, yref = f"x{3 + col}", f"y{3 + col}"
+                else:
+                    xref, yref = f"x{3 + col}", f"y{3 + col}"
+                
+                fig.add_annotation(
+                    text=legend_html,
+                    xref=xref,
+                    yref=yref,
+                    x=1,  # Top right corner
+                    y=1,
+                    xanchor="right",
+                    yanchor="top",
+                    showarrow=False,
+                    font=dict(size=12, color="black"),
+                    bgcolor="rgba(255,255,255,0.8)",
+                    bordercolor="gray",
+                    borderwidth=1,
+                    borderpad=4
+                )
     
-    colors = px.colors.qualitative.Set1
-    
-    # Plot curves for each method
-    for i, (method_idx, method_data) in enumerate(df_methods.groupby(level=['group', 'label'])):
-        method_name = method_idx[0]
-        method_data_single = method_data.droplevel(['group', 'label'])
-        
-        # Get best point
-        best_point = df_best.loc[method_idx + (selected_aspect,)]
-        
-        # Plot precision-recall curve
-        fig.add_trace(go.Scatter(
-            x=method_data_single[cols[0]], 
-            y=method_data_single[cols[1]],
-            mode='lines',
-            name=f"{method_name} (F={best_point[metric].values[0]}, APS={best_point['aps'].values[0]})",
-            line=dict(color=colors[i % len(colors)], width=3)
-        ))
-        
-        # Add best point marker
-        fig.add_trace(go.Scatter(
-            x=[best_point[cols[0]]], 
-            y=[best_point[cols[1]]],
-            mode='markers',
-            marker=dict(color=colors[i % len(colors)], size=10, symbol='circle'),
-            showlegend=False,
-            name=f"{method_name} F-max"
-        ))
-    
+    # Update layout with larger font sizes (matching rcParams font.size=22)
     fig.update_layout(
-        title=f"Precision-Recall Curves - {ONTOLOGY_DICT.get(selected_aspect, selected_aspect)} ({subset_name})",
-        xaxis_title="Recall",
-        yaxis_title="Precision",
-        xaxis=dict(range=[0, 1]),
-        yaxis=dict(range=[0, 1]),
-        height=600,
-        width=800
+        height=1000,
+        width=1500,
+        showlegend=False  # Turn off global legend since we use subplot-specific legends
     )
+    
+    # Update all x-axes with larger fonts
+    for row in range(1, 3):
+        for col in range(1, 4):
+            fig.update_xaxes(
+                title_text="Recall" if row == 2 else "",
+                title_font=dict(size=22, color='black'),  # matching rcParams font.size=22
+                range=[0, 1],
+                tickfont=dict(size=18, color='black'),
+                linecolor='black',
+                row=row, col=col
+            )
+    
+    # Update all y-axes with larger fonts  
+    for row in range(1, 3):
+        for col in range(1, 4):
+            fig.update_yaxes(
+                title_text="Precision" if col == 1 else "",
+                title_font=dict(size=22, color='black'),  # matching rcParams font.size=22
+                range=[0, 1],
+                tickfont=dict(size=18, color='black'),
+                linecolor='black',
+                row=row, col=col
+            )
     
     return fig
 
@@ -544,7 +749,7 @@ def main():
     else:
         selected_timepoint = available_timepoints[0]
         st.sidebar.info(f"Using timepoint: {selected_timepoint}")
-    
+        
     # Set up paths based on selected timepoint
     results_dir = Path(selected_timepoint)
     NK_RESULTS_DIR = results_dir / "results_NK"
@@ -624,21 +829,129 @@ def main():
         st.warning("Please select at least one method to compare.")
         return
     
-    # Main content tabs
-    tab1, tab2, tab3 = st.tabs(["Performance Metrics", "Precision-Recall", "Summary Table"])
     
-    with tab1:
-        st.header("Number of Targets Predicted vs Ground Truth")
+    # Display versions and target count plot
+    col1, col2 = st.columns([0.2,0.8])
+    
+    with col1: 
+        st.header("Data Versions")
+        st.markdown(f"GO version: {DATA_DATES[selected_timepoint].get('go_start', 'N/A')}")
+        st.markdown(f"UniProt version (for predictions): {DATA_DATES[selected_timepoint].get('uniprot_start', 'N/A')}")
+        st.markdown(f"UniProt version (for ground truth): {DATA_DATES[selected_timepoint].get('uniprot_end', 'N/A')}")
+    with col2:
+        st.header("Number of Targets")
         st.markdown("Compare the number of proteins each method made predictions for versus the total available in ground truth.")
 
-        fig = create_interactive_target_count_plot(
-            st.session_state.nk_data, 
-            st.session_state.lk_data, 
-            st.session_state.nk_gt_stats, 
-            st.session_state.lk_gt_stats, 
-            selected_methods
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        # Create target count table
+        aspects = ['biological_process', 'molecular_function', 'cellular_component']
+        
+        # Prepare table data
+        table_data = []
+        gt_data = {
+            'Method': "ALL TARGETS"}  
+        
+        for method in selected_methods:
+            row_data = {'Method': method}
+            
+            for aspect in aspects:
+                aspect_name = ASPECT_NAMES[aspect]
+                
+                # Get ground truth counts
+                nk_gt_count = st.session_state.nk_gt_stats.get(aspect, 0)
+                lk_gt_count = st.session_state.lk_gt_stats.get(aspect, 0)
+                
+                # Get predicted counts for this method and aspect
+                nk_aspect = st.session_state.nk_data[st.session_state.nk_data['ns'] == aspect]
+                lk_aspect = st.session_state.lk_data[st.session_state.lk_data['ns'] == aspect]
+                
+                nk_pred = nk_aspect[nk_aspect['method'] == method]['n'].iloc[0] if len(nk_aspect[nk_aspect['method'] == method]) > 0 else 0
+                lk_pred = lk_aspect[lk_aspect['method'] == method]['n'].iloc[0] if len(lk_aspect[lk_aspect['method'] == method]) > 0 else 0
+                
+                # Calculate percentages
+                nk_pct = (nk_pred / nk_gt_count * 100) if nk_gt_count > 0 else 0
+                lk_pct = (lk_pred / lk_gt_count * 100) if lk_gt_count > 0 else 0
+                
+                # Add columns for this aspect with nested structure
+                gt_data[f'{aspect_name}_No Knowledge'] = f"{nk_gt_count}"
+                gt_data[f'{aspect_name}_Limited Knowledge'] = f"{lk_gt_count}"
+                row_data[f'{aspect_name}_No Knowledge'] = f"{nk_pred} ({nk_pct:.1f}%)"
+                row_data[f'{aspect_name}_Limited Knowledge'] = f"{lk_pred} ({lk_pct:.1f}%)"
+            
+            table_data.append(row_data)
+        table_data.append(gt_data)
+        
+        # Create DataFrame and display
+        df_targets = pd.DataFrame(table_data)
+        df_targets = df_targets.sort_values(by='Method', ascending=True)
+        
+        # Create nested column structure for display
+        # First, reorder columns to group by aspect
+        column_order = ['Method']
+        for aspect in aspects:
+            aspect_name = ASPECT_NAMES[aspect]
+            column_order.extend([f'{aspect_name}_No Knowledge', f'{aspect_name}_Limited Knowledge'])
+        
+        df_targets = df_targets[column_order]
+        
+        
+        # Create HTML table with nested headers in a scrollable container
+        html_table = """
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 5px;">
+            <table style="width:100%; border-collapse: collapse; margin: 0;">
+                <thead style="position: sticky; top: 0; z-index: 10;">
+                    <tr style="background-color: #f0f2f6;">
+                        <th rowspan="2" style="border: 1px solid #ddd; padding: 4px; text-align: center; vertical-align: middle; background-color: #f0f2f6;">Method</th>
+        """
+        
+        # Add top-level headers (aspects)
+        for aspect in aspects:
+            aspect_name = ASPECT_NAMES[aspect]
+            html_table += f'<th colspan="2" style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #e1e5e9;">{aspect_name}</th>'
+        
+        html_table += "</tr><tr style='background-color: #f0f2f6;'>"
+        
+        # Add second-level headers (No Knowledge / Limited Knowledge)
+        for aspect in aspects:
+            html_table += '<th style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #f0f2f6;">No Knowledge</th>'
+            html_table += '<th style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #f0f2f6;">Limited Knowledge</th>'
+        
+        html_table += "</tr></thead><tbody>"
+        
+        # Add data rows
+        for _, row in df_targets.iterrows():
+            html_table += "<tr>"
+            html_table += f'<td style="border: 1px solid #ddd; padding: 4px; font-weight: {"bold" if "ALL TARGETS" in str(row["Method"]) else "normal"};">{row["Method"]}</td>'
+            
+            for aspect in aspects:
+                aspect_name = ASPECT_NAMES[aspect]
+                nk_value = row[f'{aspect_name}_No Knowledge']
+                lk_value = row[f'{aspect_name}_Limited Knowledge']
+                
+                html_table += f'<td style="border: 1px solid #ddd; padding: 4px; text-align: center;">{nk_value}</td>'
+                html_table += f'<td style="border: 1px solid #ddd; padding: 4px; text-align: center;">{lk_value}</td>'
+            
+            html_table += "</tr>"
+        
+        html_table += "</tbody></table></div>"
+        
+        st.markdown(html_table, unsafe_allow_html=True)
+
+        # Comment out the original plot
+        # fig = create_interactive_target_count_plot(
+        #     st.session_state.nk_data, 
+        #     st.session_state.lk_data, 
+        #     st.session_state.nk_gt_stats, 
+        #     st.session_state.lk_gt_stats, 
+        #     selected_methods
+        # )
+        # st.plotly_chart(fig, use_container_width=True)
+        
+        
+    # Main content tabs
+    tab1, tab2 = st.tabs(["Performance Metrics", "Summary Table"])
+    
+    with tab1:
+        
     
         st.header("Performance Metrics Comparison")
         st.markdown("Compare the performance of methods with precision, recall, and F-score metrics.")
@@ -647,7 +960,7 @@ def main():
             options=['consolidated', 'individual'],
             format_func=lambda x: {
                 'consolidated': 'All Metrics (Precision, Recall, F-score)', 
-                'individual': 'Individual Metric'
+                'individual': 'Individual Metrics'
             }[x],
             index=0,
             horizontal=True
@@ -676,36 +989,18 @@ def main():
             )
             st.plotly_chart(fig, use_container_width=True)
     
-    with tab2:
+
         st.header("Precision-Recall Curves")
-        st.markdown("Interactive precision-recall curves showing the trade-off between precision and recall across different thresholds.")
-        
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            selected_subset = st.selectbox(
-                "Select protein subset:",
-                options=['NK', 'LK'],
-                format_func=lambda x: f"{x} (No Knowledge)" if x == 'NK' else f"{x} (Limited Knowledge)"
-            )
-        
-        with col2:
-            selected_aspect = st.selectbox(
-                "Select GO aspect:",
-                options=['biological_process', 'molecular_function', 'cellular_component'],
-                format_func=lambda x: ASPECT_NAMES[x]
-            )
-        
-        all_data = st.session_state.nk_all_data if selected_subset == 'NK' else st.session_state.lk_all_data
+        st.markdown("Interactive precision-recall curves showing the trade-off between precision and recall across different thresholds for all aspects and subsets.")
         
         fig = create_interactive_precision_recall_plot(
-            all_data, 
-            selected_methods, 
-            selected_subset, 
-            selected_aspect
+            st.session_state.nk_all_data,
+            st.session_state.lk_all_data,
+            selected_methods
         )
         st.plotly_chart(fig, use_container_width=True)
     
-    with tab3:
+    with tab2:
         st.header("Summary Table")
         st.markdown("Detailed performance metrics for all selected methods across subsets and aspects.")
         

@@ -17,6 +17,15 @@ DATA_DIRS = {
     # 'OctDec': BASE_DIR / 'OctDec',
 }
 
+DATA_DATES = {
+    'AprJun': {
+        'go_start': '2025-03-16',
+        'go_end': '2025-06-01',
+        'uniprot_start': '2025_02',
+        'uniprot_end': '2025_03',
+    }
+}
+
 # Default file patterns
 GROUND_TRUTH_PATTERN = "groundtruth_*_{subset}.tsv"
 METHOD_NAMES_FILE = "method_names.tsv"
