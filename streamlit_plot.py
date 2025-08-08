@@ -874,8 +874,8 @@ def main():
                 # Add columns for this aspect with nested structure
                 gt_data[f'{aspect_name}_No Knowledge'] = f"{nk_gt_count}"
                 gt_data[f'{aspect_name}_Limited Knowledge'] = f"{lk_gt_count}"
-                row_data[f'{aspect_name}_No Knowledge'] = f"{nk_pred} ({nk_pct:.1f}%)"
-                row_data[f'{aspect_name}_Limited Knowledge'] = f"{lk_pred} ({lk_pct:.1f}%)"
+                row_data[f'{aspect_name}_No Knowledge'] = f"{int(nk_pred)} ({nk_pct:.1f}%)"
+                row_data[f'{aspect_name}_Limited Knowledge'] = f"{int(lk_pred)} ({lk_pct:.1f}%)"
             
             table_data.append(row_data)
         table_data.append(gt_data)
