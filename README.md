@@ -61,6 +61,10 @@ To add a new evaluation timepoint (e.g., JunAug):
 3. The application will automatically detect the new timepoint (needs testing)
 
 
+## Evaluation Plots
+The precision-recall curves are generated with a "monotonic curve" option, i.e., a cumulative maximum operation is placed on precision so that precision values never decrease as we move along the curve to make the curves more monotonous. In ideal situations, precision should be monotonically decreasing as recall increases. However, non-monotonic curves sometimes occur due to small test sets and noise in predictions at different threshold. 
+
+
 ## Dependencies
 
 - Python 3.9+

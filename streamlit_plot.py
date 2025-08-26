@@ -43,10 +43,10 @@ def load_method_names(method_names_file):
     """Load method names mapping from TSV file."""
     if method_names_file and Path(method_names_file).exists():
         df_methods = pd.read_csv(method_names_file, sep='\t')
-        if 'filename' in df_methods.columns and 'method_name' in df_methods.columns:
-            return dict(zip(df_methods['filename'], df_methods['method_name']))
+        if 'filename' in df_methods.columns and 'label' in df_methods.columns:
+            return dict(zip(df_methods['filename'], df_methods['label']))
         else:
-            st.warning("method_names file should have 'filename' and 'method_name' columns")
+            st.warning("method_names file should have 'filename' and 'label' columns")
             return {}
     else:
         st.warning("method_names file not found, using filenames as method names")
