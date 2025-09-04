@@ -101,7 +101,7 @@ def load_all_evaluation_data(results_dir, method_names):
     
     return df_all
 
-def create_interactive_target_count_plot(nk_data, lk_data, nk_gt_stats, lk_gt_stats, selected_methods):
+def create_interactive_target_count_plot(nk_data, lk_data, nk_gt_stats, lk_gt_stats, pk_gt_stats, selected_methods):
     """Create interactive bar chart comparing number of predicted targets vs ground truth."""
     
     aspects = ['biological_process', 'molecular_function', 'cellular_component']
@@ -112,7 +112,7 @@ def create_interactive_target_count_plot(nk_data, lk_data, nk_gt_stats, lk_gt_st
         shared_yaxes=True
     )
     
-    colors = {"NK": "red", "LK": "blue"}
+    colors = {"NK": "red", "LK": "blue", "PK": "green"}
 
     y_max = max(*nk_gt_stats.values(), *lk_gt_stats.values())
 
@@ -122,11 +122,13 @@ def create_interactive_target_count_plot(nk_data, lk_data, nk_gt_stats, lk_gt_st
         # Get ground truth counts
         nk_gt_count = nk_gt_stats.get(aspect, 0)
         lk_gt_count = lk_gt_stats.get(aspect, 0)
-        
+        pk_gt_count = pk_gt_stats.get(aspect, 0)
+
         # Filter data for current aspect
         nk_aspect = nk_data[nk_data['ns'] == aspect]
         lk_aspect = lk_data[lk_data['ns'] == aspect]
-        
+        pk_aspect = pk_data[pk_data['ns'] == aspect]
+
         # Add ground truth horizontal lines as scatter traces
         # Get x-axis range for the lines
         x_range = selected_methods  # Include all x-axis values
@@ -147,12 +149,20 @@ def create_interactive_target_count_plot(nk_data, lk_data, nk_gt_stats, lk_gt_st
             ),
             row=1, col=col
         )
-        
+        fig.add_trace(
+            go.Scatter(
+                x=x_range, y=[pk_gt_count] * len(x_range), 
+                mode='lines', line=dict(color=colors['PK'], dash='dash', width=2),
+                name='Ground Truth: Partial Knowledge Proteins', showlegend=(i==1)
+            ),
+            row=1, col=col
+        )
         # Add method prediction bars
         for j, method in enumerate(selected_methods):
             nk_count = nk_aspect[nk_aspect['method'] == method]['n'].iloc[0] if len(nk_aspect[nk_aspect['method'] == method]) > 0 else 0
             lk_count = lk_aspect[lk_aspect['method'] == method]['n'].iloc[0] if len(lk_aspect[lk_aspect['method'] == method]) > 0 else 0
-            
+            pk_count = pk_aspect[pk_aspect['method'] == method]['n'].iloc[0] if len(pk_aspect[pk_aspect['method'] == method]) > 0 else 0
+
             fig.add_trace(
                 go.Bar(name=f'{method}', x=[method], y=[nk_count], 
                        marker_color=colors["NK"], opacity=1, 
@@ -162,6 +172,12 @@ def create_interactive_target_count_plot(nk_data, lk_data, nk_gt_stats, lk_gt_st
             fig.add_trace(
                 go.Bar(name=f'{method}', x=[method], y=[lk_count], 
                        marker_color=colors["LK"], opacity=1,
+                       showlegend=False),
+                row=1, col=col
+            )
+            fig.add_trace(
+                go.Bar(name=f'{method}', x=[method], y=[pk_count], 
+                       marker_color=colors["PK"], opacity=1,
                        showlegend=False),
                 row=1, col=col
             )
@@ -193,7 +209,7 @@ def create_interactive_target_count_plot(nk_data, lk_data, nk_gt_stats, lk_gt_st
     
     return fig
 
-def create_interactive_performance_plot(nk_data, lk_data, selected_methods, selected_metric):
+def create_interactive_performance_plot(nk_data, lk_data, pk_data, selected_methods, selected_metric):
     """Create interactive performance metrics plot with scatter points."""
     
     aspects = ['biological_process', 'molecular_function', 'cellular_component']
@@ -235,7 +251,19 @@ def create_interactive_performance_plot(nk_data, lk_data, selected_methods, sele
         ),
         row=1, col=1
     )
-    
+
+    fig.add_trace(
+        go.Scatter(
+            name='Partial Knowledge Proteins',
+            x=[None], y=[None],
+            mode='markers',
+            marker=dict(color='green', size=12, symbol='circle'),
+            showlegend=True,
+            legendgroup='PK_legend'
+        ),
+        row=1, col=1
+    )
+
     # Add legend traces for aspect symbols (only once)
     for i, (aspect, symbol, label) in enumerate(zip(aspects, aspect_symbols, aspect_labels)):
         fig.add_trace(
@@ -256,20 +284,26 @@ def create_interactive_performance_plot(nk_data, lk_data, selected_methods, sele
         # Filter data for current aspect
         nk_aspect = nk_data[nk_data['ns'] == aspect]
         lk_aspect = lk_data[lk_data['ns'] == aspect]
+        pk_aspect = pk_data[pk_data['ns'] == aspect]
         
         nk_values = []
         lk_values = []
+        pk_values = []
         nk_x_positions = []
         lk_x_positions = []
+        pk_x_positions = []
         
         for j, method in enumerate(selected_methods):
             nk_val = nk_aspect[nk_aspect['method'] == method][selected_metric].iloc[0] if len(nk_aspect[nk_aspect['method'] == method]) > 0 else 0
             lk_val = lk_aspect[lk_aspect['method'] == method][selected_metric].iloc[0] if len(lk_aspect[lk_aspect['method'] == method]) > 0 else 0
+            pk_val = pk_aspect[pk_aspect['method'] == method][selected_metric].iloc[0] if len(pk_aspect[pk_aspect['method'] == method]) > 0 else 0
 
             nk_values.append(nk_val)
             lk_values.append(lk_val)
+            pk_values.append(pk_val)
             nk_x_positions.append(j - dodge_offset)
-            lk_x_positions.append(j + dodge_offset)
+            lk_x_positions.append(j)
+            pk_x_positions.append(j + dodge_offset)
 
         # Add NK scatter points (no legend)
         fig.add_trace(
@@ -310,6 +344,25 @@ def create_interactive_performance_plot(nk_data, lk_data, selected_methods, sele
             ),
             row=1, col=col
         )
+        # Add PK scatter points (no legend)
+        fig.add_trace(
+            go.Scatter(
+                name='',
+                x=pk_x_positions, 
+                y=pk_values,
+                mode='markers',
+                marker=dict(
+                    color='green', size=12, symbol=aspect_symbols[i],
+                    line=dict(color='darkgreen', width=1)
+                ),
+                showlegend=False,
+                legendgroup='PK',
+                text=[f'{val:.3f}, {aspect_labels[i]}' for val in pk_values], 
+                hoverinfo='text',
+                textposition='middle center'
+            ),
+            row=1, col=col
+        )
         
         fig.update_xaxes(
             row=1, col=col, 
@@ -339,7 +392,7 @@ def create_interactive_performance_plot(nk_data, lk_data, selected_methods, sele
     
     return fig
 
-def create_consolidated_performance_plot(nk_data, lk_data, selected_methods):
+def create_consolidated_performance_plot(nk_data, lk_data, pk_data, selected_methods):
     """Create consolidated performance metrics plot showing precision, recall, and F-score."""
     
     metrics = ['pr', 'rc', 'f']
@@ -383,6 +436,18 @@ def create_consolidated_performance_plot(nk_data, lk_data, selected_methods):
         row=1, col=1
     )
     
+    fig.add_trace(
+        go.Scatter(
+            name='Partial Knowledge Proteins',
+            x=[None], y=[None],
+            mode='markers',
+            marker=dict(color='green', size=12, symbol='circle'),
+            showlegend=True,
+            legendgroup='PK_legend'
+        ),
+        row=1, col=1
+    )
+    
     # Add legend traces for aspect symbols (only once)
     for j, (aspect, symbol, label) in enumerate(zip(aspects, aspect_symbols, aspect_labels)):
         fig.add_trace(
@@ -404,22 +469,28 @@ def create_consolidated_performance_plot(nk_data, lk_data, selected_methods):
             # Filter data for current aspect
             nk_aspect = nk_data[nk_data['ns'] == aspect]
             lk_aspect = lk_data[lk_data['ns'] == aspect]
+            pk_aspect = pk_data[pk_data['ns'] == aspect]
             
             # Collect data for this aspect
             nk_values = []
             lk_values = []
+            pk_values = []
             nk_x_positions = []
             lk_x_positions = []
-            
+            pk_x_positions = []
+
             for k, method in enumerate(selected_methods):
                 nk_val = nk_aspect[nk_aspect['method'] == method][metric].iloc[0] if len(nk_aspect[nk_aspect['method'] == method]) > 0 else 0
                 lk_val = lk_aspect[lk_aspect['method'] == method][metric].iloc[0] if len(lk_aspect[lk_aspect['method'] == method]) > 0 else 0
-                
+                pk_val = pk_aspect[pk_aspect['method'] == method][metric].iloc[0] if len(pk_aspect[pk_aspect['method'] == method]) > 0 else 0
+
                 nk_values.append(nk_val)
                 lk_values.append(lk_val)
+                pk_values.append(pk_val)
                 nk_x_positions.append(k - dodge_offset)
                 lk_x_positions.append(k + dodge_offset)
-            
+                pk_x_positions.append(k)
+
             # Add NK scatter points for this aspect (no legend)
             fig.add_trace(
                 go.Scatter(
@@ -459,6 +530,26 @@ def create_consolidated_performance_plot(nk_data, lk_data, selected_methods):
                 ),
                 row=1, col=col
             )
+            
+            # Add PK scatter points for this aspect (no legend)
+            fig.add_trace(
+                go.Scatter(
+                    name='',
+                    x=pk_x_positions,
+                    y=pk_values,
+                    mode='markers',
+                    marker=dict(
+                        color='green', size=10, symbol=aspect_symbols[j],
+                        line=dict(color='darkgreen', width=1)
+                    ),
+                    showlegend=False,
+                    legendgroup='PK',
+                    text=[f'{val:.3f}, {aspect_labels[j]}' for val in pk_values], 
+                    hoverinfo='text',
+                    textposition='middle center'
+                ),
+                row=1, col=col
+            )
         
         # Update x-axis with proper tick positions and labels
         fig.update_xaxes(
@@ -488,7 +579,7 @@ def create_consolidated_performance_plot(nk_data, lk_data, selected_methods):
     
     return fig
 
-def create_interactive_precision_recall_plot(nk_all_data, lk_all_data, selected_methods):
+def create_interactive_precision_recall_plot(nk_all_data, lk_all_data, pk_all_data, selected_methods):
     """Create interactive precision-recall curves for all subsets and aspects."""
     
     # Configuration for precision-recall curves
@@ -499,13 +590,14 @@ def create_interactive_precision_recall_plot(nk_all_data, lk_all_data, selected_
     coverage_threshold = 0.01
     
     aspects = ['biological_process', 'molecular_function', 'cellular_component']
-    subsets = [('NK', nk_all_data), ('LK', lk_all_data)]
-    
+    subsets = [('NK', nk_all_data), ('LK', lk_all_data), ('PK', pk_all_data)]
+
     # Create subplots: 2 rows (NK, LK) x 3 cols (aspects)
     fig = make_subplots(
-        rows=2, cols=3,
+        rows=3, cols=3,
         subplot_titles=[f"{ONTOLOGY_DICT.get(aspect, aspect)} - No Knowledge" for aspect in aspects] + 
-                      [f"{ONTOLOGY_DICT.get(aspect, aspect)} - Limited Knowledge" for aspect in aspects],
+                      [f"{ONTOLOGY_DICT.get(aspect, aspect)} - Limited Knowledge" for aspect in aspects] +
+                      [f"{ONTOLOGY_DICT.get(aspect, aspect)} - Partial Knowledge" for aspect in aspects],
         shared_xaxes=True,
         shared_yaxes=True,
         vertical_spacing=0.1,
@@ -726,8 +818,8 @@ def create_interactive_precision_recall_plot(nk_all_data, lk_all_data, selected_
     return fig
 
 def main():
-    st.title("CAFA Forever")
-    st.markdown("Continuous Critical Assessment of Functional Annotation.")
+    st.title("LAFA")
+    st.markdown("Longitudinal Assessment of Functional Annotation.")
     
     # Get available timepoints
     available_timepoints = get_available_timepoints()
@@ -754,17 +846,20 @@ def main():
     results_dir = Path(selected_timepoint)
     NK_RESULTS_DIR = results_dir / "results_NK"
     LK_RESULTS_DIR = results_dir / "results_LK"
-    
+    PK_RESULTS_DIR = results_dir / "results_PK"
+
     # Auto-detect ground truth files
     gt_files_nk = list(results_dir.glob("groundtruth_*_NK.tsv"))
     gt_files_lk = list(results_dir.glob("groundtruth_*_LK.tsv"))
-    
-    if not gt_files_nk or not gt_files_lk:
+    gt_files_pk = list(results_dir.glob("groundtruth_*_PK.tsv"))
+
+    if not gt_files_nk or not gt_files_lk or not gt_files_pk:
         st.error(f"Ground truth files not found in {results_dir}")
         return
         
     GROUND_TRUTH_NK = gt_files_nk[0]  # Use first match
     GROUND_TRUTH_LK = gt_files_lk[0]  # Use first match
+    GROUND_TRUTH_PK = gt_files_pk[0]  # Use first match
     
     method_names_file = results_dir / "method_names.tsv"
     
@@ -778,15 +873,18 @@ def main():
                 # Load ground truth statistics
                 nk_gt_stats = load_ground_truth_stats(GROUND_TRUTH_NK)
                 lk_gt_stats = load_ground_truth_stats(GROUND_TRUTH_LK)
-                
+                pk_gt_stats = load_ground_truth_stats(GROUND_TRUTH_PK)
+
                 # Load evaluation data
                 nk_data = load_evaluation_data(NK_RESULTS_DIR, 'NK', method_names)
                 lk_data = load_evaluation_data(LK_RESULTS_DIR, 'LK', method_names)
-                
+                pk_data = load_evaluation_data(PK_RESULTS_DIR, 'PK', method_names)
+
                 # Load all evaluation data for precision-recall curves
                 nk_all_data = load_all_evaluation_data(NK_RESULTS_DIR, method_names)
                 lk_all_data = load_all_evaluation_data(LK_RESULTS_DIR, method_names)
-                
+                pk_all_data = load_all_evaluation_data(PK_RESULTS_DIR, method_names)
+
                 # Store in session state
                 st.session_state.update({
                     'data_loaded': True,
@@ -794,10 +892,13 @@ def main():
                     'method_names': method_names,
                     'nk_gt_stats': nk_gt_stats,
                     'lk_gt_stats': lk_gt_stats,
+                    'pk_gt_stats': pk_gt_stats,
                     'nk_data': nk_data,
                     'lk_data': lk_data,
+                    'pk_data': pk_data,
                     'nk_all_data': nk_all_data,
-                    'lk_all_data': lk_all_data
+                    'lk_all_data': lk_all_data,
+                    'pk_all_data': pk_all_data
                 })
                 
                 st.success("Data loaded successfully!")
@@ -821,7 +922,7 @@ def main():
     selected_methods = st.sidebar.multiselect(
         "Select methods to compare:",
         options=all_methods,
-        default=all_methods[:3] if len(all_methods) >= 3 else all_methods,
+        default=all_methods[:4] if len(all_methods) >= 4 else all_methods,
         help="Choose which prediction methods to include in the comparison"
     )
     
@@ -859,24 +960,30 @@ def main():
                 # Get ground truth counts
                 nk_gt_count = st.session_state.nk_gt_stats.get(aspect, 0)
                 lk_gt_count = st.session_state.lk_gt_stats.get(aspect, 0)
-                
+                pk_gt_count = st.session_state.pk_gt_stats.get(aspect, 0)
+
                 # Get predicted counts for this method and aspect
                 nk_aspect = st.session_state.nk_data[st.session_state.nk_data['ns'] == aspect]
                 lk_aspect = st.session_state.lk_data[st.session_state.lk_data['ns'] == aspect]
-                
+                pk_aspect = st.session_state.pk_data[st.session_state.pk_data['ns'] == aspect]
+
                 nk_pred = nk_aspect[nk_aspect['method'] == method]['n'].iloc[0] if len(nk_aspect[nk_aspect['method'] == method]) > 0 else 0
                 lk_pred = lk_aspect[lk_aspect['method'] == method]['n'].iloc[0] if len(lk_aspect[lk_aspect['method'] == method]) > 0 else 0
-                
+                pk_pred = pk_aspect[pk_aspect['method'] == method]['n'].iloc[0] if len(pk_aspect[pk_aspect['method'] == method]) > 0 else 0
+
                 # Calculate percentages
                 nk_pct = (nk_pred / nk_gt_count * 100) if nk_gt_count > 0 else 0
                 lk_pct = (lk_pred / lk_gt_count * 100) if lk_gt_count > 0 else 0
-                
+                pk_pct = (pk_pred / pk_gt_count * 100) if pk_gt_count > 0 else 0
+
                 # Add columns for this aspect with nested structure
                 gt_data[f'{aspect_name}_No Knowledge'] = f"{nk_gt_count}"
                 gt_data[f'{aspect_name}_Limited Knowledge'] = f"{lk_gt_count}"
+                gt_data[f'{aspect_name}_Partial Knowledge'] = f"{pk_gt_count}"
                 row_data[f'{aspect_name}_No Knowledge'] = f"{int(nk_pred)} ({nk_pct:.1f}%)"
                 row_data[f'{aspect_name}_Limited Knowledge'] = f"{int(lk_pred)} ({lk_pct:.1f}%)"
-            
+                row_data[f'{aspect_name}_Partial Knowledge'] = f"{int(pk_pred)} ({pk_pct:.1f}%)"
+
             table_data.append(row_data)
         table_data.append(gt_data)
         
@@ -889,8 +996,8 @@ def main():
         column_order = ['Method']
         for aspect in aspects:
             aspect_name = ASPECT_NAMES[aspect]
-            column_order.extend([f'{aspect_name}_No Knowledge', f'{aspect_name}_Limited Knowledge'])
-        
+            column_order.extend([f'{aspect_name}_No Knowledge', f'{aspect_name}_Limited Knowledge', f'{aspect_name}_Partial Knowledge'])
+
         df_targets = df_targets[column_order]
         
         
@@ -914,7 +1021,8 @@ def main():
         for aspect in aspects:
             html_table += '<th style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #f0f2f6;">No Knowledge</th>'
             html_table += '<th style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #f0f2f6;">Limited Knowledge</th>'
-        
+            html_table += '<th style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #f0f2f6;">Partial Knowledge</th>'
+
         html_table += "</tr></thead><tbody>"
         
         # Add data rows
@@ -926,9 +1034,11 @@ def main():
                 aspect_name = ASPECT_NAMES[aspect]
                 nk_value = row[f'{aspect_name}_No Knowledge']
                 lk_value = row[f'{aspect_name}_Limited Knowledge']
+                pk_value = row[f'{aspect_name}_Partial Knowledge']
                 
                 html_table += f'<td style="border: 1px solid #ddd; padding: 4px; text-align: center;">{nk_value}</td>'
                 html_table += f'<td style="border: 1px solid #ddd; padding: 4px; text-align: center;">{lk_value}</td>'
+                html_table += f'<td style="border: 1px solid #ddd; padding: 4px; text-align: center;">{pk_value}</td>'
             
             html_table += "</tr>"
         
@@ -969,7 +1079,8 @@ def main():
         if plot_type == 'consolidated':
             fig = create_consolidated_performance_plot(
                 st.session_state.nk_data, 
-                st.session_state.lk_data, 
+                st.session_state.lk_data,
+                st.session_state.pk_data,
                 selected_methods
             )
             st.plotly_chart(fig, use_container_width=True)
@@ -984,7 +1095,8 @@ def main():
             fig = create_interactive_performance_plot(
                 st.session_state.nk_data, 
                 st.session_state.lk_data, 
-                selected_methods, 
+                st.session_state.pk_data,
+                selected_methods,
                 selected_metric
             )
             st.plotly_chart(fig, use_container_width=True)
@@ -996,6 +1108,7 @@ def main():
         fig = create_interactive_precision_recall_plot(
             st.session_state.nk_all_data,
             st.session_state.lk_all_data,
+            st.session_state.pk_all_data,
             selected_methods
         )
         st.plotly_chart(fig, use_container_width=True)
@@ -1007,8 +1120,8 @@ def main():
         # Create summary data
         aspects = ['biological_process', 'molecular_function', 'cellular_component']
         summary_data = []
-        
-        for subset, data in [('NK', st.session_state.nk_data), ('LK', st.session_state.lk_data)]:
+
+        for subset, data in [('NK', st.session_state.nk_data), ('LK', st.session_state.lk_data), ('PK', st.session_state.pk_data)]:
             for aspect in aspects:
                 aspect_data = data[data['ns'] == aspect]
                 
