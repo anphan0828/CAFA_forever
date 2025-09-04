@@ -225,7 +225,7 @@ def create_interactive_performance_plot(nk_data, lk_data, pk_data, selected_meth
     colors = px.colors.qualitative.Set1
     # Prepare data for plotting
     x_pos = np.arange(len(selected_methods))
-    dodge_offset = 0.1  # offset for dodging points
+    dodge_offset = 0.15  # offset for dodging points
     
     # Add legend traces for knowledge types (only once)
     fig.add_trace(
@@ -419,7 +419,8 @@ def create_consolidated_performance_plot(nk_data, lk_data, pk_data, selected_met
             mode='markers',
             marker=dict(color='red', size=12, symbol='circle'),
             showlegend=True,
-            legendgroup='NK_legend'
+            legendgroup='NK_legend',
+            legendrank=1
         ),
         row=1, col=1
     )
@@ -431,7 +432,8 @@ def create_consolidated_performance_plot(nk_data, lk_data, pk_data, selected_met
             mode='markers',
             marker=dict(color='blue', size=12, symbol='circle'),
             showlegend=True,
-            legendgroup='LK_legend'
+            legendgroup='LK_legend',
+            legendrank=1
         ),
         row=1, col=1
     )
@@ -443,7 +445,8 @@ def create_consolidated_performance_plot(nk_data, lk_data, pk_data, selected_met
             mode='markers',
             marker=dict(color='green', size=12, symbol='circle'),
             showlegend=True,
-            legendgroup='PK_legend'
+            legendgroup='PK_legend',
+            legendrank=1
         ),
         row=1, col=1
     )
@@ -457,7 +460,8 @@ def create_consolidated_performance_plot(nk_data, lk_data, pk_data, selected_met
                 mode='markers',
                 marker=dict(color='black', size=12, symbol=symbol),
                 showlegend=True,
-                legendgroup=f'aspect_{j}'
+                legendgroup=f'aspect_{j}',
+                legendrank=2
             ),
             row=1, col=1
         )
@@ -488,8 +492,8 @@ def create_consolidated_performance_plot(nk_data, lk_data, pk_data, selected_met
                 lk_values.append(lk_val)
                 pk_values.append(pk_val)
                 nk_x_positions.append(k - dodge_offset)
-                lk_x_positions.append(k + dodge_offset)
-                pk_x_positions.append(k)
+                lk_x_positions.append(k)
+                pk_x_positions.append(k + dodge_offset)
 
             # Add NK scatter points for this aspect (no legend)
             fig.add_trace(
@@ -592,7 +596,7 @@ def create_interactive_precision_recall_plot(nk_all_data, lk_all_data, pk_all_da
     aspects = ['biological_process', 'molecular_function', 'cellular_component']
     subsets = [('NK', nk_all_data), ('LK', lk_all_data), ('PK', pk_all_data)]
 
-    # Create subplots: 2 rows (NK, LK) x 3 cols (aspects)
+    # Create subplots: 3 rows (NK, LK, PK) x 3 cols (aspects)
     fig = make_subplots(
         rows=3, cols=3,
         subplot_titles=[f"{ONTOLOGY_DICT.get(aspect, aspect)} - No Knowledge" for aspect in aspects] + 
@@ -792,7 +796,7 @@ def create_interactive_precision_recall_plot(nk_all_data, lk_all_data, pk_all_da
     )
     
     # Update all x-axes with larger fonts
-    for row in range(1, 3):
+    for row in range(1, 4):
         for col in range(1, 4):
             fig.update_xaxes(
                 title_text="Recall" if row == 2 else "",
@@ -804,7 +808,7 @@ def create_interactive_precision_recall_plot(nk_all_data, lk_all_data, pk_all_da
             )
     
     # Update all y-axes with larger fonts  
-    for row in range(1, 3):
+    for row in range(1, 4):
         for col in range(1, 4):
             fig.update_yaxes(
                 title_text="Precision" if col == 1 else "",
@@ -1013,7 +1017,7 @@ def main():
         # Add top-level headers (aspects)
         for aspect in aspects:
             aspect_name = ASPECT_NAMES[aspect]
-            html_table += f'<th colspan="2" style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #e1e5e9;">{aspect_name}</th>'
+            html_table += f'<th colspan="3" style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #e1e5e9;">{aspect_name}</th>'
         
         html_table += "</tr><tr style='background-color: #f0f2f6;'>"
         
