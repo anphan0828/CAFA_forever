@@ -951,7 +951,7 @@ def main():
         st.markdown(f"UniProt version (for ground truth): {DATA_DATES[selected_timepoint].get('uniprot_end', 'N/A')}")
     with col2:
         st.header("Number of Targets")
-        st.markdown("Compare the number of proteins each method made predictions for versus the total available in ground truth.")
+        st.markdown("Compare the number of proteins each method made predictions for (at its best F-score) versus the total available in ground truth.")
 
         # Create target count table
         aspects = ['biological_process', 'molecular_function', 'cellular_component']
