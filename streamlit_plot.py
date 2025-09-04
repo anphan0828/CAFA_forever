@@ -762,15 +762,21 @@ def create_interactive_precision_recall_plot(nk_all_data, lk_all_data, pk_all_da
                     for i, text in enumerate(legend_text)
                 ])
                 
-                # Calculate subplot reference
-                if row == 1 and col == 1:
+                # Calculate subplot reference dynamically
+                subplot_number = (row - 1) * 3 + col
+                
+                if subplot_number == 1:
                     xref, yref = "x", "y"
-                elif row == 1:
-                    xref, yref = f"x{col}", f"y{col}"
-                elif col == 1:
-                    xref, yref = f"x{3 + col}", f"y{3 + col}"
                 else:
-                    xref, yref = f"x{3 + col}", f"y{3 + col}"
+                    xref, yref = f"x{subplot_number}", f"y{subplot_number}"
+                # if row == 1 and col == 1:
+                #     xref, yref = "x", "y"
+                # elif row == 1:
+                #     xref, yref = f"x{col}", f"y{col}"
+                # elif col == 1:
+                #     xref, yref = f"x{3 + col}", f"y{3 + col}"
+                # else:
+                #     xref, yref = f"x{3 + col}", f"y{3 + col}"
                 
                 fig.add_annotation(
                     text=legend_html,
@@ -799,7 +805,7 @@ def create_interactive_precision_recall_plot(nk_all_data, lk_all_data, pk_all_da
     for row in range(1, 4):
         for col in range(1, 4):
             fig.update_xaxes(
-                title_text="Recall" if row == 2 else "",
+                title_text="Recall" if row == 3 else "",
                 title_font=dict(size=22, color='black'),  # matching rcParams font.size=22
                 range=[0, 1],
                 tickfont=dict(size=18, color='black'),
