@@ -81,7 +81,7 @@ def load_evaluation_data(results_dir, subset_name, method_names):
     """Load and process evaluation data from a results directory."""
     
     # Load best F-score results for summary metrics
-    best_f_file = results_dir / "evaluation_best_f.tsv"
+    best_f_file = results_dir / "evaluation_best_f_micro.tsv"
     df_best = pd.read_csv(best_f_file, sep='\t')
     
     # Clean up method names
@@ -101,7 +101,7 @@ def load_all_evaluation_data(results_dir, method_names):
     
     return df_all
 
-def create_interactive_target_count_plot(nk_data, lk_data, nk_gt_stats, lk_gt_stats, pk_gt_stats, selected_methods):
+def create_interactive_target_count_plot(nk_data, lk_data, pk_data, nk_gt_stats, lk_gt_stats, pk_gt_stats, selected_methods):
     """Create interactive bar chart comparing number of predicted targets vs ground truth."""
     
     aspects = ['biological_process', 'molecular_function', 'cellular_component']
@@ -395,7 +395,7 @@ def create_interactive_performance_plot(nk_data, lk_data, pk_data, selected_meth
 def create_consolidated_performance_plot(nk_data, lk_data, pk_data, selected_methods):
     """Create consolidated performance metrics plot showing precision, recall, and F-score."""
     
-    metrics = ['pr', 'rc', 'f']
+    metrics = ['pr_micro', 'rc_micro', 'f_micro']
     metric_names = ['Precision', 'Recall', 'F-score']
     aspects = ['biological_process', 'molecular_function', 'cellular_component']
     aspect_symbols = ['circle', 'square', 'triangle-up']
@@ -587,8 +587,8 @@ def create_interactive_precision_recall_plot(nk_all_data, lk_all_data, pk_all_da
     """Create interactive precision-recall curves for all subsets and aspects."""
     
     # Configuration for precision-recall curves
-    metric = 'f'
-    cols = ['rc', 'pr']
+    metric = 'f_micro'
+    cols = ['rc_micro', 'pr_micro']
     cumulate = True
     add_extreme_points = False
     coverage_threshold = 0.01
@@ -1060,8 +1060,10 @@ def main():
         # fig = create_interactive_target_count_plot(
         #     st.session_state.nk_data, 
         #     st.session_state.lk_data, 
+        #     st.session_state.pk_data,
         #     st.session_state.nk_gt_stats, 
         #     st.session_state.lk_gt_stats, 
+        #     st.session_state.pk_gt_stats, 
         #     selected_methods
         # )
         # st.plotly_chart(fig, use_container_width=True)
@@ -1075,6 +1077,7 @@ def main():
     
         st.header("Performance Metrics Comparison")
         st.markdown("Compare the performance of methods with precision, recall, and F-score metrics.")
+        st.markdown("These metrics are micro-averaged, where all true positives, false positives, and false negatives are pooled together across all proteins before calculating the metrics (each prediction is equally-weighted).")
         plot_type = st.radio(
             "Select plot type:",
             options=['consolidated', 'individual'],
@@ -1097,8 +1100,8 @@ def main():
         else:
             selected_metric = st.selectbox(
                 "Select metric:",
-                options=['pr', 'rc', 'f', 'cov'],
-                format_func=lambda x: {'pr': 'Precision', 'rc': 'Recall', 'f': 'F-score', 'cov': 'Coverage'}[x],
+                options=['pr_micro', 'rc_micro', 'f_micro', 'cov'],
+                format_func=lambda x: {'pr_micro': 'Precision', 'rc_micro': 'Recall', 'f_micro': 'F-score', 'cov': 'Coverage'}[x],
                 index=2
             )
             
@@ -1145,9 +1148,9 @@ def main():
                             'Aspect': ASPECT_NAMES[aspect],
                             'Method': method,
                             'Targets_Predicted': int(row['n']),
-                            'Precision': f"{row['pr']:.3f}",
-                            'Recall': f"{row['rc']:.3f}",
-                            'F-score': f"{row['f']:.3f}",
+                            'Precision': f"{row['pr_micro']:.3f}",
+                            'Recall': f"{row['rc_micro']:.3f}",
+                            'F-score': f"{row['f_micro']:.3f}",
                             'Coverage': f"{row['cov']:.3f}",
                             'Threshold': f"{row['tau']:.3f}"
                         })
