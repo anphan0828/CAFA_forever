@@ -47,9 +47,6 @@ lafa/
 .DS_Store
 Thumbs.db
 
-# Streamlit
-.streamlit/
-
 # Data files (temporary/cache)
 *.tmp
 *.cache
