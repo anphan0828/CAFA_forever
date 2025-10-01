@@ -58,3 +58,12 @@ STREAMLIT_CONFIG = {
     'layout': "wide",
     'initial_sidebar_state': "expanded"
 }
+
+# Docker-specific settings
+if os.getenv('DOCKER_ENV'):
+    STREAMLIT_CONFIG.update({
+        "server.port": int(os.getenv('STREAMLIT_SERVER_PORT', 8501)),
+        "server.address": os.getenv('STREAMLIT_SERVER_ADDRESS', '0.0.0.0'),
+        "server.headless": True,
+        "browser.gatherUsageStats": False
+    })
