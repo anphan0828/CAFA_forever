@@ -26,39 +26,33 @@ style = "normal"
 weight = 700
 
 [[theme.fontFaces]]
-family = "JetBrainsMono"
-url = "app/static/JetBrainsMono-Regular.ttf"
+family = "SourceCodePro"
+url = "app/static/SourceCodePro-Regular.ttf"
 style = "normal"
 weight = 400
 
 [[theme.fontFaces]]
-family = "JetBrainsMono"
-url = "app/static/JetBrainsMono-Medium.ttf"
+family = "SourceCodePro"
+url = "app/static/SourceCodePro-SemiBold.ttf"
 style = "normal"
-weight = 500
-
-[[theme.fontFaces]]
-family = "JetBrainsMono"
-url = "app/static/JetBrainsMono-Bold.ttf"
-style = "normal"
-weight = 700
+weight = 600
 
 [theme]
-# 🌙 DARK MODE DEVELOPER PALETTE 🌙
-primaryColor = "#a855f7"             # Purple-500 - vibrant, code-like accent
-backgroundColor = "#0d1117"          # GitHub-like dark background - developer comfort
-secondaryBackgroundColor = "#161b22" # Slightly lighter - cards and sections
-textColor = "#f0f6fc"                # Light blue-white - easy on eyes
-linkColor = "#58a6ff"                # GitHub-like blue - familiar developer color
-borderColor = "#30363d"              # Dark gray borders - subtle definition
+# Professional color palette
+primaryColor = "#1e3a8a"             # Deep navy blue - trust, stability, authority
+backgroundColor = "#fefefe"          # Off-white - softer than pure white, easier on eyes
+secondaryBackgroundColor = "#f8fafc" # Very light gray - subtle distinction
+textColor = "#1f2937"                # Charcoal gray - professional, highly readable
+linkColor = "#1e40af"                # Slightly lighter navy for links
+borderColor = "#d1d5db"              # Medium gray borders - clear definition
 showWidgetBorder = true
-baseRadius = "0.375rem"              # Moderate rounding - modern feel
-font = "Inter"                       # Inter - clean, developer-friendly
-headingFont = "Inter"                # Consistent hierarchy
-codeFont = "JetBrainsMono"           # JetBrains Mono - popular with developers
-codeBackgroundColor = "#21262d"      # Darker code background - clear distinction
+baseRadius = "0.375rem"              # Subtle rounding - professional but not sharp
+font = "Inter"                       # Inter - professional enterprise typography
+headingFont = "Inter"                # Consistent typography hierarchy
+codeFont = "SourceCodePro"           # Source Code Pro - clean, professional
+codeBackgroundColor = "#f3f4f6"      # Light gray code background
 showSidebarBorder = true
 
 [theme.sidebar]
-backgroundColor = "#161b22"          # Darker sidebar - VS Code style
-secondaryBackgroundColor = "#21262d" # Code-like sections
+backgroundColor = "#f1f5f9"          # Light blue-gray - sophisticated sidebar
+secondaryBackgroundColor = "#e5e7eb" # Slightly darker for content sections
