@@ -23,6 +23,58 @@ from config import get_available_timepoints, STREAMLIT_CONFIG, GO_ASPECTS, DATA_
 # Configure Streamlit page
 st.set_page_config(**STREAMLIT_CONFIG)
 
+def inject_iastate_theme():
+    css_path = Path("static/iastate/streamlit_iastate.css")
+    if css_path.exists():
+        st.markdown(f"<style>{css_path.read_text()}</style>", unsafe_allow_html=True)
+
+def _load_isu_logo_svg():
+    logo_path = Path("static/iastate/iowa-state-university-logo-with-tagline-red.svg")
+    if logo_path.exists():
+        return logo_path.read_text()
+    return "<span>Iowa State University of Science and Technology</span>"
+
+def _load_isu_logo_svg_white():
+    logo_path = Path("static/iastate/iowa-state-university-logo-with-tagline-sci-tech.svg")
+    if logo_path.exists():
+        return logo_path.read_text()
+    return "<span>Iowa State University of Science and Technology</span>"
+
+def render_iastate_header():
+    logo_svg = _load_isu_logo_svg()
+    st.markdown(
+        f"""
+        <header class="isu-header">
+          <div class="isu-header__inner">
+            <div class="isu-header__logo">{logo_svg}</div>
+            <div class="isu-header__title">LAFA - Longitudinal Assessment of Functional Annotation</div>
+          </div>
+        </header>
+        """,
+        unsafe_allow_html=True,
+    )
+
+def render_iastate_footer():
+    logo_svg = _load_isu_logo_svg_white()
+    st.markdown(
+        f"""
+        <footer class="site-footer">
+          <div class="site-footer__flex-wrap">
+            <a href="https://www.iastate.edu" class="site-footer__logo">{logo_svg}
+            </a>
+          </div>
+          <div class="site-footer__bottom-wrap">
+            <div class="site-footer__copyright">
+              <p>© Iowa State University of Science and Technology</p>
+            </div>
+          </div>
+        </footer>
+        """,
+        unsafe_allow_html=True,
+    )
+
+inject_iastate_theme()
+
 # Use the GO_ASPECTS from config, but keep backward compatibility
 ASPECT_NAMES = {
     'P': 'Biological Process',
@@ -828,6 +880,7 @@ def create_interactive_precision_recall_plot(nk_all_data, lk_all_data, pk_all_da
     return fig
 
 def main():
+    render_iastate_header()
     st.title("LAFA")
     st.markdown("Longitudinal Assessment of Functional Annotation.")
     
@@ -1166,7 +1219,7 @@ def main():
             file_name="cafa6_summary_metrics.csv",
             mime="text/csv"
         )
+    render_iastate_footer()
 
 if __name__ == "__main__":
     main()
-

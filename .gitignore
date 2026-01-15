@@ -47,6 +47,9 @@ lafa/
 .DS_Store
 Thumbs.db
 
+# Themes
+iastate22-frontend-master/*
+
 # Data files (temporary/cache)
 *.tmp
 *.cache
