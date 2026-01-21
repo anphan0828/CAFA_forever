@@ -912,9 +912,9 @@ def main():
     PK_RESULTS_DIR = results_dir / "results_PK"
 
     # Auto-detect ground truth files
-    gt_files_nk = list(results_dir.glob("groundtruth_*_NK.tsv"))
-    gt_files_lk = list(results_dir.glob("groundtruth_*_LK.tsv"))
-    gt_files_pk = list(results_dir.glob("groundtruth_*_PK.tsv"))
+    gt_files_nk = list(results_dir.glob("groundtruth_NK.tsv"))
+    gt_files_lk = list(results_dir.glob("groundtruth_LK.tsv"))
+    gt_files_pk = list(results_dir.glob("groundtruth_PK.tsv"))
 
     if not gt_files_nk or not gt_files_lk or not gt_files_pk:
         st.error(f"Ground truth files not found in {results_dir}")

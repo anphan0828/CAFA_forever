@@ -8,6 +8,7 @@ tmp*
 
 # Large CAFA6 data
 cafa6/*
+AlphaFoldDB_v6/*
 
 # Python
 __pycache__/
@@ -47,15 +48,21 @@ lafa/
 .DS_Store
 Thumbs.db
 
-# Themes
-iastate22-frontend-master/*
-
 # Data files (temporary/cache)
 *.tmp
 *.cache
+cache/*
+checkpoints_*/
+Apr_2025/*
+Jun_2025/*
+Oct_2025/*
+AprJun/predictions/*
+AprJun/old_predictions/*
 
 # Logs
 *.log
+*.out
+*.err
 
 # Notes
 00notes

@@ -1,0 +1,5 @@
+filename	label	group
+blast_predictions.tsv	BLAST	BLAST
+goa_nonexp_predictions.tsv	GOA Non-exp	GOA Non-exp
+naive_predictions.tsv	Naive	Naive
+prott5_predictions.tsv	ProtT5	ProtT5

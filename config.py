@@ -11,18 +11,25 @@ BASE_DIR = Path(__file__).parent
 
 # Data directories
 DATA_DIRS = {
-    'AprJun': BASE_DIR / 'AprJun',
+    'Apr_2025_Jun_2025': BASE_DIR / 'Apr_2025_Jun_2025',
+    'Jun_2025_Oct_2025': BASE_DIR / 'Jun_2025_Oct_2025',
     # Add more timepoints as they become available
     # 'JulSep': BASE_DIR / 'JulSep',
     # 'OctDec': BASE_DIR / 'OctDec',
 }
 
 DATA_DATES = {
-    'AprJun': {
+    'Apr_2025_Jun_2025': {
         'go_start': '2025-03-16',
         'go_end': '2025-06-01',
         'uniprot_start': '2025_02 (2025-04-09)',
         'uniprot_end': '2025_03 (2025-06-18)',
+    },
+    'Jun_2025_Oct_2025': {
+        'go_start': '2025-06-01',
+        'go_end': '2025-10-10',
+        'uniprot_start': '2025_03 (2025-06-18)',
+        'uniprot_end': '2025_04 (2025-10-15)',
     }
 }
 
