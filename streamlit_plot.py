@@ -133,7 +133,7 @@ def load_evaluation_data(results_dir, subset_name, method_names):
     """Load and process evaluation data from a results directory."""
     
     # Load best F-score results for summary metrics
-    best_f_file = results_dir / "evaluation_best_f_micro.tsv"
+    best_f_file = results_dir / "evaluation_best_f_micro_w.tsv"
     df_best = pd.read_csv(best_f_file, sep='\t')
     
     # Clean up method names
