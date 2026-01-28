@@ -5,3 +5,4 @@ naive_predictions.tsv	Naive	Naive
 prott5_predictions.tsv	ProtT5	ProtT5
 transfew_predictions.tsv	TransFew	TransFew
 funbind_predictions.tsv	FunBind	FunBind
+deepgoplus_predictions.tsv	DeepGOPlus	DeepGOPlus
