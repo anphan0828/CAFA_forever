@@ -53,11 +53,11 @@ Thumbs.db
 *.cache
 cache/*
 checkpoints_*/
+deepgoplus_data/*
 Apr_2025/*
 Jun_2025/*
 Oct_2025/*
-AprJun/predictions/*
-AprJun/old_predictions/*
+groundtruth_targets.fasta*
 
 # Logs
 *.log
