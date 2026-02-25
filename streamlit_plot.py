@@ -17,6 +17,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
+from html import escape
 from pathlib import Path
 from config import get_available_timepoints, STREAMLIT_CONFIG, GO_ASPECTS, DATA_DATES
 
@@ -90,13 +91,75 @@ ONTOLOGY_DICT = {
     'cellular_component': 'CCO'
 }
 
+MAX_SELECTED_METHODS = 30
+ALLOWED_PLOT_TYPES = {'consolidated', 'individual'}
+ALLOWED_METRICS = {'pr_micro_w', 'rc_micro_w', 'f_micro_w', 'cov_w'}
+ALLOWED_ASPECTS = {'biological_process', 'molecular_function', 'cellular_component'}
+
+REQUIRED_GT_COLUMNS = {'EntryID', 'aspect'}
+REQUIRED_BEST_COLUMNS = {'filename', 'ns', 'n', 'pr_micro_w', 'rc_micro_w', 'f_micro_w', 'cov_w', 'tau'}
+REQUIRED_ALL_COLUMNS = {'filename', 'ns', 'tau', 'cov', 'rc_micro_w', 'pr_micro_w', 'f_micro_w'}
+REQUIRED_METHOD_COLUMNS = {'filename', 'label'}
+
+
+def validate_enum(value, allowed_values, field_name):
+    """Validate that a value is an allowed enum entry."""
+    if value not in allowed_values:
+        raise ValueError(f"Invalid {field_name}: {value}")
+    return value
+
+
+def validate_required_columns(df, required_columns, dataframe_name):
+    """Validate required columns exist before any downstream processing."""
+    missing_cols = sorted(required_columns - set(df.columns))
+    if missing_cols:
+        raise ValueError(f"{dataframe_name} missing required columns: {', '.join(missing_cols)}")
+
+
+def validate_numeric_columns(df, numeric_columns, dataframe_name):
+    """Validate numeric columns can be parsed and contain finite values."""
+    for col in numeric_columns:
+        if col not in df.columns:
+            continue
+        numeric_series = pd.to_numeric(df[col], errors='coerce')
+        if numeric_series.isna().any():
+            raise ValueError(f"{dataframe_name} has non-numeric values in column '{col}'")
+
+
+def validate_ns_values(df, dataframe_name):
+    """Validate ontology namespace values are constrained to known aspects."""
+    if 'ns' in df.columns:
+        invalid_ns = sorted(set(df['ns'].dropna().astype(str)) - ALLOWED_ASPECTS)
+        if invalid_ns:
+            raise ValueError(f"{dataframe_name} has invalid ns values: {', '.join(invalid_ns)}")
+
+
+def validate_timepoint(selected_timepoint, available_timepoints):
+    """Server-side validation for user-selected timepoint."""
+    validate_enum(selected_timepoint, set(available_timepoints), "timepoint")
+    return selected_timepoint
+
+
+def validate_selected_methods(selected_methods, available_methods):
+    """Server-side validation for selected methods."""
+    if not selected_methods:
+        raise ValueError("Please select at least one method to compare.")
+    if len(selected_methods) > MAX_SELECTED_METHODS:
+        raise ValueError(f"Please select {MAX_SELECTED_METHODS} methods or fewer.")
+    invalid_methods = sorted(set(selected_methods) - set(available_methods))
+    if invalid_methods:
+        raise ValueError(f"Invalid method selection: {', '.join(invalid_methods)}")
+    return selected_methods
+
 @st.cache_data
 def load_method_names(method_names_file):
     """Load method names mapping from TSV file."""
     if method_names_file and Path(method_names_file).exists():
-        df_methods = pd.read_csv(method_names_file, sep='\t')
-        if 'filename' in df_methods.columns and 'label' in df_methods.columns:
-            return dict(zip(df_methods['filename'], df_methods['label']))
+        df_methods = pd.read_csv(method_names_file, sep='\t', dtype=str)
+        validate_required_columns(df_methods, REQUIRED_METHOD_COLUMNS, "method_names.tsv")
+        df_methods = df_methods.dropna(subset=['filename', 'label'])
+        if not df_methods.empty:
+            return dict(zip(df_methods['filename'].str.strip(), df_methods['label'].str.strip()))
         else:
             st.warning("method_names file should have 'filename' and 'label' columns")
             return {}
@@ -108,6 +171,7 @@ def load_method_names(method_names_file):
 def load_ground_truth_stats(ground_truth_file):
     """Load ground truth data and calculate statistics by aspect."""
     df_gt = pd.read_csv(ground_truth_file, sep='\t')
+    validate_required_columns(df_gt, REQUIRED_GT_COLUMNS, f"{ground_truth_file}")
     
     # Map single letter aspects to full names for consistency
     df_gt['aspect_full'] = df_gt['aspect'].map({
@@ -135,6 +199,9 @@ def load_evaluation_data(results_dir, subset_name, method_names):
     # Load best F-score results for summary metrics
     best_f_file = results_dir / "evaluation_best_f_micro_w.tsv"
     df_best = pd.read_csv(best_f_file, sep='\t')
+    validate_required_columns(df_best, REQUIRED_BEST_COLUMNS, f"{best_f_file}")
+    validate_ns_values(df_best, f"{best_f_file}")
+    validate_numeric_columns(df_best, ['n', 'pr_micro_w', 'rc_micro_w', 'f_micro_w', 'cov_w', 'tau'], f"{best_f_file}")
     
     # Clean up method names
     df_best['method'] = df_best['filename'].map(method_names).fillna(df_best['filename'])
@@ -147,6 +214,9 @@ def load_all_evaluation_data(results_dir, method_names):
     """Load all evaluation data for precision-recall curves."""
     eval_all_file = results_dir / "evaluation_all.tsv"
     df_all = pd.read_csv(eval_all_file, sep='\t')
+    validate_required_columns(df_all, REQUIRED_ALL_COLUMNS, f"{eval_all_file}")
+    validate_ns_values(df_all, f"{eval_all_file}")
+    validate_numeric_columns(df_all, ['tau', 'cov', 'rc_micro_w', 'pr_micro_w', 'f_micro_w'], f"{eval_all_file}")
     
     # Clean up method names
     df_all['method'] = df_all['filename'].map(method_names).fillna(df_all['filename'])
@@ -287,7 +357,7 @@ def create_interactive_performance_plot(nk_data, lk_data, pk_data, selected_meth
             mode='markers',
             marker=dict(color='red', size=12, symbol='circle'),
             showlegend=True,
-            legendgroup='NK_legend'
+            legendgroup='NK'
         ),
         row=1, col=1
     )
@@ -299,7 +369,7 @@ def create_interactive_performance_plot(nk_data, lk_data, pk_data, selected_meth
             mode='markers',
             marker=dict(color='blue', size=12, symbol='circle'),
             showlegend=True,
-            legendgroup='LK_legend'
+            legendgroup='LK'
         ),
         row=1, col=1
     )
@@ -311,7 +381,7 @@ def create_interactive_performance_plot(nk_data, lk_data, pk_data, selected_meth
             mode='markers',
             marker=dict(color='green', size=12, symbol='circle'),
             showlegend=True,
-            legendgroup='PK_legend'
+            legendgroup='PK'
         ),
         row=1, col=1
     )
@@ -427,8 +497,10 @@ def create_interactive_performance_plot(nk_data, lk_data, pk_data, selected_meth
 
     
     fig.update_layout(
-        title_text=f"{selected_metric.upper()} Comparison (Best F-score threshold)",
         height=600,
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
+        font=dict(color="#212529"),
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -436,7 +508,7 @@ def create_interactive_performance_plot(nk_data, lk_data, pk_data, selected_meth
             xanchor="center",
             x=0.5
         ),
-        legend_font=dict(size=16)
+        legend_font=dict(size=16, color="#212529")
     )
     fig.update_yaxes(title_text=selected_metric.upper(), row=1, col=1, range=[0, 1],
                      tickfont=dict(size=16, color='black'), title_font=dict(size=18, color='black'),
@@ -471,7 +543,7 @@ def create_consolidated_performance_plot(nk_data, lk_data, pk_data, selected_met
             mode='markers',
             marker=dict(color='red', size=12, symbol='circle'),
             showlegend=True,
-            legendgroup='NK_legend',
+            legendgroup='NK',
             legendrank=1
         ),
         row=1, col=1
@@ -484,7 +556,7 @@ def create_consolidated_performance_plot(nk_data, lk_data, pk_data, selected_met
             mode='markers',
             marker=dict(color='blue', size=12, symbol='circle'),
             showlegend=True,
-            legendgroup='LK_legend',
+            legendgroup='LK',
             legendrank=1
         ),
         row=1, col=1
@@ -497,7 +569,7 @@ def create_consolidated_performance_plot(nk_data, lk_data, pk_data, selected_met
             mode='markers',
             marker=dict(color='green', size=12, symbol='circle'),
             showlegend=True,
-            legendgroup='PK_legend',
+            legendgroup='PK',
             legendrank=1
         ),
         row=1, col=1
@@ -618,8 +690,10 @@ def create_consolidated_performance_plot(nk_data, lk_data, pk_data, selected_met
         )
     
     fig.update_layout(
-        title_text="Performance Metrics Comparison (Best F-score threshold)",
         height=600,
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
+        font=dict(color="#212529"),
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -627,7 +701,7 @@ def create_consolidated_performance_plot(nk_data, lk_data, pk_data, selected_met
             xanchor="center",
             x=0.5
         ),
-        legend_font=dict(size=16)
+        legend_font=dict(size=16, color="#212529")
     )
     fig.update_yaxes(title_text="Score", row=1, col=1, range=[0, 1],
                      tickfont=dict(size=16, color='black'), title_font=dict(size=18, color='black'),
@@ -849,6 +923,9 @@ def create_interactive_precision_recall_plot(nk_all_data, lk_all_data, pk_all_da
     # Update layout with larger font sizes (matching rcParams font.size=22)
     fig.update_layout(
         height=1000,
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
+        font=dict(color="#212529"),
         width=1500,
         showlegend=False  # Turn off global legend since we use subplot-specific legends
     )
@@ -904,6 +981,7 @@ def main():
     else:
         selected_timepoint = available_timepoints[0]
         st.sidebar.info(f"Using timepoint: {selected_timepoint}")
+    selected_timepoint = validate_timepoint(selected_timepoint, available_timepoints)
         
     # Set up paths based on selected timepoint
     results_dir = Path(selected_timepoint)
@@ -988,9 +1066,10 @@ def main():
         default=all_methods[:4] if len(all_methods) >= 4 else all_methods,
         help="Choose which prediction methods to include in the comparison"
     )
-    
-    if not selected_methods:
-        st.warning("Please select at least one method to compare.")
+    try:
+        selected_methods = validate_selected_methods(selected_methods, all_methods)
+    except ValueError as e:
+        st.warning(str(e))
         return
     
     
@@ -1054,7 +1133,6 @@ def main():
         df_targets = pd.DataFrame(table_data)
         df_targets = df_targets.sort_values(by='Method', ascending=True)
         
-        # Create nested column structure for display
         # First, reorder columns to group by aspect
         column_order = ['Method']
         for aspect in aspects:
@@ -1070,56 +1148,45 @@ def main():
             <table style="width:100%; border-collapse: collapse; margin: 0;">
                 <thead style="position: sticky; top: 0; z-index: 10;">
                     <tr style="background-color: #f0f2f6;">
-                        <th rowspan="2" style="border: 1px solid #ddd; padding: 4px; text-align: center; vertical-align: middle; background-color: #f0f2f6;">Method</th>
+                        <th rowspan="2" style="border: 1px solid #ddd; padding: 4px; text-align: center; vertical-align: middle; background-color: #f0f2f6; color: #212529;">Method</th>
         """
         
         # Add top-level headers (aspects)
         for aspect in aspects:
             aspect_name = ASPECT_NAMES[aspect]
-            html_table += f'<th colspan="3" style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #e1e5e9;">{aspect_name}</th>'
+            html_table += f'<th colspan="3" style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #e1e5e9; color: #212529;">{escape(aspect_name)}</th>'
         
         html_table += "</tr><tr style='background-color: #f0f2f6;'>"
         
         # Add second-level headers (No Knowledge / Limited Knowledge)
         for aspect in aspects:
-            html_table += '<th style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #f0f2f6;">No Knowledge</th>'
-            html_table += '<th style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #f0f2f6;">Limited Knowledge</th>'
-            html_table += '<th style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #f0f2f6;">Partial Knowledge</th>'
+            html_table += '<th style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #f0f2f6; color: #212529;">No Knowledge</th>'
+            html_table += '<th style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #f0f2f6; color: #212529;">Limited Knowledge</th>'
+            html_table += '<th style="border: 1px solid #ddd; padding: 4px; text-align: center; background-color: #f0f2f6; color: #212529;">Partial Knowledge</th>'
 
         html_table += "</tr></thead><tbody>"
         
         # Add data rows
         for _, row in df_targets.iterrows():
             html_table += "<tr>"
-            html_table += f'<td style="border: 1px solid #ddd; padding: 4px; font-weight: {"bold" if "ALL TARGETS" in str(row["Method"]) else "normal"};">{row["Method"]}</td>'
+            method_label = escape(str(row["Method"]))
+            html_table += f'<td style="border: 1px solid #ddd; padding: 4px; color: #212529; font-weight: {"bold" if "ALL TARGETS" in str(row["Method"]) else "normal"};">{method_label}</td>'
             
             for aspect in aspects:
                 aspect_name = ASPECT_NAMES[aspect]
-                nk_value = row[f'{aspect_name}_No Knowledge']
-                lk_value = row[f'{aspect_name}_Limited Knowledge']
-                pk_value = row[f'{aspect_name}_Partial Knowledge']
+                nk_value = escape(str(row[f'{aspect_name}_No Knowledge']))
+                lk_value = escape(str(row[f'{aspect_name}_Limited Knowledge']))
+                pk_value = escape(str(row[f'{aspect_name}_Partial Knowledge']))
                 
-                html_table += f'<td style="border: 1px solid #ddd; padding: 4px; text-align: center;">{nk_value}</td>'
-                html_table += f'<td style="border: 1px solid #ddd; padding: 4px; text-align: center;">{lk_value}</td>'
-                html_table += f'<td style="border: 1px solid #ddd; padding: 4px; text-align: center;">{pk_value}</td>'
+                html_table += f'<td style="border: 1px solid #ddd; padding: 4px; text-align: center; color: #212529;">{nk_value}</td>'
+                html_table += f'<td style="border: 1px solid #ddd; padding: 4px; text-align: center; color: #212529;">{lk_value}</td>'
+                html_table += f'<td style="border: 1px solid #ddd; padding: 4px; text-align: center; color: #212529;">{pk_value}</td>'
             
             html_table += "</tr>"
         
         html_table += "</tbody></table></div>"
         
         st.markdown(html_table, unsafe_allow_html=True)
-
-        # Comment out the original plot
-        # fig = create_interactive_target_count_plot(
-        #     st.session_state.nk_data, 
-        #     st.session_state.lk_data, 
-        #     st.session_state.pk_data,
-        #     st.session_state.nk_gt_stats, 
-        #     st.session_state.lk_gt_stats, 
-        #     st.session_state.pk_gt_stats, 
-        #     selected_methods
-        # )
-        # st.plotly_chart(fig, use_container_width=True)
         
         
     # Main content tabs
@@ -1141,6 +1208,11 @@ def main():
             index=0,
             horizontal=True
         )
+        try:
+            plot_type = validate_enum(plot_type, ALLOWED_PLOT_TYPES, "plot type")
+        except ValueError as e:
+            st.error(str(e))
+            return
         
         if plot_type == 'consolidated':
             fig = create_consolidated_performance_plot(
@@ -1149,7 +1221,7 @@ def main():
                 st.session_state.pk_data,
                 selected_methods
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, config={'width': 'stretch'})
         else:
             selected_metric = st.selectbox(
                 "Select metric:",
@@ -1157,6 +1229,11 @@ def main():
                 format_func=lambda x: {'pr_micro_w': 'Precision', 'rc_micro_w': 'Recall', 'f_micro_w': 'F-score', 'cov_w': 'Coverage'}[x],
                 index=2
             )
+            try:
+                selected_metric = validate_enum(selected_metric, ALLOWED_METRICS, "metric")
+            except ValueError as e:
+                st.error(str(e))
+                return
             
             fig = create_interactive_performance_plot(
                 st.session_state.nk_data, 
@@ -1165,7 +1242,7 @@ def main():
                 selected_methods,
                 selected_metric
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, config={'width': 'stretch'})
     
 
         st.header("Precision-Recall Curves")
@@ -1177,7 +1254,7 @@ def main():
             st.session_state.pk_all_data,
             selected_methods
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, config={'width': 'stretch'})
     
     with tab2:
         st.header("Summary Table")
@@ -1209,7 +1286,7 @@ def main():
                         })
         
         df_summary = pd.DataFrame(summary_data)
-        st.dataframe(df_summary, use_container_width=True)
+        st.dataframe(df_summary, width='stretch')
         
         # Download button
         csv = df_summary.to_csv(index=False)
