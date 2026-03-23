@@ -58,6 +58,8 @@ Apr_2025/*
 Jun_2025/*
 Oct_2025/*
 groundtruth_targets.fasta*
+data/time_points/*
+data/time_periods/*
 
 # Logs
 *.log
