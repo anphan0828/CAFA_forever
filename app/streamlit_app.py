@@ -4,7 +4,6 @@ Interactive CAFA/LAFA results visualization with validated release discovery.
 """
 
 from html import escape
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -18,10 +17,12 @@ from config import (
     STATIC_DIR,
     STREAMLIT_CONFIG,
     SUBSETS,
+    get_available_release_ids,
     get_available_timepoints,
     get_release_catalog,
     get_release_dates,
     get_release_dir,
+    split_release_id,
 )
 
 st.set_page_config(**STREAMLIT_CONFIG)
@@ -46,7 +47,6 @@ SUBSET_LABELS = {
 }
 
 MAX_SELECTED_METHODS = 30
-ALLOWED_PLOT_TYPES = {"consolidated", "individual"}
 ALLOWED_METRICS = {"pr_micro_w", "rc_micro_w", "f_micro_w", "cov_w"}
 ALLOWED_ASPECTS = {"biological_process", "molecular_function", "cellular_component"}
 GROUND_TRUTH_ASPECT_MAP = {
@@ -69,7 +69,6 @@ REQUIRED_BEST_COLUMNS = {
 REQUIRED_ALL_COLUMNS = {"filename", "ns", "tau", "cov", "rc_micro_w", "pr_micro_w", "f_micro_w"}
 REQUIRED_METHOD_COLUMNS = {"filename", "label"}
 REQUIRED_AVAILABILITY_COLUMNS = {"method", "NK", "LK", "PK"}
-REQUIRED_OVERLAP_COLUMNS = {"combination", "count"}
 
 
 def inject_iastate_theme():
@@ -277,10 +276,7 @@ def _ordered_overlap_rows(counts):
         "NK only",
         "LK only",
         "PK only",
-        "NK & LK",
-        "NK & PK",
         "LK & PK",
-        "NK & LK & PK",
     ]
     return pd.DataFrame(
         [{"Combination": label, "Count": int(counts.get(label, 0))} for label in ordered_labels]
@@ -289,26 +285,15 @@ def _ordered_overlap_rows(counts):
 
 @st.cache_data(show_spinner=False)
 def load_target_overlap_counts(release_dir):
-    precomputed_file = release_dir / "target_overlap.tsv"
-    if precomputed_file.exists():
-        df_overlap = pd.read_csv(precomputed_file, sep="\t")
-        validate_required_columns(df_overlap, REQUIRED_OVERLAP_COLUMNS, str(precomputed_file))
-        validate_numeric_columns(df_overlap, ["count"], str(precomputed_file))
-        counts = dict(zip(df_overlap["combination"].astype(str), df_overlap["count"].astype(int)))
-        return _ordered_overlap_rows(counts)
-
     nk_ids = set(load_ground_truth_profile(release_dir / "groundtruth_NK.tsv")["entries"])
     lk_ids = set(load_ground_truth_profile(release_dir / "groundtruth_LK.tsv")["entries"])
     pk_ids = set(load_ground_truth_profile(release_dir / "groundtruth_PK.tsv")["entries"])
 
     counts = {
-        "NK only": len(nk_ids - lk_ids - pk_ids),
-        "LK only": len(lk_ids - nk_ids - pk_ids),
-        "PK only": len(pk_ids - nk_ids - lk_ids),
-        "NK & LK": len((nk_ids & lk_ids) - pk_ids),
-        "NK & PK": len((nk_ids & pk_ids) - lk_ids),
-        "LK & PK": len((lk_ids & pk_ids) - nk_ids),
-        "NK & LK & PK": len(nk_ids & lk_ids & pk_ids),
+        "NK only": len(nk_ids),
+        "LK only": len(lk_ids - pk_ids),
+        "PK only": len(pk_ids - lk_ids),
+        "LK & PK": len(lk_ids & pk_ids),
     }
     return _ordered_overlap_rows(counts)
 
@@ -356,7 +341,7 @@ def create_interactive_performance_plot(bundle, selected_methods, selected_metri
     fig = make_subplots(
         rows=1,
         cols=3,
-        subplot_titles=[f"{ASPECT_NAMES[aspect]} ({release_label})" for aspect in aspects],
+        subplot_titles=[f"{ASPECT_NAMES[aspect]}" for aspect in aspects],
         shared_yaxes=True,
     )
 
@@ -381,7 +366,7 @@ def create_interactive_performance_plot(bundle, selected_methods, selected_metri
     for i, (aspect, symbol, label) in enumerate(zip(aspects, aspect_symbols, aspect_labels)):
         fig.add_trace(
             go.Scatter(
-                name=f"{label} ({ASPECT_NAMES[aspect]})",
+                name=f"{ASPECT_NAMES[aspect]}",
                 x=[None],
                 y=[None],
                 mode="markers",
@@ -427,122 +412,19 @@ def create_interactive_performance_plot(bundle, selected_methods, selected_metri
             tickvals=x_pos,
             ticktext=selected_methods,
             tickfont=dict(size=14, color="#212529"),
+            tickangle=-45,
             linecolor="#212529",
         )
 
     fig.update_layout(
-        height=520,
+        height=600,
         paper_bgcolor="#ffffff",
         plot_bgcolor="#ffffff",
         font=dict(color="#212529"),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.24, xanchor="center", x=0.5),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.5, xanchor="center", x=0.5),
     )
     fig.update_yaxes(
         title_text=selected_metric.upper(),
-        row=1,
-        col=1,
-        range=[0, 1],
-        tickfont=dict(size=14, color="#212529"),
-        linecolor="#212529",
-    )
-    return fig
-
-
-def create_consolidated_performance_plot(bundle, selected_methods, release_label):
-    metrics = ["pr_micro_w", "rc_micro_w", "f_micro_w"]
-    metric_names = ["Precision", "Recall", "F-score"]
-    aspects = ["biological_process", "molecular_function", "cellular_component"]
-    aspect_symbols = ["circle", "square", "triangle-up"]
-    aspect_labels = ["BPO", "MFO", "CCO"]
-    colors = {"NK": "#b31b1b", "LK": "#1f77b4", "PK": "#2a9d5b"}
-
-    fig = make_subplots(
-        rows=1,
-        cols=3,
-        subplot_titles=[f"{name} ({release_label})" for name in metric_names],
-        shared_yaxes=True,
-    )
-
-    x_pos = np.arange(len(selected_methods))
-    dodge_offset = 0.18
-
-    for subset, legend_name in SUBSET_LABELS.items():
-        fig.add_trace(
-            go.Scatter(
-                name=legend_name,
-                x=[None],
-                y=[None],
-                mode="markers",
-                marker=dict(color=colors[subset], size=12, symbol="circle"),
-                showlegend=True,
-                legendgroup=subset,
-            ),
-            row=1,
-            col=1,
-        )
-
-    for aspect, symbol, label in zip(aspects, aspect_symbols, aspect_labels):
-        fig.add_trace(
-            go.Scatter(
-                name=f"{label} ({ASPECT_NAMES[aspect]})",
-                x=[None],
-                y=[None],
-                mode="markers",
-                marker=dict(color="#212529", size=12, symbol=symbol),
-                showlegend=True,
-                legendgroup=f"aspect_{aspect}",
-            ),
-            row=1,
-            col=1,
-        )
-
-    for metric_index, metric in enumerate(metrics):
-        for aspect_index, aspect in enumerate(aspects):
-            for subset_idx, subset in enumerate(SUBSETS):
-                subset_df = bundle["best"][subset]
-                values = [_metric_value(subset_df, method, aspect, metric) for method in selected_methods]
-                positions = [idx + (subset_idx - 1) * dodge_offset for idx in range(len(selected_methods))]
-                fig.add_trace(
-                    go.Scatter(
-                        x=positions,
-                        y=values,
-                        mode="markers",
-                        marker=dict(
-                            color=colors[subset],
-                            size=10,
-                            symbol=aspect_symbols[aspect_index],
-                            line=dict(color="#111111", width=1),
-                        ),
-                        name="",
-                        showlegend=False,
-                        hovertemplate=(
-                            f"{metric_names[metric_index]}<br>{SUBSET_LABELS[subset]}<br>{ASPECT_NAMES[aspect]}<br>"
-                            "Method: %{customdata}<br>Value: %{y:.3f}<extra></extra>"
-                        ),
-                        customdata=selected_methods,
-                    ),
-                    row=1,
-                    col=metric_index + 1,
-                )
-
-        fig.update_xaxes(
-            row=1,
-            col=metric_index + 1,
-            tickvals=x_pos,
-            ticktext=selected_methods,
-            tickfont=dict(size=14, color="#212529"),
-            linecolor="#212529",
-        )
-
-    fig.update_layout(
-        height=520,
-        paper_bgcolor="#ffffff",
-        plot_bgcolor="#ffffff",
-        font=dict(color="#212529"),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.28, xanchor="center", x=0.5),
-    )
-    fig.update_yaxes(
-        title_text="Score",
         row=1,
         col=1,
         range=[0, 1],
@@ -576,6 +458,44 @@ def create_precision_recall_plot(bundle, selected_methods, release_label):
         df_best = bundle["best"][subset]
 
         for col_idx, aspect in enumerate(aspects, start=1):
+            contour_levels = np.arange(0.1, 1.0, 0.1)
+            recall_grid = np.linspace(0.01, 0.99, 500)
+            for level in contour_levels:
+                valid_recall = recall_grid[recall_grid > (level / 2)]
+                precision_vals = (level * valid_recall) / ((2 * valid_recall) - level)
+                valid_mask = (precision_vals >= 0) & (precision_vals <= 1)
+                valid_recall = valid_recall[valid_mask]
+                precision_vals = precision_vals[valid_mask]
+                if len(valid_recall) == 0:
+                    continue
+
+                fig.add_trace(
+                    go.Scatter(
+                        x=valid_recall,
+                        y=precision_vals,
+                        mode="lines",
+                        line=dict(color="#b8b8b8", width=1.2, dash="dot"),
+                        hoverinfo="skip",
+                        showlegend=False,
+                    ),
+                    row=row_idx,
+                    col=col_idx,
+                )
+                fig.add_trace(
+                    go.Scatter(
+                        x=[valid_recall[-1]],
+                        y=[precision_vals[-1]],
+                        mode="text",
+                        text=[f"F={level:.1f}"],
+                        textfont=dict(size=10, color="#6c757d"),
+                        textposition="middle left",
+                        hoverinfo="skip",
+                        showlegend=False,
+                    ),
+                    row=row_idx,
+                    col=col_idx,
+                )
+
             aspect_all = df_all[(df_all["ns"] == aspect) & (df_all["method"].isin(selected_methods))]
             aspect_best = df_best[(df_best["ns"] == aspect) & (df_best["method"].isin(selected_methods))]
 
@@ -612,7 +532,12 @@ def create_precision_recall_plot(bundle, selected_methods, release_label):
                         x=[best_row["rc_micro_w"]],
                         y=[best_row["pr_micro_w"]],
                         mode="markers",
-                        marker=dict(color=color_map[method], size=8, line=dict(color="#111111", width=1)),
+                        marker=dict(
+                            color=color_map[method],
+                            size=10,
+                            symbol="circle-open",
+                            line=dict(color=color_map[method], width=2),
+                        ),
                         name=f"{method} best",
                         showlegend=False,
                         legendgroup=method,
@@ -625,78 +550,232 @@ def create_precision_recall_plot(bundle, selected_methods, release_label):
                     row=row_idx,
                     col=col_idx,
                 )
+                fig.add_trace(
+                    go.Scatter(
+                        x=[best_row["rc_micro_w"]],
+                        y=[best_row["pr_micro_w"]],
+                        mode="markers",
+                        marker=dict(color=color_map[method], size=5),
+                        name=f"{method} best center",
+                        showlegend=False,
+                        legendgroup=method,
+                        hoverinfo="skip",
+                    ),
+                    row=row_idx,
+                    col=col_idx,
+                )
 
-            fig.update_xaxes(row=row_idx, col=col_idx, range=[0, 1], linecolor="#212529")
-            fig.update_yaxes(row=row_idx, col=col_idx, range=[0, 1], linecolor="#212529")
+            fig.update_xaxes(row=row_idx, col=col_idx, range=[0, 1], linecolor="#212529", tickfont=dict(size=14, color="#212529"))
+            fig.update_yaxes(row=row_idx, col=col_idx, range=[0, 1], showgrid=False, linecolor="#212529", tickfont=dict(size=14, color="#212529"))
 
     fig.update_layout(
         height=980,
         paper_bgcolor="#ffffff",
         plot_bgcolor="#ffffff",
         font=dict(color="#212529"),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.08, xanchor="center", x=0.5),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5),   
     )
     for row in range(1, 4):
         for col in range(1, 4):
-            fig.update_xaxes(title_text="Recall" if row == 3 else "", row=row, col=col)
-            fig.update_yaxes(title_text="Precision" if col == 1 else "", row=row, col=col)
+            fig.update_xaxes(title_text="Recall" if row == 3 else "", row=row, col=col, title_font_color="#212529")
+            fig.update_yaxes(title_text="Precision" if col == 1 else "", row=row, col=col, title_font_color="#212529")
     return fig
 
 
-def build_method_availability_matrix(release_bundles):
-    merged = None
+def build_method_availability_lookup(release_bundles):
+    release_lookup = {}
     comparable_sets = []
 
     for release_id, bundle in release_bundles.items():
         frame = bundle["method_availability"][["Method", "NK", "LK", "PK", "AvailableInAllSubsets"]].copy()
-        frame = frame.rename(
-            columns={
-                "NK": f"{release_id} NK",
-                "LK": f"{release_id} LK",
-                "PK": f"{release_id} PK",
-                "AvailableInAllSubsets": f"{release_id} comparable",
-            }
-        )
-        comparable_sets.append(set(frame.loc[frame[f"{release_id} comparable"], "Method"]))
-        merged = frame if merged is None else merged.merge(frame, on="Method", how="outer")
+        release_lookup[release_id] = frame.set_index("Method")[["NK", "LK", "PK"]].astype(bool).to_dict("index")
+        comparable_sets.append(set(frame.loc[frame["AvailableInAllSubsets"], "Method"]))
 
-    bool_columns = [col for col in merged.columns if col != "Method"]
-    merged[bool_columns] = merged[bool_columns].fillna(False).astype(bool)
     comparable_methods = sorted(set.intersection(*comparable_sets)) if comparable_sets else []
-
-    display_df = merged.copy()
-    for col in bool_columns:
-        display_df[col] = display_df[col].map({True: "Yes", False: "No"})
-    return display_df.sort_values("Method").reset_index(drop=True), comparable_methods
+    return release_lookup, comparable_methods
 
 
-def build_overlap_dataframe(release_bundles):
-    frames = []
+def create_average_f1_chart(release_bundles, selected_methods):
+    rows = []
     for release_id, bundle in release_bundles.items():
-        frame = bundle["target_overlap"].copy()
-        frame["Release"] = release_id
-        frames.append(frame)
-    return pd.concat(frames, ignore_index=True)
+        for method in selected_methods:
+            values = []
+            for subset in SUBSETS:
+                subset_df = bundle["best"][subset]
+                method_rows = subset_df[subset_df["method"] == method]
+                values.extend(method_rows["f_micro_w"].astype(float).tolist())
 
+            if not values:
+                continue
 
-def create_overlap_chart(release_bundles):
-    overlap_df = build_overlap_dataframe(release_bundles)
+            rows.append(
+                {
+                    "Release": release_id,
+                    "Method": method,
+                    "Average F-score": float(np.mean(values)),
+                }
+            )
+    colors = px.colors.qualitative.Set2
+    df_average = pd.DataFrame(rows)
     fig = px.bar(
-        overlap_df,
-        x="Combination",
-        y="Count",
+        df_average,
+        x="Method",
+        y="Average F-score",
         color="Release",
         barmode="group",
-        title="Overlap-aware target counts across NK/LK/PK",
+        text_auto=".3f",
+        color_discrete_sequence=colors,
     )
     fig.update_layout(
+        height=430,
         paper_bgcolor="#ffffff",
         plot_bgcolor="#ffffff",
         font=dict(color="#212529"),
+        margin=dict(t=20, r=20, b=20, l=20),
+        yaxis=dict(range=[0, 1]),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
     )
-    fig.update_xaxes(categoryorder="array", categoryarray=overlap_df["Combination"].unique())
     return fig
+
+
+def _subset_target_count(bundle, subset):
+    return int(bundle["groundtruth"][subset]["stats"]["total"])
+
+def create_subset_coverage_chart(release_bundles, selected_methods):
+    subsets = ["NK", "LK", "PK"]
+    subset_positions = {subset: idx for idx, subset in enumerate(subsets)}
+    release_ids = list(release_bundles.keys())
+    colors = px.colors.qualitative.Set2
+    fig = go.Figure()
+
+    for idx, release_id in enumerate(release_ids):
+        bundle = release_bundles[release_id]
+        bar_x = [subset_positions[subset] + (idx - (len(release_ids) - 1) / 2) * 0.28 for subset in subsets]
+        bar_y = [_subset_target_count(bundle, subset) for subset in subsets]
+        fig.add_trace(
+            go.Bar(
+                x=bar_x,
+                y=bar_y,
+                width=0.24,
+                name=f"{release_id} targets",
+                marker_color=colors[idx % len(colors)],
+                opacity=0.78,
+                hovertemplate="Release: "
+                + release_id
+                + "<br>Subset: %{customdata}<br>Targets: %{y}<extra></extra>",
+                customdata=subsets,
+            )
+        )
+
+    fig.update_layout(
+        height=430,
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
+        font=dict(color="#212529"),
+        margin=dict(t=20, r=20, b=20, l=20),
+        barmode="group",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
+        xaxis=dict(
+            tickmode="array",
+            tickvals=list(subset_positions.values()),
+            ticktext=[SUBSET_LABELS[subset] for subset in subsets],
+            title="Protein subset",
+        ),
+        yaxis=dict(title="Unique targets"),
+    )
+    return fig
+
+
+def build_release_lookup(available_release_ids):
+    return {split_release_id(release_id): release_id for release_id in available_release_ids}
+
+
+def _default_selected_methods(comparable_methods):
+    return comparable_methods[: min(4, len(comparable_methods))]
+
+
+def render_method_selector(release_bundles):
+    availability_lookup, comparable_methods = build_method_availability_lookup(release_bundles)
+    if not comparable_methods:
+        return [], comparable_methods
+
+    st.markdown("**Methods available**")
+    checkbox_columns = st.columns(1)
+    selected_methods = []
+    default_methods = set(_default_selected_methods(comparable_methods))
+
+    for idx, method in enumerate(comparable_methods):
+        release_details = []
+        for release_id in release_bundles:
+            subset_flags = availability_lookup[release_id].get(method, {})
+            available_subsets = [subset for subset in SUBSETS if subset_flags.get(subset, False)]
+            release_details.append(f"{release_id}: {', '.join(available_subsets) if available_subsets else 'Unavailable'}")
+
+        with checkbox_columns[idx % len(checkbox_columns)]:
+            if st.checkbox(
+                method,
+                value=method in default_methods,
+                key=f"method_checkbox::{method}",
+                help=" | ".join(release_details),
+            ):
+                selected_methods.append(method)
+
+    return selected_methods, comparable_methods
+
+
+def resolve_selected_releases(available_release_ids):
+    release_lookup = build_release_lookup(available_release_ids)
+    available_timepoints = get_available_timepoints()
+    default_primary = split_release_id(available_release_ids[0])
+    default_secondary = split_release_id(available_release_ids[1]) if len(available_release_ids) > 1 else default_primary
+
+    selector_columns = st.columns(2)
+    with selector_columns[0]:
+        st.markdown("**Primary release time points**")
+        primary_timepoints = st.select_slider(
+            "Primary release period",
+            options=available_timepoints,
+            value=default_primary,
+            help="Time points are parsed directly from validated release folder names.",
+        )
+
+    with selector_columns[1]:
+        st.markdown("**Optional comparison release**")
+        compare_two_periods = st.checkbox(
+            "Compare a second release period",
+            value=len(available_release_ids) > 1,
+        )
+
+    secondary_timepoints = None
+    if compare_two_periods:
+        with selector_columns[1]:
+            secondary_timepoints = st.select_slider(
+                "Secondary release period",
+                options=available_timepoints,
+                value=default_secondary,
+                help="Choose a second release period to compare against the primary selection.",
+            )
+
+    selected_release_ids = []
+    missing_periods = []
+    for timepoint_pair in [primary_timepoints, secondary_timepoints]:
+        if timepoint_pair is None:
+            continue
+        release_id = release_lookup.get(tuple(timepoint_pair))
+        if release_id is None:
+            missing_periods.append(" - ".join(timepoint_pair))
+            continue
+        if release_id not in selected_release_ids:
+            selected_release_ids.append(release_id)
+
+    st.caption(
+        "Available release periods: "
+        + ", ".join(" - ".join(split_release_id(release_id)) for release_id in available_release_ids)
+    )
+
+    primary_release_id = release_lookup.get(tuple(primary_timepoints))
+    secondary_release_id = release_lookup.get(tuple(secondary_timepoints)) if secondary_timepoints else None
+    return selected_release_ids, missing_periods, primary_release_id, secondary_release_id
 
 
 def build_target_summary_table(release_id, bundle, selected_methods):
@@ -745,12 +824,23 @@ def render_release_card(release_id, bundle):
         | set(bundle["groundtruth"]["LK"]["entries"])
         | set(bundle["groundtruth"]["PK"]["entries"])
     )
-    st.subheader(release_id)
-    st.markdown(f"GO start: {dates.get('go_start', 'N/A')}")
-    st.markdown(f"GO end: {dates.get('go_end', 'N/A')}")
-    st.markdown(f"UniProt start: {dates.get('uniprot_start', 'N/A')}")
-    st.markdown(f"UniProt end: {dates.get('uniprot_end', 'N/A')}")
-    st.markdown(f"Unique targets across NK/LK/PK: {gt_union}")
+    start_timepoint, end_timepoint = split_release_id(release_id)
+    with st.container(border=True):
+        st.markdown(f"**{start_timepoint} to {end_timepoint}**")
+        # st.caption(release_id)
+        row_one_left, row_one_right = st.columns(2)
+        with row_one_left:
+            st.markdown(f"**GO start**: {dates.get('go_start', 'N/A')}")
+        with row_one_right:
+            st.markdown(f"**GO end**: {dates.get('go_end', 'N/A')}")
+
+        row_two_left, row_two_right = st.columns(2)
+        with row_two_left:
+            st.markdown(f"**UniProt start**: {dates.get('uniprot_start', 'N/A')}")
+        with row_two_right:
+            st.markdown(f"**UniProt end**: {dates.get('uniprot_end', 'N/A')}")
+
+        st.markdown(f"**Unique targets across NK/LK/PK**: {gt_union}")
 
 
 def render_invalid_release_warning(catalog):
@@ -770,26 +860,26 @@ def main():
     st.markdown("Longitudinal Assessment of Functional Annotation.")
 
     catalog = get_release_catalog()
-    available_timepoints = get_available_timepoints()
+    available_release_ids = get_available_release_ids()
     render_invalid_release_warning(catalog)
 
-    if not available_timepoints:
+    if not available_release_ids:
         st.error("No validated releases are available under data/releases.")
         return
 
-    default_value = (
-        (available_timepoints[0], available_timepoints[-1])
-        if len(available_timepoints) > 1
-        else (available_timepoints[0], available_timepoints[0])
+    selected_release_ids, missing_periods, primary_release_id, secondary_release_id = resolve_selected_releases(
+        available_release_ids
     )
-
-    selected_range = st.select_slider(
-        "Compare release windows",
-        options=available_timepoints,
-        value=default_value,
-        help="Select the two release windows to compare. Only validated releases are listed.",
-    )
-    selected_release_ids = list(dict.fromkeys(selected_range))
+    if missing_periods:
+        st.error(
+            "No validated release folder matches: "
+            + ", ".join(missing_periods)
+            + ". Choose one of the available release periods listed below the sliders."
+        )
+        return
+    if not selected_release_ids:
+        st.error("Select at least one valid release period.")
+        return
 
     with st.spinner("Loading validated release data..."):
         release_bundles = {}
@@ -806,88 +896,63 @@ def main():
     if not release_bundles:
         return
 
-    availability_matrix, comparable_methods = build_method_availability_matrix(release_bundles)
+    context_columns = st.columns(2)
+    with context_columns[0]:
+        if primary_release_id in release_bundles:
+            render_release_card(primary_release_id, release_bundles[primary_release_id])
+    with context_columns[1]:
+        if secondary_release_id in release_bundles and secondary_release_id != primary_release_id:
+            render_release_card(secondary_release_id, release_bundles[secondary_release_id])
+
+    method_col, coverage_col = st.columns([1.5, 1])
+    with method_col:
+        col1, col2 = st.columns([0.3, 1.2])
+        with col1: 
+            selected_methods, comparable_methods = render_method_selector(release_bundles)
+        with col2: 
+            st.markdown("**Average F-score across all 3 GO aspects and all 3 protein subsets**")
+            st.caption(
+                "F-scores are micro-averaged across proteins. "
+                # "Coverage corresponds to the weighted coverage metric in the evaluation tables."
+            )
+            st.plotly_chart(create_average_f1_chart(release_bundles, selected_methods), use_container_width=True)
+
     if not comparable_methods:
         st.error("No methods are available across all selected releases and subsets.")
         return
-
-    selected_methods = st.multiselect(
-        "Select methods available across the selected releases",
-        options=comparable_methods,
-        default=comparable_methods[: min(4, len(comparable_methods))],
-        help="Methods are restricted to the intersection of valid methods across the selected releases.",
-    )
     try:
         selected_methods = validate_selected_methods(selected_methods, comparable_methods)
     except ValueError as exc:
         st.warning(str(exc))
         return
 
-    release_columns = st.columns(len(release_bundles))
-    for column, release_id in zip(release_columns, release_bundles):
-        with column:
-            render_release_card(release_id, release_bundles[release_id])
+    with coverage_col:
+        st.markdown("**Target counts by protein subset**")
+        st.caption("Bars show unique targets in NK, LK, and PK for each selected release.")
+        st.plotly_chart(create_subset_coverage_chart(release_bundles, selected_methods), use_container_width=True)
 
-    st.header("Method Availability")
-    st.markdown("Methods are exposed for comparison only when they are available in every subset of each selected release.")
-    st.dataframe(availability_matrix, use_container_width=True, hide_index=True)
-
-    st.header("Target Overlap")
-    st.markdown(
-        "This overlap-aware view counts unique proteins across NK, LK, and PK instead of treating the subsets as mutually exclusive."
+    tab_curves, tab_metrics, tab_summary = st.tabs(
+        ["Precision-Recall Curves", "F-score Breakdown", "Summary Tables"]
     )
-    st.plotly_chart(create_overlap_chart(release_bundles), use_container_width=True)
-
-    tab_metrics, tab_curves, tab_summary = st.tabs(
-        ["Performance Metrics", "Precision-Recall Curves", "Summary Tables"]
-    )
-
-    with tab_metrics:
-        st.markdown(
-            "Precision, recall, and F-score are micro-averaged across proteins. "
-            "Coverage corresponds to the weighted coverage metric in the evaluation tables."
-        )
-        plot_type = st.radio(
-            "Metric view",
-            options=["consolidated", "individual"],
-            format_func=lambda value: {
-                "consolidated": "All Metrics (Precision, Recall, F-score)",
-                "individual": "Single Metric",
-            }[value],
-            horizontal=True,
-        )
-        validate_enum(plot_type, ALLOWED_PLOT_TYPES, "plot type")
-
-        selected_metric = "f_micro_w"
-        if plot_type == "individual":
-            selected_metric = st.selectbox(
-                "Metric",
-                options=["pr_micro_w", "rc_micro_w", "f_micro_w", "cov_w"],
-                format_func=lambda value: {
-                    "pr_micro_w": "Precision",
-                    "rc_micro_w": "Recall",
-                    "f_micro_w": "F-score",
-                    "cov_w": "Coverage",
-                }[value],
-                index=2,
-            )
-            validate_enum(selected_metric, ALLOWED_METRICS, "metric")
-
-        plot_columns = st.columns(len(release_bundles))
-        for column, release_id in zip(plot_columns, release_bundles):
-            with column:
-                bundle = release_bundles[release_id]
-                if plot_type == "consolidated":
-                    fig = create_consolidated_performance_plot(bundle, selected_methods, release_id)
-                else:
-                    fig = create_interactive_performance_plot(bundle, selected_methods, selected_metric, release_id)
-                st.plotly_chart(fig, use_container_width=True)
 
     with tab_curves:
         curve_tabs = st.tabs(list(release_bundles.keys()))
         for tab, release_id in zip(curve_tabs, release_bundles):
             with tab:
                 fig = create_precision_recall_plot(release_bundles[release_id], selected_methods, release_id)
+                st.plotly_chart(fig, use_container_width=True)
+
+    with tab_metrics:
+        selected_metric = "f_micro_w"
+        validate_enum(selected_metric, ALLOWED_METRICS, "metric")
+        st.markdown("**F-score by aspect and protein subset**")
+
+        plot_columns = st.columns(len(release_bundles))
+        for column, release_id in zip(plot_columns, release_bundles):
+            with column:
+                bundle = release_bundles[release_id]
+                st.markdown(f"**{release_id}**")
+                fig = create_interactive_performance_plot(bundle, selected_methods, selected_metric, release_id)
                 st.plotly_chart(fig, use_container_width=True)
 
     with tab_summary:

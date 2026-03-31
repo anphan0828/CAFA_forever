@@ -12,6 +12,7 @@ html, body, .stApp {
   font-family: Arial, "Helvetica Neue", sans-serif;
   color: var(--isu-charcoal);
   background-color: #ffffff;
+  font-size: 18px;
 }
 
 div[data-testid="stAppViewContainer"],
@@ -39,6 +40,22 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--isu-cardinal-dark);
 }
 
+h1 {
+  font-size: 2.7rem;
+}
+
+h2 {
+  font-size: 2.1rem;
+}
+
+h3 {
+  font-size: 1.75rem;
+}
+
+h4, h5, h6 {
+  font-size: 1.4rem;
+}
+
 a, a:visited {
   color: var(--isu-cardinal);
 }
@@ -58,6 +75,7 @@ div[data-testid="stAppViewContainer"] > .main {
 
 .main .block-container {
   padding-top: 1.5rem;
+  font-size: 1.1rem;
 }
 
 /* Header / footer */
@@ -81,7 +99,7 @@ div[data-testid="stAppViewContainer"] > .main {
 .isu-header__title {
   font-family: Arial, "Helvetica Neue", sans-serif;
   color: var(--isu-cardinal-dark);
-  font-size: 1.25rem;
+  font-size: 1.6rem;
   font-weight: 700;
   margin: 0 0 0 1rem;
 }
@@ -126,7 +144,7 @@ div[data-testid="stAppViewContainer"] > .main {
   text-align: right;
   color: #ffffff;
   font-family: Arial, "Helvetica Neue", sans-serif;
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
 /* Buttons */
@@ -158,11 +176,71 @@ div[data-baseweb="select"] > div:focus-within {
 }
 
 div[data-baseweb="select"] * {
-  color: var(--isu-charcoal);
+  color: var(--isu-charcoal) !important;
 }
 
 label, p, span, div {
   color: inherit;
+}
+
+label,
+p,
+li,
+div[data-testid="stMarkdownContainer"] p,
+div[data-testid="stCaptionContainer"],
+div[data-testid="stCheckbox"] label,
+div[data-testid="stSelectSlider"] label,
+div[data-testid="stSelectbox"] label,
+div[data-testid="stMultiSelect"] label,
+div[data-testid="stRadio"] label,
+div[data-testid="stText"] {
+  font-size: 1.08rem !important;
+}
+
+div[data-testid="stCheckbox"] label p,
+div[data-testid="stSelectSlider"] p,
+div[data-testid="stCaptionContainer"] p {
+  font-size: 1rem !important;
+}
+
+div[data-testid="stCheckbox"] *,
+div[data-testid="stSelectSlider"] *,
+div[data-testid="stSlider"] *,
+div[data-testid="stMarkdownContainer"] strong,
+div[data-testid="stMarkdownContainer"] em {
+  color: var(--isu-charcoal) !important;
+}
+
+div[data-testid="stCheckbox"] label,
+div[data-testid="stSelectSlider"] label,
+div[data-testid="stSlider"] label {
+  color: var(--isu-charcoal) !important;
+}
+
+div[data-testid="stPlotlyChart"] .xtick text,
+div[data-testid="stPlotlyChart"] .ytick text,
+div[data-testid="stPlotlyChart"] .gtitle,
+div[data-testid="stPlotlyChart"] .xtitle,
+div[data-testid="stPlotlyChart"] .ytitle,
+div[data-testid="stPlotlyChart"] .legendtext,
+div[data-testid="stPlotlyChart"] .annotation-text {
+  fill: var(--isu-charcoal) !important;
+  color: var(--isu-charcoal) !important;
+}
+
+button[data-baseweb="tab"],
+button[data-baseweb="tab"] *,
+button[role="tab"],
+button[role="tab"] * {
+  color: var(--isu-charcoal) !important;
+}
+
+button[data-baseweb="tab"] {
+  background: #ffffff !important;
+}
+
+div[data-testid="stMetricValue"] {
+  font-size: 1.4rem !important;
 }
 
 /* Keep radio options readable even when browser/Streamlit dark mode is enabled. */

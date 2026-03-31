@@ -5,6 +5,7 @@ Configuration and release discovery for the CAFA Forever application.
 
 import json
 import os
+from datetime import datetime
 from pathlib import Path
 
 # Base directories
@@ -27,6 +28,12 @@ DATA_DATES = {
         "go_start": "2025-06-01",
         "go_end": "2025-10-10",
         "uniprot_start": "2025_03 (2025-06-18)",
+        "uniprot_end": "2025_04 (2025-10-15)",
+    },
+    "Apr_2025_Oct_2025": {
+        "go_start": "2025-03-16",
+        "go_end": "2025-10-10",
+        "uniprot_start": "2025_02 (2025-04-09)",
         "uniprot_end": "2025_04 (2025-10-15)",
     },
 }
@@ -190,8 +197,35 @@ def get_release_dir(release_id):
 
 
 def get_available_timepoints():
-    """Return validated releases available to the frontend."""
-    return sorted(get_release_catalog()["valid"].keys())
+    """Return sorted unique time points parsed from validated release ids."""
+    timepoints = set()
+    for release_id in get_available_release_ids():
+        start, end = split_release_id(release_id)
+        timepoints.update([start, end])
+    return sorted(timepoints, key=parse_timepoint_label)
+
+
+def get_available_release_ids():
+    """Return validated release ids available to the frontend."""
+    return sorted(get_release_catalog()["valid"].keys(), key=_release_sort_key)
+
+
+def split_release_id(release_id):
+    """Split a release folder name into start and end time points."""
+    parts = str(release_id).split("_")
+    if len(parts) != 4:
+        raise ValueError(f"Release id must follow Mon_YYYY_Mon_YYYY: {release_id}")
+    return "_".join(parts[:2]), "_".join(parts[2:])
+
+
+def parse_timepoint_label(timepoint_label):
+    """Parse a Mon_YYYY label into a sortable datetime."""
+    return datetime.strptime(str(timepoint_label), "%b_%Y")
+
+
+def _release_sort_key(release_id):
+    start, end = split_release_id(release_id)
+    return parse_timepoint_label(start), parse_timepoint_label(end), str(release_id)
 
 
 def get_release_dates(release_id):
