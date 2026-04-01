@@ -111,7 +111,14 @@ def render_iastate_footer():
         f"""
         <footer class="site-footer">
           <div class="site-footer__flex-wrap">
-            <a href="https://www.iastate.edu" class="site-footer__logo">{logo_svg}</a>
+            <a
+              href="https://www.iastate.edu"
+              class="site-footer__logo"
+              aria-label="Iowa State University of Science and Technology"
+            >
+              {logo_svg}
+              <span class="sr-only">Iowa State University of Science and Technology</span>
+            </a>
           </div>
           <div class="site-footer__bottom-wrap">
             <div class="site-footer__copyright">
@@ -125,6 +132,26 @@ def render_iastate_footer():
 
 
 inject_iastate_theme()
+
+
+def render_skip_link():
+    st.markdown(
+        """
+        <a class="skip-link" href="#main-content">Skip to main content</a>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_main_content_anchor():
+    st.markdown(
+        """
+        <div id="main-content" tabindex="-1" aria-label="Main content">
+          <span class="sr-only">Start of main content</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def validate_enum(value, allowed_values, field_name):
@@ -171,6 +198,20 @@ def validate_selected_methods(selected_methods, available_methods):
     if invalid_methods:
         raise ValueError(f"Invalid method selection: {', '.join(invalid_methods)}")
     return selected_methods
+
+
+def validate_release_period_selection(selection, allowed_timepoints, field_name):
+    if not isinstance(selection, (list, tuple)) or len(selection) != 2:
+        raise ValueError(f"Invalid {field_name}: expected exactly two time points.")
+
+    normalized = tuple(str(value) for value in selection)
+    invalid_timepoints = [value for value in normalized if value not in allowed_timepoints]
+    if invalid_timepoints:
+        raise ValueError(
+            f"Invalid {field_name}: unknown time point(s) {', '.join(sorted(set(invalid_timepoints)))}."
+        )
+
+    return normalized
 
 
 @st.cache_data(show_spinner=False)
@@ -726,9 +767,14 @@ def render_method_selector(release_bundles):
 def resolve_selected_releases(available_release_ids):
     release_lookup = build_release_lookup(available_release_ids)
     available_timepoints = get_available_timepoints()
+    allowed_timepoints = set(available_timepoints)
     default_primary = split_release_id(available_release_ids[0])
     default_secondary = split_release_id(available_release_ids[1]) if len(available_release_ids) > 1 else default_primary
-
+    
+    st.markdown(
+        "Available release periods: "
+        + ", ".join(" - ".join(split_release_id(release_id)) for release_id in available_release_ids)
+    )
     selector_columns = st.columns(2)
     with selector_columns[0]:
         st.markdown("**Primary release time points**")
@@ -756,6 +802,17 @@ def resolve_selected_releases(available_release_ids):
                 help="Choose a second release period to compare against the primary selection.",
             )
 
+    try:
+        primary_timepoints = validate_release_period_selection(
+            primary_timepoints, allowed_timepoints, "primary release period"
+        )
+        if secondary_timepoints is not None:
+            secondary_timepoints = validate_release_period_selection(
+                secondary_timepoints, allowed_timepoints, "secondary release period"
+            )
+    except ValueError as exc:
+        return [], [str(exc)], None, None
+
     selected_release_ids = []
     missing_periods = []
     for timepoint_pair in [primary_timepoints, secondary_timepoints]:
@@ -768,10 +825,7 @@ def resolve_selected_releases(available_release_ids):
         if release_id not in selected_release_ids:
             selected_release_ids.append(release_id)
 
-    st.caption(
-        "Available release periods: "
-        + ", ".join(" - ".join(split_release_id(release_id)) for release_id in available_release_ids)
-    )
+    
 
     primary_release_id = release_lookup.get(tuple(primary_timepoints))
     secondary_release_id = release_lookup.get(tuple(secondary_timepoints)) if secondary_timepoints else None
@@ -827,7 +881,6 @@ def render_release_card(release_id, bundle):
     start_timepoint, end_timepoint = split_release_id(release_id)
     with st.container(border=True):
         st.markdown(f"**{start_timepoint} to {end_timepoint}**")
-        # st.caption(release_id)
         row_one_left, row_one_right = st.columns(2)
         with row_one_left:
             st.markdown(f"**GO start**: {dates.get('go_start', 'N/A')}")
@@ -855,7 +908,9 @@ def render_invalid_release_warning(catalog):
 
 
 def main():
+    render_skip_link()
     render_iastate_header()
+    render_main_content_anchor()
     st.title("LAFA")
     st.markdown("Longitudinal Assessment of Functional Annotation.")
 
@@ -888,11 +943,14 @@ def main():
             try:
                 release_bundles[release_id] = load_release_bundle(release_id)
             except Exception as exc:
-                load_errors[release_id] = str(exc)
+                load_errors[release_id] = exc
 
     if load_errors:
-        for release_id, error_message in load_errors.items():
-            st.error(f"Failed to load {release_id}: {error_message}")
+        failed_release_ids = ", ".join(sorted(load_errors))
+        st.error(
+            "One or more selected releases could not be loaded because their published data is unavailable or invalid."
+        )
+        st.caption(f"Affected release(s): {failed_release_ids}")
     if not release_bundles:
         return
 
@@ -907,15 +965,8 @@ def main():
     method_col, coverage_col = st.columns([1.5, 1])
     with method_col:
         col1, col2 = st.columns([0.3, 1.2])
-        with col1: 
+        with col1:
             selected_methods, comparable_methods = render_method_selector(release_bundles)
-        with col2: 
-            st.markdown("**Average F-score across all 3 GO aspects and all 3 protein subsets**")
-            st.caption(
-                "F-scores are micro-averaged across proteins. "
-                # "Coverage corresponds to the weighted coverage metric in the evaluation tables."
-            )
-            st.plotly_chart(create_average_f1_chart(release_bundles, selected_methods), use_container_width=True)
 
     if not comparable_methods:
         st.error("No methods are available across all selected releases and subsets.")
@@ -926,9 +977,15 @@ def main():
         st.warning(str(exc))
         return
 
+    with method_col:
+        with col2:
+            st.markdown("**Average F-score across all 3 GO aspects and all 3 protein subsets**")
+            st.markdown("F-scores are micro-averaged across proteins.")
+            st.plotly_chart(create_average_f1_chart(release_bundles, selected_methods), use_container_width=True)
+
     with coverage_col:
         st.markdown("**Target counts by protein subset**")
-        st.caption("Bars show unique targets in NK, LK, and PK for each selected release.")
+        st.markdown("Bars show unique targets in NK, LK, and PK for each selected release.")
         st.plotly_chart(create_subset_coverage_chart(release_bundles, selected_methods), use_container_width=True)
 
     tab_curves, tab_metrics, tab_summary = st.tabs(
