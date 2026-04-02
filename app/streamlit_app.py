@@ -114,6 +114,7 @@ def render_iastate_footer():
             <a
               href="https://www.iastate.edu"
               class="site-footer__logo"
+              role="img"
               aria-label="Iowa State University of Science and Technology"
             >
               {logo_svg}
