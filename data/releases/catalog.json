@@ -1,15 +1,20 @@
 {
-  "generated_at": "2026-03-27T18:37:28+00:00",
+  "generated_at": "2026-04-06T15:33:17+00:00",
   "validator": "scripts/publish_release_windows.py",
   "releases": [
     {
       "release_id": "Apr_2025_Jun_2025",
       "path": "data/releases/Apr_2025_Jun_2025",
-      "status": "ready"
+      "status": "archived"
     },
     {
       "release_id": "Apr_2025_Oct_2025",
       "path": "data/releases/Apr_2025_Oct_2025",
+      "status": "archived"
+    },
+    {
+      "release_id": "Jun_2025_Mar_2026",
+      "path": "data/releases/Jun_2025_Mar_2026",
       "status": "ready"
     },
     {
@@ -20,7 +25,7 @@
     {
       "release_id": "Oct_2025_Jan_2026",
       "path": "data/releases/Oct_2025_Jan_2026",
-      "status": "invalid"
+      "status": "ready"
     }
   ]
 }

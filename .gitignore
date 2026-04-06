@@ -65,6 +65,7 @@ data/time_periods/*
 *.log
 *.out
 *.err
+.nextflow/cache/*
 
 # Notes
 00notes
