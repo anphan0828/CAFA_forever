@@ -19,21 +19,33 @@ CATALOG_FILE = RELEASES_DIR / "catalog.json"
 # Optional hard-coded provenance fallback for current releases
 DATA_DATES = {
     "Apr_2025_Jun_2025": {
-        "go_start": "2025-03-16",
-        "go_end": "2025-06-01",
-        "uniprot_start": "2025_02 (2025-04-09)",
+        "goa_start": "2025-03-08",
+        "goa_end": "2025-05-03",
+        "uniprot_start": "2025_02 (2025-04-23)",
         "uniprot_end": "2025_03 (2025-06-18)",
     },
     "Jun_2025_Oct_2025": {
-        "go_start": "2025-06-01",
-        "go_end": "2025-10-10",
+        "goa_start": "2025-05-03",
+        "goa_end": "2025-09-04",
         "uniprot_start": "2025_03 (2025-06-18)",
         "uniprot_end": "2025_04 (2025-10-15)",
     },
     "Apr_2025_Oct_2025": {
-        "go_start": "2025-03-16",
-        "go_end": "2025-10-10",
-        "uniprot_start": "2025_02 (2025-04-09)",
+        "goa_start": "2025-03-08",
+        "goa_end": "2025-09-04",
+        "uniprot_start": "2025_02 (2025-04-23)",
+        "uniprot_end": "2025_04 (2025-10-15)",
+    },
+    "Jun_2025_Mar_2026": {
+        "goa_start": "2025-05-03",
+        "goa_end": "2026-03-04",
+        "uniprot_start": "2025_03 (2025-06-18)",
+        "uniprot_end": "2026_01 (2026-01-28)",
+    },
+    "Jun_2025_Oct_2025": {
+        "goa_start": "2025-05-03",
+        "goa_end": "2025-09-04",
+        "uniprot_start": "2025_03 (2025-06-18)",
         "uniprot_end": "2025_04 (2025-10-15)",
     },
 }
