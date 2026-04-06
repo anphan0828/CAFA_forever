@@ -884,9 +884,9 @@ def render_release_card(release_id, bundle):
         st.markdown(f"**{start_timepoint} to {end_timepoint}**")
         row_one_left, row_one_right = st.columns(2)
         with row_one_left:
-            st.markdown(f"**GO start**: {dates.get('go_start', 'N/A')}")
+            st.markdown(f"**GOA start**: {dates.get('goa_start', 'N/A')}")
         with row_one_right:
-            st.markdown(f"**GO end**: {dates.get('go_end', 'N/A')}")
+            st.markdown(f"**GOA end**: {dates.get('goa_end', 'N/A')}")
 
         row_two_left, row_two_right = st.columns(2)
         with row_two_left:
