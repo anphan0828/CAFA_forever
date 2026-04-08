@@ -779,7 +779,7 @@ def resolve_selected_releases(available_release_ids):
     
     st.markdown(
         "Available time points: "
-        + ", ".join(" - ".join(timepoint) for timepoint in allowed_timepoints)
+        + ", ".join(timepoint) for timepoint in allowed_timepoints
     )
     selector_columns = st.columns(2)
     with selector_columns[0]:
