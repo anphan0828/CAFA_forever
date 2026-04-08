@@ -222,9 +222,9 @@ def load_method_names(method_names_file):
         validate_required_columns(df_methods, REQUIRED_METHOD_COLUMNS, method_names_file.name)
         df_methods = df_methods.dropna(subset=["filename", "label"])
         # Temporary tagging baseline methods
-        df_methods["is_baseline"] = df_methods["label"].str.isin(["Naive", "BLAST", "ProtT5", "GOA Non-exp"], case=False, na=False)
+        df_methods["is_baseline"] = df_methods["label"].isin(["Naive", "BLAST", "ProtT5", "GOA Non-exp"])
         df_methods["label"] = df_methods.apply(lambda row: f"{row['label']} (Baseline)" if row["is_baseline"] else row["label"], axis=1)
-        return dict(zip(df_methods["filename"].str.strip(), df_methods["label"].str.strip(), df_methods["is_baseline"]))
+        return dict(zip(df_methods["filename"].str.strip(), df_methods["label"].str.strip()))
     return {}
 
 
@@ -741,8 +741,6 @@ def _default_selected_methods(comparable_methods):
 
 def render_method_selector(release_bundles):
     availability_lookup, comparable_methods = build_method_availability_lookup(release_bundles)
-    # Tag baseline methods
-    comparable_methods = [f"{method} (Baseline)" if method in ["Naive", "BLAST", "ProtT5", "GOA Non-exp"] else method for method in comparable_methods]
     if not comparable_methods:
         return [], comparable_methods
 
