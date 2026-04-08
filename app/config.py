@@ -69,14 +69,16 @@ DATA_DATES = {
 }
 
 METHOD_HELP_MSG = dict({
-    "BLAST (Baseline)": "Homology-based GO annotation transfer from training set proteins",
-    "Naive (Baseline)": "GO term frequencies from the training set assigned to all proteins",
-    "ProtT5 (Baseline)": "ProtT5 embedding-based annotation transfer from training set proteins",
-    "GOA Non-exp (Baseline)": "Non-experimental GO annotations from UniProt-GOA training set",
+    "BLAST": "Homology-based GO annotation transfer from training set proteins",
+    "Naive": "GO term frequencies from the training set assigned to all proteins",
+    "ProtT5": "ProtT5 embedding-based annotation transfer from training set proteins",
+    "GOA Non-exp": "Non-experimental GO annotations from UniProt-GOA training set",
     "FunBind": "TBD",
     "TransFew": "TBD",
     "DeepGOPlus": "TBD",
 })
+
+BASELINE_METHOD_LABELS = {"Naive", "BLAST", "ProtT5", "GOA Non-exp"}
 
 SUBSETS = ["NK", "LK", "PK"]
 

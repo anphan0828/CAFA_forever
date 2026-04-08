@@ -13,6 +13,7 @@ import streamlit as st
 from plotly.subplots import make_subplots
 
 from config import (
+    BASELINE_METHOD_LABELS,
     GO_ASPECTS,
     STATIC_DIR,
     STREAMLIT_CONFIG,
@@ -70,6 +71,19 @@ REQUIRED_BEST_COLUMNS = {
 REQUIRED_ALL_COLUMNS = {"filename", "ns", "tau", "cov", "rc_micro_w", "pr_micro_w", "f_micro_w"}
 REQUIRED_METHOD_COLUMNS = {"filename", "label"}
 REQUIRED_AVAILABILITY_COLUMNS = {"method", "NK", "LK", "PK"}
+
+
+def display_method_label(label):
+    label = str(label).strip()
+    if label in BASELINE_METHOD_LABELS:
+        return f"{label} (Baseline)"
+    return label
+
+
+def method_help_text(label):
+    label = str(label).strip()
+    raw_label = label.removesuffix(" (Baseline)")
+    return METHOD_HELP_MSG.get(raw_label, "No description available.")
 
 def inject_iastate_theme():
     css_path = STATIC_DIR / "iastate" / "streamlit_iastate.css"
@@ -221,9 +235,7 @@ def load_method_names(method_names_file):
         df_methods = pd.read_csv(method_names_file, sep="\t", dtype=str)
         validate_required_columns(df_methods, REQUIRED_METHOD_COLUMNS, method_names_file.name)
         df_methods = df_methods.dropna(subset=["filename", "label"])
-        # Temporary tagging baseline methods
-        df_methods["is_baseline"] = df_methods["label"].isin(["Naive", "BLAST", "ProtT5", "GOA Non-exp"])
-        df_methods["label"] = df_methods.apply(lambda row: f"{row['label']} (Baseline)" if row["is_baseline"] else row["label"], axis=1)
+        df_methods["label"] = df_methods["label"].map(display_method_label)
         return dict(zip(df_methods["filename"].str.strip(), df_methods["label"].str.strip()))
     return {}
 
@@ -291,7 +303,7 @@ def load_method_availability(release_dir, method_names):
         validate_required_columns(df_availability, REQUIRED_AVAILABILITY_COLUMNS, str(precomputed_file))
         for subset in SUBSETS:
             df_availability[subset] = _coerce_bool_series(df_availability[subset])
-        df_availability["Method"] = df_availability["method"].astype(str)
+        df_availability["Method"] = df_availability["method"].astype(str).map(display_method_label)
     else:
         subset_methods = {}
         for subset in SUBSETS:
@@ -761,7 +773,7 @@ def render_method_selector(release_bundles):
                 method,
                 value=method in default_methods,
                 key=f"method_checkbox::{method}",
-                help=METHOD_HELP_MSG.get(method, "No description available."),
+                help=method_help_text(method),
             ):
                 selected_methods.append(method)
 
