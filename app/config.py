@@ -50,7 +50,7 @@ DATA_DATES = {
     },
     "Oct_2025_Jan_2026":{
         "goa_start": "2025-09-04",
-        "goa_end": "2026-12-04",
+        "goa_end": "2025-12-04",
         "uniprot_start": "2025_04 (2025-10-15)",
         "uniprot_end": "2026_01 (2026-01-28)",
     },
@@ -60,7 +60,23 @@ DATA_DATES = {
         "uniprot_start": "2026_01 (2026-01-28)",
         "uniprot_end": "2026_01 (2026-01-28)",
     },
+    "Jun_2025_Jan_2026":{
+        "goa_start": "2025-05-03",
+        "goa_end": "2025-12-04",
+        "uniprot_start": "2025_03 (2025-06-18)",
+        "uniprot_end": "2026_01 (2026-01-28)",
+    },
 }
+
+METHOD_HELP_MSG = dict({
+    "BLAST (Baseline)": "Homology-based GO annotation transfer from training set proteins",
+    "Naive (Baseline)": "GO term frequencies from the training set assigned to all proteins",
+    "ProtT5 (Baseline)": "ProtT5 embedding-based annotation transfer from training set proteins",
+    "GOA Non-exp (Baseline)": "Non-experimental GO annotations from UniProt-GOA training set",
+    "FunBind": "TBD",
+    "TransFew": "TBD",
+    "DeepGOPlus": "TBD",
+})
 
 SUBSETS = ["NK", "LK", "PK"]
 

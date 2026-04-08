@@ -17,6 +17,7 @@ from config import (
     STATIC_DIR,
     STREAMLIT_CONFIG,
     SUBSETS,
+    METHOD_HELP_MSG,
     get_available_release_ids,
     get_available_timepoints,
     get_release_catalog,
@@ -70,7 +71,6 @@ REQUIRED_ALL_COLUMNS = {"filename", "ns", "tau", "cov", "rc_micro_w", "pr_micro_
 REQUIRED_METHOD_COLUMNS = {"filename", "label"}
 REQUIRED_AVAILABILITY_COLUMNS = {"method", "NK", "LK", "PK"}
 
-
 def inject_iastate_theme():
     css_path = STATIC_DIR / "iastate" / "streamlit_iastate.css"
     if css_path.exists():
@@ -94,7 +94,7 @@ def render_iastate_header():
         <header class="isu-header">
           <div class="isu-header__inner">
             <div class="isu-header__logo">{logo_svg}</div>
-            <div class="isu-header__title">LAFA - Longitudinal Assessment of Functional Annotation</div>
+            <div class="isu-header__title">LAFA - Longitudinal Assessment of Function Annotation</div>
           </div>
         </header>
         """,
@@ -221,7 +221,10 @@ def load_method_names(method_names_file):
         df_methods = pd.read_csv(method_names_file, sep="\t", dtype=str)
         validate_required_columns(df_methods, REQUIRED_METHOD_COLUMNS, method_names_file.name)
         df_methods = df_methods.dropna(subset=["filename", "label"])
-        return dict(zip(df_methods["filename"].str.strip(), df_methods["label"].str.strip()))
+        # Temporary tagging baseline methods
+        df_methods["is_baseline"] = df_methods["label"].str.isin(["Naive", "BLAST", "ProtT5", "GOA Non-exp"], case=False, na=False)
+        df_methods["label"] = df_methods.apply(lambda row: f"{row['label']} (Baseline)" if row["is_baseline"] else row["label"], axis=1)
+        return dict(zip(df_methods["filename"].str.strip(), df_methods["label"].str.strip(), df_methods["is_baseline"]))
     return {}
 
 
@@ -738,6 +741,8 @@ def _default_selected_methods(comparable_methods):
 
 def render_method_selector(release_bundles):
     availability_lookup, comparable_methods = build_method_availability_lookup(release_bundles)
+    # Tag baseline methods
+    comparable_methods = [f"{method} (Baseline)" if method in ["Naive", "BLAST", "ProtT5", "GOA Non-exp"] else method for method in comparable_methods]
     if not comparable_methods:
         return [], comparable_methods
 
@@ -758,7 +763,7 @@ def render_method_selector(release_bundles):
                 method,
                 value=method in default_methods,
                 key=f"method_checkbox::{method}",
-                help=" | ".join(release_details),
+                help=METHOD_HELP_MSG.get(method, "No description available."),
             ):
                 selected_methods.append(method)
 
@@ -773,21 +778,21 @@ def resolve_selected_releases(available_release_ids):
     default_secondary = split_release_id(available_release_ids[1]) if len(available_release_ids) > 1 else default_primary
     
     st.markdown(
-        "Available release periods: "
-        + ", ".join(" - ".join(split_release_id(release_id)) for release_id in available_release_ids)
+        "Available time points: "
+        + ", ".join(" - ".join(timepoint) for timepoint in allowed_timepoints)
     )
     selector_columns = st.columns(2)
     with selector_columns[0]:
-        st.markdown("**Primary release time points**")
+        st.markdown("**Primary release time periods**")
         primary_timepoints = st.select_slider(
-            "Primary release period",
+            "Select a primary release period",
             options=available_timepoints,
             value=default_primary,
             help="Time points are parsed directly from validated release folder names.",
         )
 
     with selector_columns[1]:
-        st.markdown("**Optional comparison release**")
+        # st.markdown("**Optional comparison release**")
         compare_two_periods = st.checkbox(
             "Compare a second release period",
             value=len(available_release_ids) > 1,
@@ -797,7 +802,7 @@ def resolve_selected_releases(available_release_ids):
     if compare_two_periods:
         with selector_columns[1]:
             secondary_timepoints = st.select_slider(
-                "Secondary release period",
+                "Select a release period to compare",
                 options=available_timepoints,
                 value=default_secondary,
                 help="Choose a second release period to compare against the primary selection.",
@@ -913,7 +918,7 @@ def main():
     render_iastate_header()
     render_main_content_anchor()
     st.title("LAFA")
-    st.markdown("Longitudinal Assessment of Functional Annotation.")
+    st.markdown("Longitudinal Assessment of Function Annotation")
 
     catalog = get_release_catalog()
     available_release_ids = get_available_release_ids()
