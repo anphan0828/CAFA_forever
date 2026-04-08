@@ -778,8 +778,7 @@ def resolve_selected_releases(available_release_ids):
     default_secondary = split_release_id(available_release_ids[1]) if len(available_release_ids) > 1 else default_primary
     
     st.markdown(
-        "Available time points: "
-        + ", ".join(timepoint) for timepoint in allowed_timepoints
+        "Available time points: " + ", ".join(available_timepoints)
     )
     selector_columns = st.columns(2)
     with selector_columns[0]:
