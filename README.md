@@ -1,98 +1,96 @@
-# CAFA Forever - Continuous Functional Annotation Assessment
+# CAFA Forever
 
-Interactive visualization of CAFA (Critical Assessment of Functional Annotation) evaluation results using Streamlit.
+CAFA Forever has two main components:
 
-## Quick Start
+- a Streamlit frontend for browsing published LAFA evaluation releases
+- a Nextflow-based backend for building timepoints and publishing release windows
 
-### Local Development
-1. **Clone Directory:**
-   ```bash
-   # Clone this directory
-   git clone https://github.com/anphan0828/CAFA_forever.git
+The frontend and backend share the same repository, but they do not read the same directories at runtime.
 
-   # Change directory into this folder
-   cd CAFA_forever/
-   ```
-   
-2. **Setup Environment:**
-   ```bash
-   # Make setup script executable (if not already)
-   chmod +x setup_env.sh
-   
-   # Run setup
-   ./setup_env.sh
-   ```
+## Frontend Overview
 
-3. **Activate Environment:**
-   ```bash
-   source lafa/bin/activate
-   ```
+The website reads only validated, published release windows under `data/releases/`, optionally filtered by `data/releases/catalog.json`.
 
-4. **Run Application:**
-   ```bash
-   streamlit run streamlit_plot.py
-   ```
+Important implications:
 
-## Project Structure
+- the website does not read raw timepoint build directories
+- the website does not read Nextflow `work/` directories
+- the website does not read unpublished staging outputs
 
-```
-CAFA-forever/
-├── streamlit_plot.py       # Main Streamlit application
-├── config.py               # Configuration settings
-├── requirements.txt        # Python dependencies
-├── setup_env.sh           # Environment setup script
-├── AprJun/                # April-June timepoint data
-│   ├── results_NK/        # No Knowledge protein results
-│   ├── results_LK/        # Limited Knowledge protein results
-│   ├── groundtruth_*.tsv  # Ground truth annotations
-│   └── method_names.tsv   # Method name mappings
+Each frontend-visible release corresponds to a release window such as `Jun_2025_Oct_2025`, not to a single raw timepoint snapshot. The app discovers available releases from `data/releases/`, derives the available time points from those release ids, and uses the published files in each release directory for plotting and tables.
 
+## Run The Frontend Locally
+
+Install the Python dependencies:
+
+```bash
+pip install -r requirements.txt
 ```
 
-## Adding New Timepoints
+Then launch Streamlit from the repo root:
 
-To add a new evaluation timepoint (e.g., JunAug):
+```bash
+streamlit run app/streamlit_plot.py
+```
 
-1. Create a new directory following the same structure as `AprJun/`
-2. Ensure it contains:
-   - `results_NK/` and `results_LK/` directories
-   - Ground truth files: `groundtruth_*_NK.tsv` and `groundtruth_*_LK.tsv`
-   - `method_names.tsv` file
-3. The application will automatically detect the new timepoint (needs testing)
+The frontend expects the release contract under `data/releases/` to already exist.
 
+## Docker / Website Deployment
 
-## Evaluation Plots
-The precision-recall curves are generated with a "monotonic curve" option, i.e., a cumulative maximum operation is placed on precision so that precision values never decrease as we move along the curve to make the curves more monotonous. In ideal situations, precision should be monotonically decreasing as recall increases. However, non-monotonic curves sometimes occur due to small test sets and noise in predictions at different threshold. 
+The Docker image runs the Streamlit frontend on port `8501`. In the current deployment model:
 
+- the container serves Streamlit on `8501`
+- Nginx on the host terminates HTTP/HTTPS
+- Nginx proxies requests to `127.0.0.1:8501`
 
-## Dependencies
+With Docker Compose:
 
-- Python 3.9+
-- Python 3.9-venv
-- Streamlit ≥1.28.0
-- Pandas ≥1.5.0
-- Plotly ≥5.15.0
-- Matplotlib ≥3.5.0
-- NumPy ≥1.20.0
+```bash
+docker compose up -d --build
+```
 
-## Features
+The current [docker-compose.yml](docker-compose.yml) binds the app to `127.0.0.1:8501:8501`, which is appropriate when Nginx is the public entrypoint.
 
-- Interactive method comparison with checkboxes
-- Performance metrics visualization (Precision, Recall, F-score)
-- Precision-Recall curves with F-score contours
-- Target count comparison vs ground truth
-- Multi-timepoint support (automatically detected)
-- Export functionality for summary tables
+## What The Frontend Displays
 
-## Usage
+For each published release window, the app uses:
 
-The application provides three main visualization tabs:
+- `method_names.tsv`
+- `method_availability.tsv` when present
+- `groundtruth_NK.tsv`
+- `groundtruth_LK.tsv`
+- `groundtruth_PK.tsv`
+- `results_NK/evaluation_best_f_micro_w.tsv`
+- `results_NK/evaluation_all.tsv`
+- `results_LK/evaluation_best_f_micro_w.tsv`
+- `results_LK/evaluation_all.tsv`
+- `results_PK/evaluation_best_f_micro_w.tsv`
+- `results_PK/evaluation_all.tsv`
 
-1. **Performance Metrics**: Compare methods across different metrics and GO aspects
-2. **Precision-Recall**: Interactive P-R curves with threshold exploration
-3. **Summary Table**: Detailed metrics table with export functionality
+The sidebar lets users choose one or two release windows for comparison. From those windows, the app derives the available time points shown in the release sliders.
 
-Use the sidebar to:
-- Select timepoint (if multiple available)
-- Choose methods to compare
-- Configure visualization parameters
+## Backend Pointer
+
+Backend setup and Nextflow usage are documented in [README_backend.md](README_backend.md).
+
+In short, the backend is responsible for:
+
+- building canonical timepoint artifacts
+- generating or reusing predictions
+- evaluating `NK`, `LK`, and `PK`
+- publishing frontend-ready release windows into `data/releases/`
+
+## Repository Layout
+
+Key paths:
+
+- [app/streamlit_app.py](app/streamlit_app.py): Streamlit application
+- [app/config.py](app/config.py): frontend release discovery and plotting config
+- [main.nf](main.nf): backend Nextflow entrypoint
+- [workflows/](workflows): top-level backend workflows
+- [modules/local/](modules/local): reusable Nextflow processes
+- [data/releases/](data/releases): published frontend-consumable releases
+
+## Notes
+
+The precision-recall curves are displayed with a monotonic precision option, using a cumulative maximum over precision values. This makes curves easier to compare when small evaluation sets or threshold noise would otherwise introduce non-monotonic segments.

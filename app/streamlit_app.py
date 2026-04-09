@@ -328,33 +328,6 @@ def load_method_availability(release_dir, method_names):
     return df_availability.sort_values("Method").reset_index(drop=True)
 
 
-def _ordered_overlap_rows(counts):
-    ordered_labels = [
-        "NK only",
-        "LK only",
-        "PK only",
-        "LK & PK",
-    ]
-    return pd.DataFrame(
-        [{"Combination": label, "Count": int(counts.get(label, 0))} for label in ordered_labels]
-    )
-
-
-@st.cache_data(show_spinner=False)
-def load_target_overlap_counts(release_dir):
-    nk_ids = set(load_ground_truth_profile(release_dir / "groundtruth_NK.tsv")["entries"])
-    lk_ids = set(load_ground_truth_profile(release_dir / "groundtruth_LK.tsv")["entries"])
-    pk_ids = set(load_ground_truth_profile(release_dir / "groundtruth_PK.tsv")["entries"])
-
-    counts = {
-        "NK only": len(nk_ids),
-        "LK only": len(lk_ids - pk_ids),
-        "PK only": len(pk_ids - lk_ids),
-        "LK & PK": len(lk_ids & pk_ids),
-    }
-    return _ordered_overlap_rows(counts)
-
-
 @st.cache_data(show_spinner=False)
 def load_release_bundle(release_id):
     release_dir = get_release_dir(release_id)
@@ -378,7 +351,6 @@ def load_release_bundle(release_id):
         "best": best,
         "all": curves,
         "method_availability": load_method_availability(release_dir, method_names),
-        "target_overlap": load_target_overlap_counts(release_dir),
     }
 
 

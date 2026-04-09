@@ -4,7 +4,6 @@ Configuration and release discovery for the CAFA Forever application.
 """
 
 import json
-import os
 from datetime import datetime
 from pathlib import Path
 
@@ -41,12 +40,6 @@ DATA_DATES = {
         "goa_end": "2026-03-04",
         "uniprot_start": "2025_03 (2025-06-18)",
         "uniprot_end": "2026_01 (2026-01-28)",
-    },
-    "Jun_2025_Oct_2025": {
-        "goa_start": "2025-05-03",
-        "goa_end": "2025-09-04",
-        "uniprot_start": "2025_03 (2025-06-18)",
-        "uniprot_end": "2025_04 (2025-10-15)",
     },
     "Oct_2025_Jan_2026":{
         "goa_start": "2025-09-04",
