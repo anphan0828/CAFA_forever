@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-12T21:14:13+00:00",
+  "generated_at": "2026-04-12T21:45:19+00:00",
   "validator": "scripts/publish_release_windows.py",
   "releases": [
     {
@@ -10,6 +10,11 @@
     {
       "release_id": "Nov_2025_Dec_2025",
       "path": "data/releases/Nov_2025_Dec_2025",
+      "status": "ready"
+    },
+    {
+      "release_id": "Nov_2025_Mar_2026",
+      "path": "data/releases/Nov_2025_Mar_2026",
       "status": "ready"
     },
     {

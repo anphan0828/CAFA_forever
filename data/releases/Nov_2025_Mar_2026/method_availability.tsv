@@ -1,0 +1,8 @@
+method	NK	LK	PK
+BLAST	true	true	true
+DeepGOPlus	true	true	true
+FunBind	true	true	true
+GOA Non-exp	true	true	true
+Naive	true	true	true
+ProtT5	true	true	true
+TransFew	true	true	true

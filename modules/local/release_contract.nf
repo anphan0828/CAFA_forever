@@ -197,10 +197,11 @@ process PUBLISH_RELEASE_DIRECTORY {
 
     script:
     """
-    target_dir="${params.publish_root}/${meta.release_id}"
-    staging_dir="${params.publish_root}/.${meta.release_id}.staging"
+    publish_root="${file(params.publish_root)}"
+    target_dir="\${publish_root}/${meta.release_id}"
+    staging_dir="\${publish_root}/.${meta.release_id}.staging"
 
-    mkdir -p "${params.publish_root}"
+    mkdir -p "\${publish_root}"
     rm -rf "\${staging_dir}"
     mkdir -p "\${staging_dir}"
     cp -r "${releaseDir}/." "\${staging_dir}/"
@@ -211,10 +212,11 @@ process PUBLISH_RELEASE_DIRECTORY {
 
     stub:
     """
-    target_dir="${params.publish_root}/${meta.release_id}"
-    staging_dir="${params.publish_root}/.${meta.release_id}.staging"
+    publish_root="${file(params.publish_root)}"
+    target_dir="\${publish_root}/${meta.release_id}"
+    staging_dir="\${publish_root}/.${meta.release_id}.staging"
 
-    mkdir -p "${params.publish_root}"
+    mkdir -p "\${publish_root}"
     rm -rf "\${staging_dir}"
     mkdir -p "\${staging_dir}"
     cp -r "${releaseDir}/." "\${staging_dir}/"
@@ -237,7 +239,7 @@ process BUILD_RELEASE_CATALOG {
 
     script:
     """
-    python3 - "${params.workspace_root}" "${params.publish_root}" <<'PY'
+    python3 - "${file(params.workspace_root)}" "${file(params.publish_root)}" <<'PY'
 import importlib.util
 import json
 import pathlib
@@ -273,7 +275,7 @@ PY
 
     stub:
     """
-    python3 - "${params.workspace_root}" "${params.publish_root}" "${releaseDir}" <<'PY'
+    python3 - "${file(params.workspace_root)}" "${file(params.publish_root)}" "${releaseDir}" <<'PY'
 import json
 import pathlib
 import sys
