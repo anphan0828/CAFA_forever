@@ -15,49 +15,27 @@ RELEASES_DIR = DATA_ROOT / "releases"
 STATIC_DIR = REPO_ROOT / "static"
 CATALOG_FILE = RELEASES_DIR / "catalog.json"
 
-# Optional hard-coded provenance fallback for current releases
+# Optional hard-coded provenance fallback keyed by time point rather than release window.
 DATA_DATES = {
-    "Apr_2025_Jun_2025": {
-        "goa_start": "2025-03-08",
-        "goa_end": "2025-05-03",
-        "uniprot_start": "2025_02 (2025-04-23)",
-        "uniprot_end": "2025_03 (2025-06-18)",
+    "May_2025": {
+        "goa": "2025-05-03",
+        "uniprot": "2025_02 (2025-04-23)",
     },
-    "Jun_2025_Oct_2025": {
-        "goa_start": "2025-05-03",
-        "goa_end": "2025-09-04",
-        "uniprot_start": "2025_03 (2025-06-18)",
-        "uniprot_end": "2025_04 (2025-10-15)",
+    "Sep_2025": {
+        "goa": "2025-09-04",
+        "uniprot": "2025_03 (2025-06-18)",
     },
-    "Apr_2025_Oct_2025": {
-        "goa_start": "2025-03-08",
-        "goa_end": "2025-09-04",
-        "uniprot_start": "2025_02 (2025-04-23)",
-        "uniprot_end": "2025_04 (2025-10-15)",
+    "Nov_2025": {
+        "goa": "2025-11-10",
+        "uniprot": "2025_04 (2025-10-15)",
     },
-    "Jun_2025_Mar_2026": {
-        "goa_start": "2025-05-03",
-        "goa_end": "2026-03-04",
-        "uniprot_start": "2025_03 (2025-06-18)",
-        "uniprot_end": "2026_01 (2026-01-28)",
+    "Dec_2025": {
+        "goa": "2025-12-04",
+        "uniprot": "2025_04 (2025-10-15)",
     },
-    "Oct_2025_Jan_2026":{
-        "goa_start": "2025-09-04",
-        "goa_end": "2025-12-04",
-        "uniprot_start": "2025_04 (2025-10-15)",
-        "uniprot_end": "2026_01 (2026-01-28)",
-    },
-    "Jan_2026_Mar_2026":{
-        "goa_start": "2025-12-04",
-        "goa_end": "2026-03-04",
-        "uniprot_start": "2026_01 (2026-01-28)",
-        "uniprot_end": "2026_01 (2026-01-28)",
-    },
-    "Jun_2025_Jan_2026":{
-        "goa_start": "2025-05-03",
-        "goa_end": "2025-12-04",
-        "uniprot_start": "2025_03 (2025-06-18)",
-        "uniprot_end": "2026_01 (2026-01-28)",
+    "Mar_2026": {
+        "goa": "2026-03-04",
+        "uniprot": "2026_01 (2026-01-28)",
     },
 }
 
@@ -66,9 +44,19 @@ METHOD_HELP_MSG = dict({
     "Naive": "GO term frequencies from the training set assigned to all proteins",
     "ProtT5": "ProtT5 embedding-based annotation transfer from training set proteins",
     "GOA Non-exp": "Non-experimental GO annotations from UniProt-GOA training set",
-    "FunBind": "TBD",
-    "TransFew": "TBD",
-    "DeepGOPlus": "TBD",
+    "FunBind": "Multi-modality based model combining sequence, structure, domains, and textual descriptions",
+    "TransFew": "ESM-2-based pipeline combinining representations of both protein sequences and GO terms ",
+    "DeepGOPlus": "Deep neural network and sequence similarity-based predictions",
+})
+
+METHOD_DOCKER_URLS = dict({
+    "BLAST": "https://hub.docker.com/r/anphan0828/blast_predictor",
+    "Naive": "https://hub.docker.com/r/anphan0828/naive_predictor",
+    "ProtT5": "https://hub.docker.com/r/anphan0828/prott5_predictor",
+    "GOA Non-exp": "https://hub.docker.com/r/anphan0828/goa_nonexp_predictor",
+    "FunBind": "https://hub.docker.com/r/yw7bh/funbind_predictor",
+    "TransFew": "https://hub.docker.com/r/yw7bh/transfew_predictor",
+    "DeepGOPlus": "https://hub.docker.com/r/coolmaksat/deepgoplus",
 })
 
 BASELINE_METHOD_LABELS = {"Naive", "BLAST", "ProtT5", "GOA Non-exp"}
@@ -254,5 +242,14 @@ def _release_sort_key(release_id):
 
 
 def get_release_dates(release_id):
-    """Return provenance metadata for a release."""
-    return DATA_DATES.get(release_id, {})
+    """Return provenance metadata for a release by combining start/end time point entries."""
+    start_timepoint, end_timepoint = split_release_id(release_id)
+    start_dates = DATA_DATES.get(start_timepoint, {})
+    end_dates = DATA_DATES.get(end_timepoint, {})
+
+    return {
+        "goa_start": start_dates.get("goa", "N/A"),
+        "goa_end": end_dates.get("goa", "N/A"),
+        "uniprot_start": start_dates.get("uniprot", "N/A"),
+        "uniprot_end": end_dates.get("uniprot", "N/A"),
+    }

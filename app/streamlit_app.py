@@ -19,6 +19,7 @@ from config import (
     STREAMLIT_CONFIG,
     SUBSETS,
     METHOD_HELP_MSG,
+    METHOD_DOCKER_URLS,
     get_available_release_ids,
     get_available_timepoints,
     get_release_catalog,
@@ -84,6 +85,11 @@ def method_help_text(label):
     label = str(label).strip()
     raw_label = label.removesuffix(" (Baseline)")
     return METHOD_HELP_MSG.get(raw_label, "No description available.")
+
+def method_url(label):
+    label = str(label).strip()
+    raw_label = label.removesuffix(" (Baseline)")
+    return METHOD_DOCKER_URLS.get(raw_label)
 
 def inject_iastate_theme():
     css_path = STATIC_DIR / "iastate" / "streamlit_iastate.css"
@@ -365,7 +371,7 @@ def create_interactive_performance_plot(bundle, selected_methods, selected_metri
     aspects = ["biological_process", "molecular_function", "cellular_component"]
     aspect_symbols = ["circle", "square", "triangle-up"]
     aspect_labels = ["BPO", "MFO", "CCO"]
-    colors = {"NK": "#b31b1b", "LK": "#1f77b4", "PK": "#2a9d5b"}
+    colors = {"NK": "#ab5f03", "LK": "#0c4b78", "PK": "#0f6d38"}
 
     fig = make_subplots(
         rows=1,
@@ -465,7 +471,7 @@ def create_interactive_performance_plot(bundle, selected_methods, selected_metri
 
 def create_precision_recall_plot(bundle, selected_methods, release_label):
     aspects = ["biological_process", "molecular_function", "cellular_component"]
-    colors = px.colors.qualitative.Set1
+    colors = px.colors.qualitative.G10
     color_map = {method: colors[idx % len(colors)] for idx, method in enumerate(selected_methods)}
 
     fig = make_subplots(
@@ -732,22 +738,29 @@ def render_method_selector(release_bundles):
     checkbox_columns = st.columns(1)
     selected_methods = []
     default_methods = set(_default_selected_methods(comparable_methods))
-
+        
     for idx, method in enumerate(comparable_methods):
+        col1, col2 = st.columns([0.5, 1.5])
         release_details = []
         for release_id in release_bundles:
             subset_flags = availability_lookup[release_id].get(method, {})
             available_subsets = [subset for subset in SUBSETS if subset_flags.get(subset, False)]
             release_details.append(f"{release_id}: {', '.join(available_subsets) if available_subsets else 'Unavailable'}")
-
-        with checkbox_columns[idx % len(checkbox_columns)]:
-            if st.checkbox(
-                method,
-                value=method in default_methods,
-                key=f"method_checkbox::{method}",
-                help=method_help_text(method),
-            ):
-                selected_methods.append(method)
+            
+        with col1:
+            url = method_url(method)
+            if url:
+                st.markdown(f"[Source]({url})")
+        with col2:
+            checked = st.checkbox(
+                    method,
+                    value=method in default_methods,
+                    key=f"method_checkbox::{method}",
+                    help=method_help_text(method),
+                )
+        
+        if checked:
+            selected_methods.append(method)
 
     return selected_methods, comparable_methods
 
@@ -949,9 +962,9 @@ def main():
         if secondary_release_id in release_bundles and secondary_release_id != primary_release_id:
             render_release_card(secondary_release_id, release_bundles[secondary_release_id])
 
-    method_col, coverage_col = st.columns([1.5, 1])
+    method_col, coverage_col = st.columns([2, 1])
     with method_col:
-        col1, col2 = st.columns([0.3, 1.2])
+        col1, col2 = st.columns([0.8, 1.5])
         with col1:
             selected_methods, comparable_methods = render_method_selector(release_bundles)
 

@@ -188,7 +188,6 @@ PY
 process PUBLISH_RELEASE_DIRECTORY {
     label 'packaging'
     tag "${meta.release_id}"
-    publishDir "${params.publish_root}", mode: 'copy'
 
     input:
     tuple val(meta), path(releaseDir)
@@ -198,12 +197,30 @@ process PUBLISH_RELEASE_DIRECTORY {
 
     script:
     """
-    test -d "${releaseDir}"
+    target_dir="${params.publish_root}/${meta.release_id}"
+    staging_dir="${params.publish_root}/.${meta.release_id}.staging"
+
+    mkdir -p "${params.publish_root}"
+    rm -rf "\${staging_dir}"
+    mkdir -p "\${staging_dir}"
+    cp -r "${releaseDir}/." "\${staging_dir}/"
+    rm -rf "\${target_dir}"
+    mv "\${staging_dir}" "\${target_dir}"
+    test -d "\${target_dir}"
     """
 
     stub:
     """
-    test -d "${releaseDir}"
+    target_dir="${params.publish_root}/${meta.release_id}"
+    staging_dir="${params.publish_root}/.${meta.release_id}.staging"
+
+    mkdir -p "${params.publish_root}"
+    rm -rf "\${staging_dir}"
+    mkdir -p "\${staging_dir}"
+    cp -r "${releaseDir}/." "\${staging_dir}/"
+    rm -rf "\${target_dir}"
+    mv "\${staging_dir}" "\${target_dir}"
+    test -d "\${target_dir}"
     """
 }
 
@@ -245,7 +262,7 @@ results = [module.validate_release_window(path) for path in release_dirs]
 catalog = {
     "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
     "validator": "scripts/publish_release_windows.py",
-    "releases": module.build_catalog_entries(results, publish_dir),
+    "releases": module.build_catalog_entries(results, publish_dir, repo_root=repo_root),
 }
 
 with open("catalog.json", "w", encoding="utf-8") as handle:
@@ -256,13 +273,14 @@ PY
 
     stub:
     """
-    python3 - "${params.publish_root}" "${releaseDir}" <<'PY'
+    python3 - "${params.workspace_root}" "${params.publish_root}" "${releaseDir}" <<'PY'
 import json
 import pathlib
 import sys
 
-publish_dir = pathlib.Path(sys.argv[1]).resolve()
-release_dir = pathlib.Path(sys.argv[2]).resolve()
+repo_root = pathlib.Path(sys.argv[1]).resolve()
+publish_dir = pathlib.Path(sys.argv[2]).resolve()
+release_dir = pathlib.Path(sys.argv[3]).resolve()
 publish_dir.mkdir(parents=True, exist_ok=True)
 
 release_ids = {
@@ -278,7 +296,11 @@ catalog = {
     "releases": [
         {
             "release_id": release_id,
-            "path": f"data/releases/{release_id}",
+            "path": (
+                (publish_dir / release_id).resolve().relative_to(repo_root).as_posix()
+                if (publish_dir / release_id).resolve().is_relative_to(repo_root)
+                else str((publish_dir / release_id).resolve())
+            ),
             "status": "ready",
         }
         for release_id in sorted(release_ids)

@@ -15,7 +15,8 @@ include {
     PREDICT_BLAST
     PREDICT_PROTT5
     PREDICT_TRANSFEW
-    PREDICT_FUNBIND
+    PREDICT_FUNBIND_BATCH
+    MERGE_FUNBIND_BATCHES
     PREDICT_DEEPGOPLUS
     ASSEMBLE_WINDOW_PREDICTIONS
     PACKAGE_WINDOW_PREDICTIONS
@@ -136,56 +137,92 @@ workflow EVALUATE_WINDOW {
     }
     else {
         window_release_ch = PREPARE_WINDOW_RELEASE(target_fasta_ch)
-        prediction_release_ch = SPLIT_WINDOW_TARGETS(window_release_ch)
-
+        def split_window_release_ch
         def predictionChannels = []
 
         if( enabledWindowMethods.contains('naive') ) {
             predictionChannels << PREDICT_NAIVE(
-                prediction_release_ch.map { meta, t0Dir, t1Dir, methodNamesFile, commonFasta, nk, lk, pk, pkKnown, toi, targetsTsv, targetsFasta, windowReleaseReady ->
-                    tuple(meta, windowReleaseReady, 'groundtruth_targets.fasta')
+                window_release_ch.map { meta, t0Dir, t1Dir, methodNamesFile, commonFasta, nk, lk, pk, pkKnown, toi, targetsTsv, targetsFasta, windowRelease ->
+                    tuple(meta, windowRelease, 'groundtruth_targets.fasta')
                 }
             )
         }
         if( enabledWindowMethods.contains('goa_nonexp') ) {
             predictionChannels << PREDICT_GOA_NONEXP(
-                prediction_release_ch.map { meta, t0Dir, t1Dir, methodNamesFile, commonFasta, nk, lk, pk, pkKnown, toi, targetsTsv, targetsFasta, windowReleaseReady ->
-                    tuple(meta, windowReleaseReady, 'groundtruth_targets.fasta')
+                window_release_ch.map { meta, t0Dir, t1Dir, methodNamesFile, commonFasta, nk, lk, pk, pkKnown, toi, targetsTsv, targetsFasta, windowRelease ->
+                    tuple(meta, windowRelease, 'groundtruth_targets.fasta')
                 }
             )
         }
         if( enabledWindowMethods.contains('blast') ) {
             predictionChannels << PREDICT_BLAST(
-                prediction_release_ch.map { meta, t0Dir, t1Dir, methodNamesFile, commonFasta, nk, lk, pk, pkKnown, toi, targetsTsv, targetsFasta, windowReleaseReady ->
-                    tuple(meta, windowReleaseReady, 'groundtruth_targets.fasta')
+                window_release_ch.map { meta, t0Dir, t1Dir, methodNamesFile, commonFasta, nk, lk, pk, pkKnown, toi, targetsTsv, targetsFasta, windowRelease ->
+                    tuple(meta, windowRelease, 'groundtruth_targets.fasta')
                 }
             )
         }
         if( enabledWindowMethods.contains('prott5') ) {
             predictionChannels << PREDICT_PROTT5(
-                prediction_release_ch.map { meta, t0Dir, t1Dir, methodNamesFile, commonFasta, nk, lk, pk, pkKnown, toi, targetsTsv, targetsFasta, windowReleaseReady ->
-                    tuple(meta, windowReleaseReady, 'groundtruth_targets.fasta')
+                window_release_ch.map { meta, t0Dir, t1Dir, methodNamesFile, commonFasta, nk, lk, pk, pkKnown, toi, targetsTsv, targetsFasta, windowRelease ->
+                    tuple(meta, windowRelease, 'groundtruth_targets.fasta')
                 }
             )
         }
         if( enabledWindowMethods.contains('transfew') ) {
             predictionChannels << PREDICT_TRANSFEW(
-                prediction_release_ch.map { meta, t0Dir, t1Dir, methodNamesFile, commonFasta, nk, lk, pk, pkKnown, toi, targetsTsv, targetsFasta, windowReleaseReady ->
-                    tuple(meta, windowReleaseReady, 'groundtruth_targets.fasta')
+                window_release_ch.map { meta, t0Dir, t1Dir, methodNamesFile, commonFasta, nk, lk, pk, pkKnown, toi, targetsTsv, targetsFasta, windowRelease ->
+                    tuple(meta, windowRelease, 'groundtruth_targets.fasta')
                 }
             )
         }
         if( enabledWindowMethods.contains('funbind') ) {
-            predictionChannels << PREDICT_FUNBIND(
-                prediction_release_ch.map { meta, t0Dir, t1Dir, methodNamesFile, commonFasta, nk, lk, pk, pkKnown, toi, targetsTsv, targetsFasta, windowReleaseReady ->
-                    tuple(meta, windowReleaseReady, 'groundtruth_targets_split')
+            split_window_release_ch = SPLIT_WINDOW_TARGETS(window_release_ch)
+            def funbindBatchSize = (params.funbind_batch_size ?: 20) as int
+            if( funbindBatchSize < 1 ) {
+                error "params.funbind_batch_size must be at least 1"
+            }
+
+            def funbindBatchInputsCh = split_window_release_ch.flatMap { meta, t0Dir, t1Dir, methodNamesFile, commonFasta, nk, lk, pk, pkKnown, toi, targetsTsv, targetsFasta, windowReleaseReady ->
+                def splitDir = file("${windowReleaseReady}/groundtruth_targets_split").toFile()
+                def partFiles = (splitDir.listFiles() ?: [] as File[])
+                    .findAll { it.name ==~ /part_\d+\.fasta/ }
+                    .sort { it.name }
+                if( !partFiles ) {
+                    error "No FunBind split FASTA parts found for ${meta.release_id} in ${splitDir}"
                 }
+
+                def batches = partFiles.collate(funbindBatchSize)
+                (0..<batches.size()).collect { batchIdx ->
+                    def batchPaths = batches[batchIdx].collect { partFile ->
+                        file(partFile.toString())
+                    }
+                    tuple(
+                        meta,
+                        batchIdx + 1,
+                        batches.size(),
+                        windowReleaseReady,
+                        batchPaths
+                    )
+                }
+            }
+
+            def funbindBatchPredictionsCh = PREDICT_FUNBIND_BATCH(funbindBatchInputsCh)
+            predictionChannels << MERGE_FUNBIND_BATCHES(
+                funbindBatchPredictionsCh
+                    .groupTuple()
+                    .map { meta, batchIndexes, expectedBatchCounts, batchPredictionFiles, batchManifestFiles ->
+                        def distinctExpectedCounts = expectedBatchCounts.toSet()
+                        if( distinctExpectedCounts.size() != 1 ) {
+                            error "Inconsistent FunBind expected batch counts for ${meta.release_id}: ${distinctExpectedCounts.join(', ')}"
+                        }
+                        tuple(meta, distinctExpectedCounts.first(), batchIndexes, batchPredictionFiles, batchManifestFiles)
+                    }
             )
         }
         if( enabledWindowMethods.contains('deepgoplus') ) {
             predictionChannels << PREDICT_DEEPGOPLUS(
-                prediction_release_ch.map { meta, t0Dir, t1Dir, methodNamesFile, commonFasta, nk, lk, pk, pkKnown, toi, targetsTsv, targetsFasta, windowReleaseReady ->
-                    tuple(meta, windowReleaseReady, 'groundtruth_targets.fasta')
+                window_release_ch.map { meta, t0Dir, t1Dir, methodNamesFile, commonFasta, nk, lk, pk, pkKnown, toi, targetsTsv, targetsFasta, windowRelease ->
+                    tuple(meta, windowRelease, 'groundtruth_targets.fasta')
                 }
             )
         }

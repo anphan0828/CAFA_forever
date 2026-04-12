@@ -5,7 +5,6 @@ include {
     CREATE_TRAINING_SET
     CREATE_TEST_FASTA
     PROPAGATE_AND_COMPUTE_IA
-    RUN_BLAST_EVIDENCE
     SPLIT_TEST_FASTA
     FREEZE_TIMEPOINT_RELEASE
 } from '../modules/local/timepoint_build'
@@ -28,12 +27,23 @@ workflow TIMEPOINT_BUILD {
     validated_ch = VALIDATE_TIMEPOINT_INPUTS(raw_inputs_ch)
     filtered_ch  = FILTER_GAF_TO_SWISSPROT(validated_ch)
     terms_ch     = RETRIEVE_EXPERIMENTAL_TERMS(filtered_ch)
-    train_ch     = CREATE_TRAINING_SET(terms_ch)
-    test_ch      = CREATE_TEST_FASTA(train_ch)
-    ia_ch        = PROPAGATE_AND_COMPUTE_IA(test_ch)
-    blast_ch     = RUN_BLAST_EVIDENCE(ia_ch)
-    split_ch     = SPLIT_TEST_FASTA(blast_ch)
-    release_ch   = FREEZE_TIMEPOINT_RELEASE(split_ch)
+    train_ch     = CREATE_TRAINING_SET(terms_ch.map { meta, goBasic, filteredGaf, swissProt, trainTerms -> tuple(meta, trainTerms, swissProt) })
+    test_ch      = CREATE_TEST_FASTA(validated_ch.map { meta, goBasic, goaAll, swissProt -> tuple(meta, swissProt) })
+    ia_ch        = PROPAGATE_AND_COMPUTE_IA(terms_ch.map { meta, goBasic, filteredGaf, swissProt, trainTerms -> tuple(meta, goBasic, trainTerms) })
+    split_ch     = SPLIT_TEST_FASTA(test_ch)
+
+    release_inputs_ch = filtered_ch
+        .map { meta, goBasic, filteredGaf, swissProt -> tuple(meta, goBasic, filteredGaf) }
+        .join(terms_ch.map { meta, goBasic, filteredGaf, swissProt, trainTerms -> tuple(meta, trainTerms) })
+        .join(train_ch.map { meta, trainTerms, trainSequences, trainTaxonomy -> tuple(meta, trainSequences, trainTaxonomy) })
+        .join(test_ch.map { meta, testSequences -> tuple(meta, testSequences) })
+        .join(ia_ch.map { meta, trainTermsPropagated, iaTsv -> tuple(meta, trainTermsPropagated, iaTsv) })
+        .join(split_ch.map { meta, splitDir -> tuple(meta, splitDir) })
+        .map { meta, goBasic, filteredGaf, trainTerms, trainSequences, trainTaxonomy, testSequences, trainTermsPropagated, iaTsv, splitDir ->
+            tuple(meta, goBasic, filteredGaf, trainTerms, trainSequences, trainTaxonomy, testSequences, trainTermsPropagated, iaTsv, splitDir)
+        }
+
+    release_ch   = FREEZE_TIMEPOINT_RELEASE(release_inputs_ch)
 
     if( params.prediction_target_mode == 'window_groundtruth' ) {
         /*
@@ -43,7 +53,7 @@ workflow TIMEPOINT_BUILD {
          * does not exist until the T0/T1 window has been constructed. To produce  
          * predictions in this mode, use the EVALUATE_WINDOW workflow
          */
-        predictions_dir_ch = INIT_EMPTY_PREDICTIONS_DIR(release_ch.map { meta, go, gaf, terms, trainSeq, trainTax, testSeq, propTerms, ia, blast, splitDir, releaseDir -> tuple(meta, releaseDir) })
+        predictions_dir_ch = INIT_EMPTY_PREDICTIONS_DIR(release_ch.map { meta, go, gaf, terms, trainSeq, trainTax, testSeq, propTerms, ia, splitDir, releaseDir -> tuple(meta, releaseDir) })
     }
     else {
         /*
@@ -51,10 +61,10 @@ workflow TIMEPOINT_BUILD {
          * generated as part of the release bundle. This allows us to have predictions ready immediately after
          * the release is frozen, independent of window construction and EVALUATE_WINDOW runs.
         */
-        naive_ch     = PREDICT_NAIVE(release_ch.map { meta, go, gaf, terms, trainSeq, trainTax, testSeq, propTerms, ia, blast, splitDir, releaseDir -> tuple(meta, releaseDir, 'test_sequences.fasta') })
-        goa_ch       = PREDICT_GOA_NONEXP(release_ch.map { meta, go, gaf, terms, trainSeq, trainTax, testSeq, propTerms, ia, blast, splitDir, releaseDir -> tuple(meta, releaseDir, 'test_sequences.fasta') })
-        blastpred_ch = PREDICT_BLAST(release_ch.map { meta, go, gaf, terms, trainSeq, trainTax, testSeq, propTerms, ia, blast, splitDir, releaseDir -> tuple(meta, releaseDir, 'test_sequences.fasta') })
-        prott5_ch    = PREDICT_PROTT5(release_ch.map { meta, go, gaf, terms, trainSeq, trainTax, testSeq, propTerms, ia, blast, splitDir, releaseDir -> tuple(meta, releaseDir, 'test_sequences.fasta') })
+        naive_ch     = PREDICT_NAIVE(release_ch.map { meta, go, gaf, terms, trainSeq, trainTax, testSeq, propTerms, ia, splitDir, releaseDir -> tuple(meta, releaseDir, 'test_sequences.fasta') })
+        goa_ch       = PREDICT_GOA_NONEXP(release_ch.map { meta, go, gaf, terms, trainSeq, trainTax, testSeq, propTerms, ia, splitDir, releaseDir -> tuple(meta, releaseDir, 'test_sequences.fasta') })
+        blastpred_ch = PREDICT_BLAST(release_ch.map { meta, go, gaf, terms, trainSeq, trainTax, testSeq, propTerms, ia, splitDir, releaseDir -> tuple(meta, releaseDir, 'test_sequences.fasta') })
+        prott5_ch    = PREDICT_PROTT5(release_ch.map { meta, go, gaf, terms, trainSeq, trainTax, testSeq, propTerms, ia, splitDir, releaseDir -> tuple(meta, releaseDir, 'test_sequences.fasta') })
 
         prediction_bundle_ch = naive_ch
             .join(goa_ch)

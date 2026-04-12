@@ -1,40 +1,30 @@
 {
-  "generated_at": "2026-04-06T17:58:25+00:00",
+  "generated_at": "2026-04-12T21:14:13+00:00",
   "validator": "scripts/publish_release_windows.py",
   "releases": [
     {
-      "release_id": "Apr_2025_Jun_2025",
-      "path": "data/releases/Apr_2025_Jun_2025",
-      "status": "archived"
-    },
-    {
-      "release_id": "Apr_2025_Oct_2025",
-      "path": "data/releases/Apr_2025_Oct_2025",
-      "status": "archived"
-    },
-    {
-      "release_id": "Jan_2026_Mar_2026",
-      "path": "data/releases/Jan_2026_Mar_2026",
+      "release_id": "Dec_2025_Mar_2026",
+      "path": "data/releases/Dec_2025_Mar_2026",
       "status": "ready"
     },
     {
-      "release_id": "Jun_2025_Jan_2026",
-      "path": "data/releases/Jun_2025_Jan_2026",
+      "release_id": "Nov_2025_Dec_2025",
+      "path": "data/releases/Nov_2025_Dec_2025",
       "status": "ready"
     },
     {
-      "release_id": "Jun_2025_Mar_2026",
-      "path": "data/releases/Jun_2025_Mar_2026",
+      "release_id": "Sep_2025_Dec_2025",
+      "path": "data/releases/Sep_2025_Dec_2025",
       "status": "ready"
     },
     {
-      "release_id": "Jun_2025_Oct_2025",
-      "path": "data/releases/Jun_2025_Oct_2025",
+      "release_id": "Sep_2025_Mar_2026",
+      "path": "data/releases/Sep_2025_Mar_2026",
       "status": "ready"
     },
     {
-      "release_id": "Oct_2025_Jan_2026",
-      "path": "data/releases/Oct_2025_Jan_2026",
+      "release_id": "Sep_2025_Nov_2025",
+      "path": "data/releases/Sep_2025_Nov_2025",
       "status": "ready"
     }
   ]

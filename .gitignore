@@ -57,6 +57,9 @@ deepgoplus_data/*
 groundtruth_targets.fasta*
 data/time_points/*
 data/time_periods/*
+data/old_releases/*
+new_data/time_points/*
+tests/
 work/
 # Logs
 *.log

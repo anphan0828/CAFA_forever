@@ -18,7 +18,7 @@ workflow {
             def timepointRoot = file(params.timepoint_root ?: "${params.output_root}/${timepointId}")
 
             Channel
-                .of(tuple([timepoint_id: timepointId], file("${timepointRoot}/go-basic.obo"), file("${timepointRoot}/goa_uniprot_all.gaf.gz"), file("${timepointRoot}/uniprot_sprot.fasta.gz")))
+                .of(tuple([timepoint_id: timepointId, timepoint_root: timepointRoot.toString()], file("${timepointRoot}/go-basic.obo"), file("${timepointRoot}/goa_uniprot_all.gaf.gz"), file("${timepointRoot}/uniprot_sprot.fasta.gz")))
                 .set { timepoint_inputs_ch }
 
             TIMEPOINT_BUILD(timepoint_inputs_ch)

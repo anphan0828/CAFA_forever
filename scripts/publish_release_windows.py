@@ -372,15 +372,23 @@ def copy_release_contract(
 
 
 def build_catalog_entries(
-    results: Sequence[ValidationResult], publish_dir: Path
+    results: Sequence[ValidationResult], publish_dir: Path, repo_root: Path | None = None
 ) -> List[Dict[str, str]]:
     entries: List[Dict[str, str]] = []
     for result in sorted(results, key=lambda r: r.release_id):
         status = "ready" if result.is_valid else "invalid"
+        release_path = publish_dir / result.release_id
+        if repo_root is not None:
+            try:
+                catalog_path = release_path.resolve().relative_to(repo_root.resolve()).as_posix()
+            except ValueError:
+                catalog_path = str(release_path.resolve())
+        else:
+            catalog_path = str(release_path)
         entries.append(
             {
                 "release_id": result.release_id,
-                "path": f"data/releases/{result.release_id}",
+                "path": catalog_path,
                 "status": status,
             }
         )
@@ -430,7 +438,7 @@ def main() -> int:
     catalog = {
         "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         "validator": "scripts/publish_release_windows.py",
-        "releases": build_catalog_entries(results, publish_dir),
+        "releases": build_catalog_entries(results, publish_dir, repo_root=repo_root),
     }
 
     if not args.dry_run:

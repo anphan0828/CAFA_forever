@@ -18,7 +18,7 @@ process PREDICT_NAIVE {
     singularity exec --pwd /app \
       --bind "${releaseDir}:/app/data" \
       --bind "\$PWD/output:/app/output" \
-      "${params.workspace_root}/test_naive_latest.sif" \
+      "${params.workspace_root}/containers/naive_predictor_v0.sif" \
       python3 naive.py \
       --annot_file /app/data/train_terms.tsv \
       --query_file "/app/data/${queryFastaName}" \
@@ -56,7 +56,7 @@ process PREDICT_GOA_NONEXP {
     singularity exec --pwd /app \
       --bind "${releaseDir}:/app/data" \
       --bind "\$PWD/output:/app/output" \
-      "${params.workspace_root}/test_goa_nonexp_latest.sif" \
+      "${params.workspace_root}/containers/goa_nonexp_predictor_v0.sif" \
       python3 goa_nonexp.py \
       --annot_file /app/data/goa_uniprot_sprot.gaf.gz \
       --selected_go 'Computational,Phylogenetical,Electronic,ND,NAS' \
@@ -95,15 +95,15 @@ process PREDICT_BLAST {
     singularity exec --nv --pwd /app \
       --bind "${releaseDir}:/app/data" \
       --bind "\$PWD/output:/app/output" \
-      "${params.workspace_root}/test_blast_latest_gpu.sif" \
+      "${params.workspace_root}/containers/blast_predictor_v0.sif" \
       python3 blast_main.py \
       --annot_file /app/data/train_terms_propagated.tsv \
       --query_file "/app/data/${queryFastaName}" \
       --graph /app/data/go-basic.obo \
-      --blast_results /app/data/blast_results.tsv \
       --train_sequences /app/data/train_sequences.fasta \
       --train_taxonomy /app/data/train_taxonomy.tsv \
-      --output_baseline /app/output/blast_predictions.tsv
+      --output_baseline /app/output/blast_predictions.tsv \
+      --num_threads 16
 
     cp output/blast_predictions.tsv .
     """
@@ -136,14 +136,15 @@ process PREDICT_PROTT5 {
     singularity exec --nv --pwd /app \
       --bind "${releaseDir}:/app/data" \
       --bind "\$PWD/output:/app/output" \
-      "${params.workspace_root}/test_prott5_latest_gpu.sif" \
+      "${params.workspace_root}/containers/prott5_predictor_v0.sif" \
       python3 prott5_main.py \
       --annot_file /app/data/train_terms.tsv \
       --query_file "/app/data/${queryFastaName}" \
       --graph /app/data/go-basic.obo \
       --train_sequences /app/data/train_sequences.fasta \
       --output_baseline /app/output/prott5_predictions.tsv \
-      --n_terms 1500
+      --num_threads 16 \
+      --top_k 5
 
     cp output/prott5_predictions.tsv .
     """
@@ -177,7 +178,7 @@ process PREDICT_TRANSFEW {
         --bind "${releaseDir}:/root/data" \
         --bind "\$PWD/output:/root/output" \
         --bind "${params.workspace_root}/checkpoints_TransFew:/root/.cache/torch/hub/checkpoints" \
-        "${params.workspace_root}/transfew_predictor_latest.sif" \
+        "${params.workspace_root}/containers/transfew_predictor_latest.sif" \
         --fasta-path "/root/data/${queryFastaName}" \
         --working-dir /root/output \
         --ontology "\${ontology}" \
@@ -197,17 +198,19 @@ process PREDICT_TRANSFEW {
     """
 }
 
-process PREDICT_FUNBIND {
+process PREDICT_FUNBIND_BATCH {
     label 'gpu_scavenger'
-    tag "${meta.release_id}"
+    tag "${meta.release_id}:funbind:${batchIndex}"
 
     input:
-    tuple val(meta), path(releaseDir), val(splitDirName)
+    tuple val(meta), val(batchIndex), val(expectedBatchCount), path(releaseDir), path(batchFastas)
 
     output:
-    tuple val(meta), path('funbind_predictions.tsv')
+    tuple val(meta), val(batchIndex), val(expectedBatchCount), path("funbind_batch_${String.format('%03d', batchIndex as Integer)}.tsv"), path("funbind_batch_${String.format('%03d', batchIndex as Integer)}.manifest.tsv")
 
     script:
+    def batchOutputName = "funbind_batch_${String.format('%03d', batchIndex as Integer)}.tsv"
+    def batchManifestName = "funbind_batch_${String.format('%03d', batchIndex as Integer)}.manifest.tsv"
     """
     module load apptainer || true
     export SINGULARITY_CACHEDIR=\${TMPDIR:-${params.workspace_root}/.singularity_tmp}
@@ -215,23 +218,63 @@ process PREDICT_FUNBIND {
     mkdir -p output
 
     nvidia-cuda-mps-server || true
+    release_dir=\$(readlink -f "${releaseDir}")
 
-    for fasta in "${releaseDir}/${splitDirName}"/part_*.fasta; do
-      part_name=\$(basename "\${fasta}" .fasta)
-      fasta_name=\$(basename "\${fasta}")
+    : > "${batchManifestName}"
+    shopt -s nullglob
+    batch_fastas=(part_*.fasta)
+    if [[ "\${#batch_fastas[@]}" -eq 0 ]]; then
+      echo "No staged FunBind FASTA parts found for batch ${batchIndex}" >&2
+      exit 1
+    fi
+    mapfile -t sorted_batch_fastas < <(printf '%s\\n' "\${batch_fastas[@]}" | sort)
+    for fasta_path in "\${sorted_batch_fastas[@]}"; do
+      fasta_name=\$(basename "\${fasta_path}")
+      part_name=\$(basename "\${fasta_name}" .fasta)
+      printf '%s\\n' "\${fasta_name}" >> "${batchManifestName}"
       apptainer run --nv --pwd /software/FunBind --writable-tmpfs \
-        --bind "${releaseDir}:/root/data" \
+        --bind "\${release_dir}:/root/data" \
+        --bind "\$PWD:/root/batch" \
         --bind "\$PWD/output:/root/output" \
         --bind "${params.workspace_root}/cache/pretrained_huggingface_models/cache_folder:/root/.cache/huggingface/hub" \
         --bind "${params.workspace_root}/checkpoints_FunBind:/root/.cache/checkpoints" \
-        "${params.workspace_root}/test_funbind_latest.sif" \
+        "${params.workspace_root}/containers/test_funbind_latest.sif" \
         --data-path /root/.cache/checkpoints \
-        --sequence-path "/root/data/${splitDirName}/\${fasta_name}" \
+        --sequence-path "/root/batch/\${fasta_name}" \
         --output "/root/output/\${part_name}"
     done
 
-    find output -type f \\( -path "*/BP/Sequence_BP.tsv" -o -path "*/MF/Sequence_MF.tsv" -o -path "*/CC/Sequence_CC.tsv" \\) \
-      | sort | xargs cat > funbind_predictions.tsv
+    mapfile -t result_files < <(find output -type f \\( -path "*/BP/Sequence_BP.tsv" -o -path "*/MF/Sequence_MF.tsv" -o -path "*/CC/Sequence_CC.tsv" \\) | sort)
+    if [[ "\${#result_files[@]}" -eq 0 ]]; then
+      echo "No FunBind output fragments were produced for batch ${batchIndex}" >&2
+      exit 1
+    fi
+    cat "\${result_files[@]}" > "${batchOutputName}"
+    """
+
+    stub:
+    """
+    touch "${batchOutputName}"
+    printf 'part_001.fasta\\n' > "${batchManifestName}"
+    """
+}
+
+process MERGE_FUNBIND_BATCHES {
+    label 'packaging'
+    tag "${meta.release_id}:funbind"
+
+    input:
+    tuple val(meta), val(expectedBatchCount), val(batchIndexes), path(batchPredictionFiles), path(batchManifestFiles)
+
+    output:
+    tuple val(meta), path('funbind_predictions.tsv')
+
+    script:
+    """
+    python3 "${params.workspace_root}/scripts/merge_funbind_batches.py" \
+      --batch-dir . \
+      --expected-batch-count ${expectedBatchCount} \
+      --output funbind_predictions.tsv
     """
 
     stub:
@@ -255,11 +298,12 @@ process PREDICT_DEEPGOPLUS {
     module load apptainer || true
     export SINGULARITY_CACHEDIR=\${TMPDIR:-${params.workspace_root}/.singularity_tmp}
     export SINGULARITY_TMPDIR=\${TMPDIR:-${params.workspace_root}/.singularity_tmp}
-
+    
+    nvidia-cuda-mps-server || true
     apptainer run --nv --pwd /deepgoplus --writable-tmpfs \
       --bind "\$PWD:/output" \
       --bind "${releaseDir}:/ext_data" \
-      "${params.workspace_root}/deepgoplus_latest.sif" \
+      "${params.workspace_root}/containers/deepgoplus_latest.sif" \
       -if /ext_data/${queryFastaName} \
       -of /output/deepgoplus_predictions.tsv
 
@@ -379,45 +423,46 @@ process PACKAGE_WINDOW_PREDICTIONS {
 process PACKAGE_TIMEPOINT_DIRECTORY {
     label 'packaging'
     tag "${meta.timepoint_id}"
-    publishDir "${params.output_root}", mode: 'copy'
 
     input:
-    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(trainSequences), path(trainTaxonomy), path(testSequences), path(trainTermsPropagated), path(iaTsv), path(blastResults), path(splitDir), path(releaseDir), path(predictionsDir)
+    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(trainSequences), path(trainTaxonomy), path(testSequences), path(trainTermsPropagated), path(iaTsv), path(splitDir), path(releaseDir), path(predictionsDir)
 
     output:
-    tuple val(meta), path("${meta.timepoint_id}")
+    tuple val(meta), path('published_timepoint.txt')
 
     script:
     """
-    mkdir -p "${meta.timepoint_id}"
-    cp "${goBasic}" "${meta.timepoint_id}/go-basic.obo"
-    cp "${filteredGaf}" "${meta.timepoint_id}/goa_uniprot_sprot.gaf.gz"
-    cp "${trainTerms}" "${meta.timepoint_id}/train_terms.tsv"
-    cp "${trainSequences}" "${meta.timepoint_id}/train_sequences.fasta"
-    cp "${trainTaxonomy}" "${meta.timepoint_id}/train_taxonomy.tsv"
-    cp "${testSequences}" "${meta.timepoint_id}/test_sequences.fasta"
-    cp "${trainTermsPropagated}" "${meta.timepoint_id}/train_terms_propagated.tsv"
-    cp "${iaTsv}" "${meta.timepoint_id}/IA.tsv"
-    cp "${blastResults}" "${meta.timepoint_id}/blast_results.tsv"
-    cp -r "${splitDir}" "${meta.timepoint_id}/test_sequences_split"
-    cp -r "${releaseDir}" "${meta.timepoint_id}/release"
-    cp -r "${predictionsDir}" "${meta.timepoint_id}/predictions"
+    target_dir="${meta.timepoint_root}"
+    mkdir -p "\${target_dir}"
+    cp "${filteredGaf}" "\${target_dir}/goa_uniprot_sprot.gaf.gz"
+    cp "${trainTerms}" "\${target_dir}/train_terms.tsv"
+    cp "${trainSequences}" "\${target_dir}/train_sequences.fasta"
+    cp "${trainTaxonomy}" "\${target_dir}/train_taxonomy.tsv"
+    cp "${testSequences}" "\${target_dir}/test_sequences.fasta"
+    cp "${trainTermsPropagated}" "\${target_dir}/train_terms_propagated.tsv"
+    cp "${iaTsv}" "\${target_dir}/IA.tsv"
+    mkdir -p "\${target_dir}/test_sequences_split" "\${target_dir}/release" "\${target_dir}/predictions"
+    cp -r "${splitDir}/." "\${target_dir}/test_sequences_split/"
+    cp -r "${releaseDir}/." "\${target_dir}/release/"
+    cp -r "${predictionsDir}/." "\${target_dir}/predictions/"
+    printf '%s\\n' "\${target_dir}" > published_timepoint.txt
     """
 
     stub:
     """
-    mkdir -p "${meta.timepoint_id}"
-    touch "${meta.timepoint_id}/go-basic.obo"
-    touch "${meta.timepoint_id}/goa_uniprot_sprot.gaf.gz"
-    touch "${meta.timepoint_id}/train_terms.tsv"
-    touch "${meta.timepoint_id}/train_sequences.fasta"
-    touch "${meta.timepoint_id}/train_taxonomy.tsv"
-    touch "${meta.timepoint_id}/test_sequences.fasta"
-    touch "${meta.timepoint_id}/train_terms_propagated.tsv"
-    touch "${meta.timepoint_id}/IA.tsv"
-    touch "${meta.timepoint_id}/blast_results.tsv"
-    cp -r "${splitDir}" "${meta.timepoint_id}/test_sequences_split"
-    cp -r "${releaseDir}" "${meta.timepoint_id}/release"
-    cp -r "${predictionsDir}" "${meta.timepoint_id}/predictions"
+    target_dir="${meta.timepoint_root}"
+    mkdir -p "\${target_dir}"
+    touch "\${target_dir}/goa_uniprot_sprot.gaf.gz"
+    touch "\${target_dir}/train_terms.tsv"
+    touch "\${target_dir}/train_sequences.fasta"
+    touch "\${target_dir}/train_taxonomy.tsv"
+    touch "\${target_dir}/test_sequences.fasta"
+    touch "\${target_dir}/train_terms_propagated.tsv"
+    touch "\${target_dir}/IA.tsv"
+    mkdir -p "\${target_dir}/test_sequences_split" "\${target_dir}/release" "\${target_dir}/predictions"
+    cp -r "${splitDir}/." "\${target_dir}/test_sequences_split/"
+    cp -r "${releaseDir}/." "\${target_dir}/release/"
+    cp -r "${predictionsDir}/." "\${target_dir}/predictions/"
+    printf '%s\\n' "\${target_dir}" > published_timepoint.txt
     """
 }

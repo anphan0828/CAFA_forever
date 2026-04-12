@@ -38,7 +38,7 @@ process FILTER_GAF_TO_SWISSPROT {
     module load micromamba || true
     export MAMBA_ROOT_PREFIX="\${MAMBA_ROOT_PREFIX:-$HOME/micromamba}"
     eval "\$(micromamba shell hook --shell=bash)"
-    micromamba activate democafaenv
+    micromamba activate "${params.democafa_env}"
     pip install "${params.democafa_package}"
 
     python3 -m democafa.datacollection.filter_gaf \
@@ -68,7 +68,7 @@ process RETRIEVE_EXPERIMENTAL_TERMS {
     module load micromamba || true
     export MAMBA_ROOT_PREFIX="\${MAMBA_ROOT_PREFIX:-$HOME/micromamba}"
     eval "\$(micromamba shell hook --shell=bash)"
-    micromamba activate democafaenv
+    micromamba activate "${params.democafa_env}"
     pip install "${params.democafa_package}"
 
     python3 -m democafa.datacollection.retrieve_terms \
@@ -89,17 +89,17 @@ process CREATE_TRAINING_SET {
     tag "${meta.timepoint_id}"
 
     input:
-    tuple val(meta), path(goBasic), path(filteredGaf), path(swissProt), path(trainTerms)
+    tuple val(meta), path(trainTerms), path(swissProt)
 
     output:
-    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(swissProt), path('train_sequences.fasta'), path('train_taxonomy.tsv')
+    tuple val(meta), path(trainTerms), path('train_sequences.fasta'), path('train_taxonomy.tsv')
 
     script:
     """
     module load micromamba || true
     export MAMBA_ROOT_PREFIX="\${MAMBA_ROOT_PREFIX:-$HOME/micromamba}"
     eval "\$(micromamba shell hook --shell=bash)"
-    micromamba activate democafaenv
+    micromamba activate "${params.democafa_env}"
     pip install "${params.democafa_package}"
 
     python3 -m democafa.datacollection.create_test_set \
@@ -122,10 +122,10 @@ process CREATE_TEST_FASTA {
     tag "${meta.timepoint_id}"
 
     input:
-    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(swissProt), path(trainSequences), path(trainTaxonomy)
+    tuple val(meta), path(swissProt)
 
     output:
-    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(trainSequences), path(trainTaxonomy), path('test_sequences.fasta')
+    tuple val(meta), path('test_sequences.fasta')
 
     script:
     """
@@ -143,17 +143,17 @@ process PROPAGATE_AND_COMPUTE_IA {
     tag "${meta.timepoint_id}"
 
     input:
-    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(trainSequences), path(trainTaxonomy), path(testSequences)
+    tuple val(meta), path(goBasic), path(trainTerms)
 
     output:
-    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(trainSequences), path(trainTaxonomy), path(testSequences), path('train_terms_propagated.tsv'), path('IA.tsv')
+    tuple val(meta), path('train_terms_propagated.tsv'), path('IA.tsv')
 
     script:
     """
     module load micromamba || true
     export MAMBA_ROOT_PREFIX="\${MAMBA_ROOT_PREFIX:-$HOME/micromamba}"
     eval "\$(micromamba shell hook --shell=bash)"
-    micromamba activate democafaenv
+    micromamba activate "${params.democafa_env}"
     pip install "${params.democafa_package}"
 
     python3 -m democafa.datacollection.propagate_and_ia \
@@ -170,41 +170,15 @@ process PROPAGATE_AND_COMPUTE_IA {
     """
 }
 
-process RUN_BLAST_EVIDENCE {
-    label 'cpu_large'
-    tag "${meta.timepoint_id}"
-
-    input:
-    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(trainSequences), path(trainTaxonomy), path(testSequences), path(trainTermsPropagated), path(iaTsv)
-
-    output:
-    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(trainSequences), path(trainTaxonomy), path(testSequences), path(trainTermsPropagated), path(iaTsv), path('blast_results.tsv')
-
-    script:
-    """
-    bash "${params.democafa_package}/democafa/baselines/blast_container/run_blast.sh" \
-      --query "${testSequences}" \
-      --database "${trainSequences}" \
-      --taxid "${trainTaxonomy}" \
-      --output blast_results.tsv \
-      --threads ${task.cpus}
-    """
-
-    stub:
-    """
-    touch blast_results.tsv
-    """
-}
-
 process SPLIT_TEST_FASTA {
     label 'cpu_small'
     tag "${meta.timepoint_id}"
 
     input:
-    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(trainSequences), path(trainTaxonomy), path(testSequences), path(trainTermsPropagated), path(iaTsv), path(blastResults)
+    tuple val(meta), path(testSequences)
 
     output:
-    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(trainSequences), path(trainTaxonomy), path(testSequences), path(trainTermsPropagated), path(iaTsv), path(blastResults), path('test_sequences_split')
+    tuple val(meta), path('test_sequences_split')
 
     script:
     """
@@ -253,10 +227,10 @@ process FREEZE_TIMEPOINT_RELEASE {
     tag "${meta.timepoint_id}"
 
     input:
-    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(trainSequences), path(trainTaxonomy), path(testSequences), path(trainTermsPropagated), path(iaTsv), path(blastResults), path(splitDir)
+    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(trainSequences), path(trainTaxonomy), path(testSequences), path(trainTermsPropagated), path(iaTsv), path(splitDir)
 
     output:
-    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(trainSequences), path(trainTaxonomy), path(testSequences), path(trainTermsPropagated), path(iaTsv), path(blastResults), path(splitDir), path('release')
+    tuple val(meta), path(goBasic), path(filteredGaf), path(trainTerms), path(trainSequences), path(trainTaxonomy), path(testSequences), path(trainTermsPropagated), path(iaTsv), path(splitDir), path('release')
 
     script:
     """
@@ -268,7 +242,6 @@ process FREEZE_TIMEPOINT_RELEASE {
     cp "${trainTermsPropagated}" release/train_terms_propagated.tsv
     cp "${trainTaxonomy}" release/train_taxonomy.tsv
     cp "${testSequences}" release/test_sequences.fasta
-    cp "${blastResults}" release/blast_results.tsv
     cp "${iaTsv}" release/IA.tsv
     """
 
@@ -282,7 +255,6 @@ process FREEZE_TIMEPOINT_RELEASE {
     touch release/train_terms_propagated.tsv
     touch release/train_taxonomy.tsv
     touch release/test_sequences.fasta
-    touch release/blast_results.tsv
     touch release/IA.tsv
     """
 }

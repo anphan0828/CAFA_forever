@@ -30,6 +30,11 @@ Conda or micromamba is strongly recommended. The current pipeline expects:
 - a `cafa5-evaluator` environment for `cafaeval`
 - Nextflow available either from a local install or an HPC module
 
+These names are defaults, not hard requirements. The workflow reads them from [nextflow.config](nextflow.config):
+
+- `params.democafa_env`
+- `params.cafaeval_env`
+
 ### 1. Clone the repo
 
 ```bash
@@ -67,11 +72,39 @@ Or install Nextflow locally following the standard Nextflow instructions.
 
 ### 5. Point the workflow at `democafa`
 
-The pipeline currently uses `params.democafa_package` from [nextflow.config](nextflow.config). Override it at runtime if your checkout is elsewhere:
+The pipeline currently uses these runtime dependency params from [nextflow.config](nextflow.config):
+
+- `params.democafa_package`
+- `params.democafa_env`
+- `params.cafaeval_env`
+
+Override them at runtime if your local setup uses different names or locations:
 
 ```bash
-nextflow run main.nf ... --democafa_package /path/to/democafa_package
+nextflow run main.nf ... \
+  --democafa_package /path/to/democafa_package \
+  --democafa_env my-democafa-env \
+  --cafaeval_env my-cafaeval-env
 ```
+
+### 6. Verify the required tools are installed into those environments
+
+The workflow assumes:
+
+- `python -m democafa...` commands work after `micromamba activate $democafa_env`
+- `cafaeval` is on `PATH` after `micromamba activate $cafaeval_env`
+
+Minimal checks:
+
+```bash
+micromamba activate democafaenv
+python -c "import democafa; print('democafa ok')"
+
+micromamba activate cafa5-evaluator
+cafaeval --help
+```
+
+If you use different environment names, substitute the values you pass through `--democafa_env` and `--cafaeval_env`.
 
 ## Typical Use Cases
 
@@ -91,7 +124,6 @@ nextflow run main.nf \
 What this produces:
 
 - filtered and propagated training artifacts
-- `blast_results.tsv`
 - `test_sequences_split/`
 - `release/`
 - timepoint-global predictions only when `prediction_target_mode != 'window_groundtruth'`
@@ -143,20 +175,6 @@ nextflow run main.nf \
   --release_root /path/to/data/releases/Jun_2025_Oct_2025
 ```
 
-## Smoke Tests
-
-The repo contains a minimal fixture for parser and `-stub-run` validation:
-
-- [tests/fixtures/smoke/README.md](tests/fixtures/smoke/README.md)
-
-Use it to test:
-
-- `timepoint_build`
-- `evaluate_window`
-- `evaluate_late_predictions`
-
-The fixture is intentionally tiny and should not be used for scientific validation.
-
 ## Published Release Contract
 
 Each published release under `data/releases/<release_id>/` is expected to contain:
@@ -200,4 +218,3 @@ Published release windows live under `data/releases/<T0>_<T1>/`.
 - `cafaeval` is treated as an external executable.
 - Predictor containers and cache paths are still configured through local absolute paths in [nextflow.config](nextflow.config) and the prediction modules; those should be cleaned up before public multi-user deployment.
 
-For the full process-oriented backend contract, see [lafa-compute-backend-process-spec.md](lafa-compute-backend-process-spec.md).

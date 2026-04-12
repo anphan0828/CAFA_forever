@@ -13,7 +13,7 @@ process INTERSECT_TARGETS {
     module load micromamba || true
     export MAMBA_ROOT_PREFIX="\${MAMBA_ROOT_PREFIX:-$HOME/micromamba}"
     eval "\$(micromamba shell hook --shell=bash)"
-    micromamba activate democafaenv
+    micromamba activate "${params.democafa_env}"
     pip install "${params.democafa_package}"
 
     python3 -m democafa.datacollection.compare_fasta \
@@ -45,7 +45,7 @@ process CLASSIFY_GROUNDTRUTH {
     module load micromamba || true
     export MAMBA_ROOT_PREFIX="\${MAMBA_ROOT_PREFIX:-$HOME/micromamba}"
     eval "\$(micromamba shell hook --shell=bash)"
-    micromamba activate democafaenv
+    micromamba activate "${params.democafa_env}"
     pip install "${params.democafa_package}"
 
     python3 -m democafa.groundtruth.classify_ground_truth \
@@ -85,7 +85,7 @@ process EXTRACT_GROUNDTRUTH_TARGETS {
     module load micromamba || true
     export MAMBA_ROOT_PREFIX="\${MAMBA_ROOT_PREFIX:-$HOME/micromamba}"
     eval "\$(micromamba shell hook --shell=bash)"
-    micromamba activate democafaenv
+    micromamba activate "${params.democafa_env}"
     pip install "${params.democafa_package}"
 
     python3 -m democafa.datacollection.retrieve_sequences \
@@ -119,7 +119,6 @@ process PREPARE_WINDOW_RELEASE {
     cp "${t0Dir}/release/train_sequences.fasta" window_release/train_sequences.fasta
     cp "${t0Dir}/release/train_terms_propagated.tsv" window_release/train_terms_propagated.tsv
     cp "${t0Dir}/release/train_taxonomy.tsv" window_release/train_taxonomy.tsv
-    cp "${t0Dir}/release/blast_results.tsv" window_release/blast_results.tsv
     cp "${t0Dir}/release/IA.tsv" window_release/IA.tsv
     cp "${targetsFasta}" window_release/groundtruth_targets.fasta
     """
@@ -133,7 +132,6 @@ process PREPARE_WINDOW_RELEASE {
     touch window_release/train_sequences.fasta
     touch window_release/train_terms_propagated.tsv
     touch window_release/train_taxonomy.tsv
-    touch window_release/blast_results.tsv
     touch window_release/IA.tsv
     touch window_release/groundtruth_targets.fasta
     """
@@ -208,7 +206,7 @@ process EVALUATE_NK {
     module load micromamba || true
     export MAMBA_ROOT_PREFIX="\${MAMBA_ROOT_PREFIX:-$HOME/micromamba}"
     eval "\$(micromamba shell hook --shell=bash)"
-    micromamba activate cafa5-evaluator
+    micromamba activate "${params.cafaeval_env}"
 
     cafaeval "${t0Dir}/release/go-basic.obo" "${predictionsDir}" "${groundtruthTsv}" \
       -ia "${t0Dir}/release/IA.tsv" \
@@ -240,7 +238,7 @@ process EVALUATE_LK {
     module load micromamba || true
     export MAMBA_ROOT_PREFIX="\${MAMBA_ROOT_PREFIX:-$HOME/micromamba}"
     eval "\$(micromamba shell hook --shell=bash)"
-    micromamba activate cafa5-evaluator
+    micromamba activate "${params.cafaeval_env}"
 
     cafaeval "${t0Dir}/release/go-basic.obo" "${predictionsDir}" "${groundtruthTsv}" \
       -ia "${t0Dir}/release/IA.tsv" \
@@ -272,7 +270,7 @@ process EVALUATE_PK {
     module load micromamba || true
     export MAMBA_ROOT_PREFIX="\${MAMBA_ROOT_PREFIX:-$HOME/micromamba}"
     eval "\$(micromamba shell hook --shell=bash)"
-    micromamba activate cafa5-evaluator
+    micromamba activate "${params.cafaeval_env}"
 
     cafaeval "${t0Dir}/release/go-basic.obo" "${predictionsDir}" "${groundtruthTsv}" \
       -ia "${t0Dir}/release/IA.tsv" \
@@ -305,7 +303,7 @@ process EVALUATE_LATE_NK {
     module load micromamba || true
     export MAMBA_ROOT_PREFIX="\${MAMBA_ROOT_PREFIX:-$HOME/micromamba}"
     eval "\$(micromamba shell hook --shell=bash)"
-    micromamba activate cafa5-evaluator
+    micromamba activate "${params.cafaeval_env}"
 
     cafaeval "${t0Dir}/release/go-basic.obo" "${t0Dir}/predictions_uneval" "${releaseDir}/groundtruth_NK.tsv" \
       -ia "${t0Dir}/release/IA.tsv" \
@@ -337,7 +335,7 @@ process EVALUATE_LATE_LK {
     module load micromamba || true
     export MAMBA_ROOT_PREFIX="\${MAMBA_ROOT_PREFIX:-$HOME/micromamba}"
     eval "\$(micromamba shell hook --shell=bash)"
-    micromamba activate cafa5-evaluator
+    micromamba activate "${params.cafaeval_env}"
 
     cafaeval "${t0Dir}/release/go-basic.obo" "${t0Dir}/predictions_uneval" "${releaseDir}/groundtruth_LK.tsv" \
       -ia "${t0Dir}/release/IA.tsv" \
@@ -369,7 +367,7 @@ process EVALUATE_LATE_PK {
     module load micromamba || true
     export MAMBA_ROOT_PREFIX="\${MAMBA_ROOT_PREFIX:-$HOME/micromamba}"
     eval "\$(micromamba shell hook --shell=bash)"
-    micromamba activate cafa5-evaluator
+    micromamba activate "${params.cafaeval_env}"
 
     cafaeval "${t0Dir}/release/go-basic.obo" "${t0Dir}/predictions_uneval" "${releaseDir}/groundtruth_PK.tsv" \
       -ia "${t0Dir}/release/IA.tsv" \
