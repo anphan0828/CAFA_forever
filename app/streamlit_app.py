@@ -38,9 +38,9 @@ ASPECT_NAMES = {
 }
 
 ONTOLOGY_DICT = {
-    "biological_process": "BPO",
-    "molecular_function": "MFO",
-    "cellular_component": "CCO",
+    "biological_process": "Biological Process",
+    "molecular_function": "Molecular Function",
+    "cellular_component": "Cellular Component",
 }
 
 SUBSET_LABELS = {
@@ -371,7 +371,7 @@ def create_interactive_performance_plot(bundle, selected_methods, selected_metri
     aspects = ["biological_process", "molecular_function", "cellular_component"]
     aspect_symbols = ["circle", "square", "triangle-up"]
     aspect_labels = ["BPO", "MFO", "CCO"]
-    colors = {"NK": "#ab5f03", "LK": "#0c4b78", "PK": "#0f6d38"}
+    colors = {"NK": "#0780E2", "LK": "#FF4500", "PK": "#8A2BE2"}
 
     fig = make_subplots(
         rows=1,
@@ -427,7 +427,7 @@ def create_interactive_performance_plot(bundle, selected_methods, selected_metri
                         color=colors[subset],
                         size=12,
                         symbol=symbol,
-                        line=dict(color="#111111", width=1),
+                        line=dict(color="#111111", width=0),
                     ),
                     name="",
                     showlegend=False,
@@ -459,7 +459,7 @@ def create_interactive_performance_plot(bundle, selected_methods, selected_metri
         legend=dict(orientation="h", yanchor="bottom", y=-0.5, xanchor="center", x=0.5),
     )
     fig.update_yaxes(
-        title_text=selected_metric.upper(),
+        title_text='Weighted F-max' if selected_metric == "f_micro_w" else selected_metric.replace("_", " ").title(),
         row=1,
         col=1,
         range=[0, 1],
@@ -647,7 +647,7 @@ def create_average_f1_chart(release_bundles, selected_methods):
                 {
                     "Release": release_id,
                     "Method": method,
-                    "Average F-score": float(np.mean(values)),
+                    "Average F-max": float(np.mean(values)),
                 }
             )
     colors = px.colors.qualitative.Set2
@@ -655,7 +655,7 @@ def create_average_f1_chart(release_bundles, selected_methods):
     fig = px.bar(
         df_average,
         x="Method",
-        y="Average F-score",
+        y="Average F-max",
         color="Release",
         barmode="group",
         text_auto=".3f",
@@ -740,7 +740,7 @@ def render_method_selector(release_bundles):
     default_methods = set(_default_selected_methods(comparable_methods))
         
     for idx, method in enumerate(comparable_methods):
-        col1, col2 = st.columns([0.5, 1.5])
+        col1, col2 = st.columns([0.1, 1.5])
         release_details = []
         for release_id in release_bundles:
             subset_flags = availability_lookup[release_id].get(method, {})
@@ -750,7 +750,7 @@ def render_method_selector(release_bundles):
         with col1:
             url = method_url(method)
             if url:
-                st.markdown(f"[Source]({url})")
+                st.link_button("", url,type='tertiary',icon=":material/open_in_new:")
         with col2:
             checked = st.checkbox(
                     method,
@@ -772,8 +772,12 @@ def resolve_selected_releases(available_release_ids):
     default_primary = split_release_id(available_release_ids[0])
     default_secondary = split_release_id(available_release_ids[1]) if len(available_release_ids) > 1 else default_primary
     
-    st.markdown(
-        "Available time points: " + ", ".join(available_timepoints)
+    st.link_button(
+        label=f"Available time points: {', '.join(available_timepoints)}",
+        url="https://huggingface.co/datasets/anphan0828/lafa/tree/main",
+        type="tertiary",
+        icon=":material/open_in_new:",
+        help="Link to dataset repository for available time points"
     )
     selector_columns = st.columns(2)
     with selector_columns[0]:
@@ -859,12 +863,12 @@ def build_target_summary_table(release_id, bundle, selected_methods):
                         "Method": method,
                         "Targets Predicted": predicted_count,
                         "Ground Truth Targets": int(ground_truth_count),
-                        "Target Coverage %": f"{pct:.1f}",
-                        "Precision": f"{row['pr_micro_w']:.3f}",
-                        "Recall": f"{row['rc_micro_w']:.3f}",
-                        "F-score": f"{row['f_micro_w']:.3f}",
-                        "Coverage": f"{row['cov_w']:.3f}",
-                        "Threshold": f"{row['tau']:.3f}",
+                        "Target Coverage %": round(float(pct), 1),
+                        "Precision": round(float(row['pr_micro_w']), 3),
+                        "Recall": round(float(row['rc_micro_w']), 3),
+                        "F-max": round(float(row['f_micro_w']), 3),
+                        "Coverage": round(float(row['cov_w']), 3),
+                        "Threshold": round(float(row['tau']), 3),
                     }
                 )
 
@@ -912,7 +916,7 @@ def main():
     render_iastate_header()
     render_main_content_anchor()
     st.title("LAFA")
-    st.markdown("Longitudinal Assessment of Function Annotation")
+    st.markdown("Longitudinal Assessment of Protein Function Annotation Models")
 
     catalog = get_release_catalog()
     available_release_ids = get_available_release_ids()
@@ -964,10 +968,11 @@ def main():
 
     method_col, coverage_col = st.columns([2, 1])
     with method_col:
-        col1, col2 = st.columns([0.8, 1.5])
+        col1, col2 = st.columns([0.7, 1.5])
         with col1:
             selected_methods, comparable_methods = render_method_selector(release_bundles)
-
+            st.link_button("**Want your method featured on LAFA?**", 
+                           url="https://github.com/anphan0828/LAFA_container_guide")
     if not comparable_methods:
         st.error("No methods are available across all selected releases and subsets.")
         return
@@ -976,11 +981,12 @@ def main():
     except ValueError as exc:
         st.warning(str(exc))
         return
-
+        
+        
     with method_col:
         with col2:
-            st.markdown("**Average F-score across all 3 GO aspects and all 3 protein subsets**")
-            st.markdown("F-scores are micro-averaged across proteins.")
+            st.markdown("**Average weighted F-max across all 3 GO aspects and all 3 protein subsets**")
+            st.markdown("F-scores are micro-averaged across proteins, and weighted by GO term information content.")
             st.plotly_chart(create_average_f1_chart(release_bundles, selected_methods), use_container_width=True)
 
     with coverage_col:
@@ -989,7 +995,7 @@ def main():
         st.plotly_chart(create_subset_coverage_chart(release_bundles, selected_methods), use_container_width=True)
 
     tab_curves, tab_metrics, tab_summary = st.tabs(
-        ["Precision-Recall Curves", "F-score Breakdown", "Summary Tables"]
+        ["Precision-Recall Curves", "F-max Breakdown", "Summary Tables"]
     )
 
     with tab_curves:
@@ -1002,7 +1008,7 @@ def main():
     with tab_metrics:
         selected_metric = "f_micro_w"
         validate_enum(selected_metric, ALLOWED_METRICS, "metric")
-        st.markdown("**F-score by aspect and protein subset**")
+        st.markdown("**Weighted F-max by aspect and protein subset**")
 
         plot_columns = st.columns(len(release_bundles))
         for column, release_id in zip(plot_columns, release_bundles):
