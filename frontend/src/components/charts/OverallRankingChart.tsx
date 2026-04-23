@@ -19,6 +19,7 @@ import './OverallRankingChart.css'
 interface OverallRankingChartProps {
   bestMetrics: BestMetricsMap
   selectedMethods: string[]
+  colorDomain?: string[]
 }
 
 interface MethodScore {
@@ -31,6 +32,7 @@ interface MethodScore {
 export function OverallRankingChart({
   bestMetrics,
   selectedMethods,
+  colorDomain = selectedMethods,
 }: OverallRankingChartProps) {
   const chartData = useMemo(() => {
     // Compute average F-max across all subset/aspect combinations for each method
@@ -77,7 +79,7 @@ export function OverallRankingChart({
     return result
   }, [bestMetrics, selectedMethods])
 
-  const { getColor } = useMethodColors(selectedMethods)
+  const { getColor } = useMethodColors(colorDomain)
 
   if (chartData.length === 0) {
     return (

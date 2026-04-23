@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, type ReactNode, type Dispatch } from 'react'
 import type { Subset } from '../types'
 
-export type ActiveTab = 'summary' | 'curves' | 'breakdown' | 'table'
+export type ActiveTab = 'summary' | 'curves' | 'breakdown' | 'table' | 'comparison'
 
 interface AppState {
   primaryRelease: string | null

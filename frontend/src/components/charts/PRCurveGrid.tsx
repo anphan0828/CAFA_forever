@@ -10,6 +10,7 @@ interface PRCurveGridProps {
   curves: CurvesMap
   bestMetrics: BestMetricsMap
   selectedMethods: string[]
+  colorDomain?: string[]
   totalSelectedCount?: number
   subsets?: Subset[]
   aspects?: Aspect[]
@@ -19,12 +20,13 @@ export function PRCurveGrid({
   curves,
   bestMetrics,
   selectedMethods,
+  colorDomain = selectedMethods,
   totalSelectedCount,
   subsets = SUBSETS,
   aspects = ASPECTS,
 }: PRCurveGridProps) {
   const showingLimitedMethods = totalSelectedCount !== undefined && totalSelectedCount > selectedMethods.length
-  const { getColor } = useMethodColors(selectedMethods)
+  const { getColor } = useMethodColors(colorDomain)
 
   const gridPlots = useMemo(() => {
     const plots: Array<{
@@ -107,42 +109,51 @@ export function PRCurveGrid({
         ))}
       </div>
 
-      {/* Grid */}
-      <div
-        className="pr-curve-grid__container"
-        style={{
-          gridTemplateColumns: `repeat(${aspects.length}, 1fr)`,
-        }}
-      >
-        {/* Column headers (aspects) */}
-        {aspects.map((aspect) => (
-          <div key={aspect} className="pr-curve-grid__header">
-            {ASPECT_SHORT[aspect]}
-          </div>
-        ))}
+      <div className="pr-curve-grid__plot-area">
+        <div className="pr-curve-grid__shared-y-label">Precision</div>
 
-        {/* Plots with row headers */}
-        {subsets.map((subset) => (
-          aspects.map((aspect, i) => (
-            <div
-              key={`${subset}_${aspect}`}
-              className="pr-curve-grid__cell"
-            >
-              {i === 0 && (
-                <div className="pr-curve-grid__row-label">
-                  {SUBSET_LABELS[subset]}
+        <div className="pr-curve-grid__plot-stack">
+          {/* Grid */}
+          <div
+            className="pr-curve-grid__container"
+            style={{
+              gridTemplateColumns: `repeat(${aspects.length}, 1fr)`,
+            }}
+          >
+            {/* Column headers (aspects) */}
+            {aspects.map((aspect) => (
+              <div key={aspect} className="pr-curve-grid__header">
+                {ASPECT_SHORT[aspect]}
+              </div>
+            ))}
+
+            {/* Plots with row headers */}
+            {subsets.map((subset) => (
+              aspects.map((aspect, i) => (
+                <div
+                  key={`${subset}_${aspect}`}
+                  className="pr-curve-grid__cell"
+                >
+                  {i === 0 && (
+                    <div className="pr-curve-grid__row-label">
+                      {SUBSET_LABELS[subset]}
+                    </div>
+                  )}
+                  <PRCurvePlot
+                    curves={gridPlots.find(
+                      (p) => p.subset === subset && p.aspect === aspect
+                    )?.curveData || []}
+                    width={280}
+                    height={240}
+                    showAxisLabels={false}
+                  />
                 </div>
-              )}
-              <PRCurvePlot
-                curves={gridPlots.find(
-                  (p) => p.subset === subset && p.aspect === aspect
-                )?.curveData || []}
-                width={280}
-                height={240}
-              />
-            </div>
-          ))
-        ))}
+              ))
+            ))}
+          </div>
+
+          <div className="pr-curve-grid__shared-x-label">Recall</div>
+        </div>
       </div>
     </div>
   )

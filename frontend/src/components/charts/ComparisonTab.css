@@ -1,0 +1,205 @@
+.comparison-tab {
+  padding: 1rem 0;
+}
+
+.comparison-tab--loading,
+.comparison-tab--empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: var(--isu-caption);
+}
+
+.comparison-tab__hint {
+  font-size: 0.875rem;
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+.comparison-tab__header {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.comparison-tab__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+  margin: 0 0 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.comparison-tab__legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.comparison-tab__legend-item {
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+}
+
+.comparison-tab__legend-item--a {
+  background: var(--isu-cardinal);
+  color: var(--isu-white);
+}
+
+.comparison-tab__legend-item--b {
+  background: var(--isu-gold);
+  color: var(--isu-charcoal);
+}
+
+.comparison-tab__legend-vs {
+  font-size: 0.75rem;
+  color: var(--isu-caption);
+  font-style: italic;
+}
+
+.comparison-tab__summary {
+  font-size: 0.875rem;
+  color: var(--isu-caption);
+  margin: 0;
+}
+
+/* Subtabs for knowledge levels */
+.comparison-tab__subtabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--isu-border);
+  padding-bottom: 0;
+}
+
+.comparison-tab__subtab {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--isu-caption);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.comparison-tab__subtab:hover {
+  color: var(--isu-charcoal);
+  background: var(--isu-light);
+}
+
+.comparison-tab__subtab--active {
+  color: var(--isu-cardinal);
+  border-bottom-color: var(--isu-cardinal);
+}
+
+/* Table-like grid layout - now 3 rows instead of 9 */
+.comparison-tab__table {
+  display: grid;
+  grid-template-columns: auto repeat(4, 1fr);
+  gap: 2px;
+  background: var(--isu-border);
+  border: 1px solid var(--isu-border);
+  border-radius: 8px;
+}
+
+.comparison-tab__corner {
+  background: var(--isu-light);
+  padding: 0.5rem;
+}
+
+.comparison-tab__col-header {
+  background: var(--isu-light);
+  padding: 0.75rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+  text-align: center;
+}
+
+.comparison-tab__row-header {
+  background: var(--isu-light);
+  padding: 1rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.comparison-tab__cell {
+  background: var(--isu-white);
+  padding: 0.5rem;
+  min-height: 280px;
+  position: relative;
+  overflow: visible;
+}
+
+/* Ensure tooltips appear above grid */
+.comparison-tab__cell .recharts-tooltip-wrapper {
+  z-index: 100;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .comparison-tab__table {
+    grid-template-columns: auto repeat(2, 1fr);
+  }
+
+  .comparison-tab__col-header:nth-child(n+4) {
+    display: none;
+  }
+
+  .comparison-tab__cell:nth-child(5n+4),
+  .comparison-tab__cell:nth-child(5n+5) {
+    display: none;
+  }
+
+  .comparison-tab__subtabs {
+    flex-wrap: wrap;
+  }
+
+  .comparison-tab__subtab {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .comparison-tab__table {
+    display: block;
+  }
+
+  .comparison-tab__corner,
+  .comparison-tab__col-header {
+    display: none;
+  }
+
+  .comparison-tab__row-header {
+    margin-top: 1rem;
+    border-radius: 4px 4px 0 0;
+  }
+
+  .comparison-tab__row-header:first-of-type {
+    margin-top: 0;
+  }
+
+  .comparison-tab__cell {
+    display: block;
+    border-bottom: 1px solid var(--isu-border);
+  }
+
+  .comparison-tab__legend {
+    flex-wrap: wrap;
+  }
+}

@@ -23,7 +23,7 @@ export const ASPECT_SHORT: Record<Aspect, string> = {
 export const SUBSET_LABELS: Record<Subset, string> = {
   NK: 'No Knowledge',
   LK: 'Limited Knowledge',
-  PK: 'Prior Knowledge',
+  PK: 'Partial Knowledge',
 }
 
 /**

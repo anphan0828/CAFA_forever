@@ -99,7 +99,7 @@ export function HeroSection() {
               <h4>Knowledge Subsets</h4>
               <p>
                 Proteins are stratified by their annotation status at prediction time (t₀)
-                to evaluate methods under different prior knowledge conditions. This separation
+                to evaluate methods under different starting knowledge conditions. This separation
                 is crucial because methods that rely on sequence homology or existing annotations
                 may perform differently when such information is unavailable.
               </p>
@@ -107,7 +107,7 @@ export function HeroSection() {
                 <div>
                   <dt>NK (No Knowledge)</dt>
                   <dd>
-                    Proteins with no prior experimental GO annotations at t₀. This is the
+                    Proteins with no existing experimental GO annotations at t₀. This is the
                     most challenging subset, testing a method's ability to predict function
                     purely from sequence or structure without any functional hints.
                   </dd>
@@ -121,7 +121,7 @@ export function HeroSection() {
                   </dd>
                 </div>
                 <div>
-                  <dt>PK (Prior Knowledge)</dt>
+                  <dt>PK (Partial Knowledge)</dt>
                   <dd>
                     Proteins with existing experimental annotations in at least one GO aspect.
                     This tests a method's ability to transfer knowledge across aspects or

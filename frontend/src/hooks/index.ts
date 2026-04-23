@@ -1,3 +1,5 @@
 export { useCatalog } from './useCatalog'
 export { useReleaseData, useMethodsConfig } from './useReleaseData'
 export { useMethodColors, getMethodColor } from './useMethodColors'
+export { useComparisonData } from './useComparisonData'
+export type { ComparisonMetric, ComparisonData } from './useComparisonData'

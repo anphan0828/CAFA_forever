@@ -3,7 +3,6 @@ import { Group } from '@visx/group'
 import { scaleLinear } from '@visx/scale'
 import { LinePath, Circle } from '@visx/shape'
 import { AxisBottom, AxisLeft } from '@visx/axis'
-import { GridRows, GridColumns } from '@visx/grid'
 import { useTooltip } from '@visx/tooltip'
 import type { CurvePoint, BestMetrics } from '../../types'
 import { generateAllContours, type Point } from '../../lib/fscoreContour'
@@ -22,10 +21,34 @@ interface PRCurvePlotProps {
   height?: number
   title?: string
   showContours?: boolean
+  showAxisLabels?: boolean
   margin?: { top: number; right: number; bottom: number; left: number }
 }
 
 const DEFAULT_MARGIN = { top: 30, right: 20, bottom: 50, left: 50 }
+const EPSILON = 1e-9
+
+function sortCurvePoints(points: CurvePoint[]): CurvePoint[] {
+  return [...points].sort((a, b) => {
+    const recallDiff = a.recall - b.recall
+    if (Math.abs(recallDiff) > EPSILON) return recallDiff
+
+    const precisionDiff = a.precision - b.precision
+    if (Math.abs(precisionDiff) > EPSILON) return precisionDiff
+
+    return a.tau - b.tau
+  })
+}
+
+function getBestMarkerPoint(curve: CurveData): CurvePoint | BestMetrics | null {
+  if (!curve.best) return null
+
+  const thresholdPoint = curve.points.find(
+    (point) => Math.abs(point.tau - curve.best!.threshold) <= EPSILON
+  )
+
+  return thresholdPoint ?? curve.best
+}
 
 export function PRCurvePlot({
   curves,
@@ -33,6 +56,7 @@ export function PRCurvePlot({
   height = 300,
   title,
   showContours = true,
+  showAxisLabels = true,
   margin = DEFAULT_MARGIN,
 }: PRCurvePlotProps) {
   const innerWidth = width - margin.left - margin.right
@@ -55,6 +79,16 @@ export function PRCurvePlot({
     return generateAllContours([0.2, 0.4, 0.6, 0.8], 100)
   }, [showContours])
 
+  const renderedCurves = useMemo(
+    () =>
+      curves.map((curve) => ({
+        ...curve,
+        points: sortCurvePoints(curve.points),
+        bestMarker: getBestMarkerPoint(curve),
+      })),
+    [curves]
+  )
+
   // Tooltip
   const {
     showTooltip,
@@ -70,20 +104,6 @@ export function PRCurvePlot({
       {title && <h5 className="pr-curve-plot__title">{title}</h5>}
       <svg width={width} height={height}>
         <Group left={margin.left} top={margin.top}>
-          {/* Grid */}
-          <GridRows
-            scale={yScale}
-            width={innerWidth}
-            stroke="#e5e5e5"
-            strokeDasharray="2,2"
-          />
-          <GridColumns
-            scale={xScale}
-            height={innerHeight}
-            stroke="#e5e5e5"
-            strokeDasharray="2,2"
-          />
-
           {/* F-score contours */}
           {contours &&
             Array.from(contours.entries()).map(([fScore, points]) => (
@@ -111,7 +131,7 @@ export function PRCurvePlot({
             ))}
 
           {/* PR Curves */}
-          {curves.map((curve) => (
+          {renderedCurves.map((curve) => (
             <Group key={curve.method}>
               <LinePath<CurvePoint>
                 data={curve.points}
@@ -122,10 +142,10 @@ export function PRCurvePlot({
                 strokeLinecap="round"
               />
               {/* Best point marker */}
-              {curve.best && (
+              {curve.best && curve.bestMarker && (
                 <Circle
-                  cx={xScale(curve.best.recall)}
-                  cy={yScale(curve.best.precision)}
+                  cx={xScale(curve.bestMarker.recall)}
+                  cy={yScale(curve.bestMarker.precision)}
                   r={5}
                   fill={curve.color}
                   stroke="white"
@@ -154,14 +174,14 @@ export function PRCurvePlot({
           <AxisBottom
             scale={xScale}
             top={innerHeight}
-            label="Recall"
+            label={showAxisLabels ? 'Recall' : undefined}
             labelOffset={35}
             tickFormat={(v) => Number(v).toFixed(1)}
             tickLabelProps={() => ({ fontSize: 10, textAnchor: 'middle' })}
           />
           <AxisLeft
             scale={yScale}
-            label="Precision"
+            label={showAxisLabels ? 'Precision' : undefined}
             labelOffset={35}
             tickFormat={(v) => Number(v).toFixed(1)}
             tickLabelProps={() => ({ fontSize: 10, textAnchor: 'end' })}

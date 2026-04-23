@@ -29,6 +29,16 @@ const EXTENDED_COLORS = [
   '#882255', // Wine
 ]
 
+const CANONICAL_METHOD_ORDER = [
+  'BLAST',
+  'GOA Non-exp',
+  'Naive',
+  'ProtT5',
+  'DeepGOPlus',
+  'FunBind',
+  'TransFew',
+]
+
 interface UseMethodColorsResult {
   getColor: (method: string) => string
   colorMap: Map<string, string>
@@ -42,8 +52,20 @@ export function useMethodColors(methods: string[]): UseMethodColorsResult {
   const colorMap = useMemo(() => {
     const map = new Map<string, string>()
     const allColors = [...METHOD_COLORS, ...EXTENDED_COLORS]
+    const orderedMethods = [...methods].sort((a, b) => {
+      const aIndex = CANONICAL_METHOD_ORDER.indexOf(a)
+      const bIndex = CANONICAL_METHOD_ORDER.indexOf(b)
 
-    methods.forEach((method, index) => {
+      if (aIndex !== -1 || bIndex !== -1) {
+        if (aIndex === -1) return 1
+        if (bIndex === -1) return -1
+        return aIndex - bIndex
+      }
+
+      return a.localeCompare(b)
+    })
+
+    orderedMethods.forEach((method, index) => {
       map.set(method, allColors[index % allColors.length])
     })
 
@@ -62,7 +84,19 @@ export function useMethodColors(methods: string[]): UseMethodColorsResult {
  * Useful when you don't have the full methods list
  */
 export function getMethodColor(method: string, allMethods: string[]): string {
-  const index = allMethods.indexOf(method)
+  const orderedMethods = [...allMethods].sort((a, b) => {
+    const aIndex = CANONICAL_METHOD_ORDER.indexOf(a)
+    const bIndex = CANONICAL_METHOD_ORDER.indexOf(b)
+
+    if (aIndex !== -1 || bIndex !== -1) {
+      if (aIndex === -1) return 1
+      if (bIndex === -1) return -1
+      return aIndex - bIndex
+    }
+
+    return a.localeCompare(b)
+  })
+  const index = orderedMethods.indexOf(method)
   if (index === -1) return METHOD_COLORS[0]
 
   const allColors = [...METHOD_COLORS, ...EXTENDED_COLORS]

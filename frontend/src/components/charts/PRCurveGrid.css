@@ -69,6 +69,36 @@
 .pr-curve-grid__container {
   display: grid;
   gap: 0.5rem;
+  padding-left: 5rem;
+}
+
+.pr-curve-grid__plot-area {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+
+.pr-curve-grid__plot-stack {
+  min-width: 0;
+}
+
+.pr-curve-grid__shared-y-label,
+.pr-curve-grid__shared-x-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+}
+
+.pr-curve-grid__shared-y-label {
+  justify-self: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.pr-curve-grid__shared-x-label {
+  text-align: center;
+  margin-top: 0.35rem;
 }
 
 .pr-curve-grid__header {
@@ -90,25 +120,34 @@
 
 .pr-curve-grid__row-label {
   position: absolute;
-  left: 0;
+  left: -4.5rem;
   top: 50%;
   transform: translateY(-50%) rotate(-90deg);
-  transform-origin: left center;
+  transform-origin: center center;
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--isu-charcoal);
   white-space: nowrap;
-  margin-left: -1rem;
 }
 
 @media (max-width: 900px) {
+  .pr-curve-grid__plot-area {
+    display: block;
+  }
+
+  .pr-curve-grid__shared-y-label {
+    display: none;
+  }
+
   .pr-curve-grid__container {
     grid-template-columns: 1fr !important;
+    padding-left: 0;
   }
 
   .pr-curve-grid__row-label {
     position: static;
     transform: none;
+    left: auto;
     margin: 0 0 0.5rem;
     text-align: center;
   }

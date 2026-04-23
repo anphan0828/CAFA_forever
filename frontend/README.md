@@ -2,6 +2,10 @@
 
 React-based frontend for the LAFA (Longitudinal Assessment of Function Annotation) leaderboard.
 
+## Why React Instead of Streamlit?
+
+
+
 ### Deployment
 - **Simple infrastructure**: A single Nginx container serves everything. No need for Streamlit server, websocket connections, or session management.
 - **Health checks**: Standard HTTP health endpoint at `/_health`.

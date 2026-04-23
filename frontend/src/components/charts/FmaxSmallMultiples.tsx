@@ -19,13 +19,15 @@ import './FmaxSmallMultiples.css'
 interface FmaxSmallMultiplesProps {
   bestMetrics: BestMetricsMap
   selectedMethods: string[]
+  colorDomain?: string[]
 }
 
 export function FmaxSmallMultiples({
   bestMetrics,
   selectedMethods,
+  colorDomain = selectedMethods,
 }: FmaxSmallMultiplesProps) {
-  const { getColor } = useMethodColors(selectedMethods)
+  const { getColor } = useMethodColors(colorDomain)
 
   // Data structure: one entry per aspect, with method values
   const chartDataBySubset = useMemo(() => {
@@ -69,7 +71,7 @@ export function FmaxSmallMultiples({
     <div className="fmax-small-multiples">
       <h4 className="fmax-small-multiples__title">
         F-max by Knowledge Subset
-        <InfoIcon tooltip="F-max is the maximum F₁ score across all prediction thresholds. Each chart shows performance for a different knowledge subset: NK (No Knowledge), LK (Limited Knowledge), PK (Prior Knowledge)." />
+        <InfoIcon tooltip="F-max is the maximum F₁ score across all prediction thresholds. Each chart shows performance for a different knowledge subset: NK (No Knowledge), LK (Limited Knowledge), PK (Partial Knowledge)." />
       </h4>
 
       <div className="fmax-small-multiples__grid">

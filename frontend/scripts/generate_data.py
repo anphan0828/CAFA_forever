@@ -163,9 +163,9 @@ def generate_methods_config() -> dict:
         "methods": methods,
         "aspects": GO_ASPECTS,
         "subsets": {
-            "NK": "No Knowledge - targets with no prior experimental annotations",
-            "LK": "Limited Knowledge - targets with some prior experimental annotations",
-            "PK": "Prior Knowledge - targets with prior experimental annotations"
+            "NK": "No Knowledge - targets with no existing experimental annotations",
+            "LK": "Limited Knowledge - targets with some existing experimental annotations",
+            "PK": "Partial Knowledge - targets with existing experimental annotations"
         }
     }
 

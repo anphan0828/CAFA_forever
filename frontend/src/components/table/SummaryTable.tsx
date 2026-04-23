@@ -15,7 +15,7 @@ const SUBSET_FILTER_LABELS: Record<SubsetFilter, string> = {
 const SUBSET_DESCRIPTIONS: Record<SubsetFilter, string> = {
   NK: 'No Knowledge: Proteins with no prior experimental GO annotations - the hardest prediction task',
   LK: 'Limited Knowledge: Proteins with some non-experimental annotations',
-  PK: 'Prior Knowledge: Proteins with existing experimental annotations in some GO aspects',
+  PK: 'Partial Knowledge: Proteins with existing experimental annotations in some GO aspects',
   AVG: 'Average across all knowledge subsets (NK, LK, PK) - matches the Summary chart values',
 }
 

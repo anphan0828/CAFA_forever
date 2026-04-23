@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { AppProvider, useAppState } from './context'
-import { useCatalog, useReleaseData, useMethodsConfig } from './hooks'
+import { useCatalog, useReleaseData, useMethodsConfig, useComparisonData } from './hooks'
 import { Header, Footer, Section } from './components/layout'
-import { HeroSection, TimeRangeSelect } from './components/release'
+import { HeroSection, TimelineSelector, CompareToggle } from './components/release'
 import { MethodSelector } from './components/methods'
-import { OverallRankingChart, FmaxSmallMultiples, TargetCountChart, PRCurveGrid } from './components/charts'
+import { OverallRankingChart, FmaxSmallMultiples, TargetCountChart, PRCurveGrid, ComparisonTab } from './components/charts'
 import { SummaryTable } from './components/table'
 import { Tabs, Collapsible, type Tab } from './components/ui'
 import './App.css'
@@ -19,6 +19,58 @@ function AppContent() {
     loadCurves,
     curvesLoading,
   } = useReleaseData(state.primaryRelease)
+
+  // Load secondary release data when in compare mode
+  const {
+    data: secondaryReleaseData,
+    loading: secondaryLoading,
+  } = useReleaseData(state.compareMode ? state.secondaryRelease : null)
+
+  // Get method lists for comparison (filtered by selected methods and baseline toggle)
+  const primaryMethods = useMemo(() => {
+    if (!releaseData.methods) return []
+    const available = new Set(Object.keys(releaseData.methods.methods))
+    return state.selectedMethods.filter(m => {
+      if (!available.has(m)) return false
+      if (state.showBaselinesOnly && methodsConfig) {
+        const config = methodsConfig.methods[m]
+        if (!config?.isBaseline) return false
+      }
+      return true
+    })
+  }, [releaseData.methods, state.selectedMethods, state.showBaselinesOnly, methodsConfig])
+
+  const secondaryMethods = useMemo(() => {
+    if (!secondaryReleaseData.methods) return []
+    const available = new Set(Object.keys(secondaryReleaseData.methods.methods))
+    return state.selectedMethods.filter(m => {
+      if (!available.has(m)) return false
+      if (state.showBaselinesOnly && methodsConfig) {
+        const config = methodsConfig.methods[m]
+        if (!config?.isBaseline) return false
+      }
+      return true
+    })
+  }, [secondaryReleaseData.methods, state.selectedMethods, state.showBaselinesOnly, methodsConfig])
+
+  // Compute comparison data
+  const comparisonData = useComparisonData(
+    releaseData.best,
+    secondaryReleaseData.best,
+    primaryMethods,
+    secondaryMethods
+  )
+
+  // Format release ID to readable label
+  const formatReleaseLabel = (releaseId: string | null): string => {
+    if (!releaseId) return ''
+    const parts = releaseId.split('_')
+    if (parts.length !== 4) return releaseId
+    return `${parts[0]} ${parts[1]} - ${parts[2]} ${parts[3]}`
+  }
+
+  const primaryLabel = formatReleaseLabel(state.primaryRelease)
+  const secondaryLabel = formatReleaseLabel(state.secondaryRelease)
 
   // Auto-select first release
   useEffect(() => {
@@ -44,6 +96,19 @@ function AppContent() {
       loadCurves()
     }
   }, [state.activeTab, releaseData.curves, curvesLoading, loadCurves])
+
+  // Auto-select secondary release when comparison mode is enabled
+  useEffect(() => {
+    if (state.compareMode && !state.secondaryRelease && catalog?.releases.length) {
+      const readyReleases = catalog.releases.filter((r) => r.status === 'ready')
+      // Select a different release than primary, or fallback to first ready release
+      const secondaryCandidate = readyReleases.find((r) => r.id !== state.primaryRelease)
+        || readyReleases[0]
+      if (secondaryCandidate) {
+        dispatch({ type: 'SET_SECONDARY_RELEASE', payload: secondaryCandidate.id })
+      }
+    }
+  }, [state.compareMode, state.secondaryRelease, state.primaryRelease, catalog, dispatch])
 
   if (catalogLoading || configLoading) {
     return (
@@ -76,6 +141,10 @@ function AppContent() {
     )
   }
 
+  const methodColorDomain = releaseData.methods
+    ? Object.keys(releaseData.methods.methods)
+    : state.selectedMethods
+
   const tabs: Tab[] = [
     {
       id: 'summary',
@@ -86,6 +155,7 @@ function AppContent() {
             <OverallRankingChart
               bestMetrics={releaseData.best}
               selectedMethods={state.selectedMethods}
+              colorDomain={methodColorDomain}
             />
           )}
 
@@ -93,6 +163,7 @@ function AppContent() {
             <FmaxSmallMultiples
               bestMetrics={releaseData.best}
               selectedMethods={state.selectedMethods}
+              colorDomain={methodColorDomain}
             />
           )}
 
@@ -117,6 +188,7 @@ function AppContent() {
               curves={releaseData.curves}
               bestMetrics={releaseData.best}
               selectedMethods={state.selectedMethods.slice(0, 5)}
+              colorDomain={methodColorDomain}
               totalSelectedCount={state.selectedMethods.length}
             />
           ) : (
@@ -142,6 +214,21 @@ function AppContent() {
         </div>
       ),
     },
+    {
+      id: 'comparison',
+      label: 'Comparison',
+      hidden: !state.compareMode,
+      content: (
+        <div className="tab-content">
+          <ComparisonTab
+            comparisonData={comparisonData}
+            windowALabel={primaryLabel}
+            windowBLabel={secondaryLabel}
+            loading={secondaryLoading}
+          />
+        </div>
+      ),
+    },
   ]
 
   return (
@@ -155,11 +242,20 @@ function AppContent() {
           <Section id="analysis" title="Results">
             <div className="analysis-layout">
               <aside className="analysis-sidebar">
-                <TimeRangeSelect
+                <TimelineSelector
                   releases={catalog.releases}
                   timepoints={catalog.timepoints}
                   selectedRelease={state.primaryRelease}
                   onSelectRelease={(id) => dispatch({ type: 'SET_PRIMARY_RELEASE', payload: id })}
+                />
+
+                <CompareToggle
+                  enabled={state.compareMode}
+                  onToggle={(enabled) => dispatch({ type: 'SET_COMPARE_MODE', payload: enabled })}
+                  releases={catalog.releases}
+                  timepoints={catalog.timepoints}
+                  secondaryRelease={state.secondaryRelease}
+                  onSelectSecondaryRelease={(id) => dispatch({ type: 'SET_SECONDARY_RELEASE', payload: id })}
                 />
 
                 {releaseData.methods && methodsConfig && (

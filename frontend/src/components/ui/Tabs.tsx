@@ -5,6 +5,7 @@ export interface Tab {
   id: string
   label: string
   content: ReactNode
+  hidden?: boolean
 }
 
 interface TabsProps {
@@ -14,7 +15,8 @@ interface TabsProps {
 }
 
 export function Tabs({ tabs, defaultTab, onChange }: TabsProps) {
-  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id)
+  const visibleTabs = tabs.filter((tab) => !tab.hidden)
+  const [activeTab, setActiveTab] = useState(defaultTab || visibleTabs[0]?.id)
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId)
@@ -26,7 +28,7 @@ export function Tabs({ tabs, defaultTab, onChange }: TabsProps) {
   return (
     <div className="tabs">
       <div className="tabs__list" role="tablist">
-        {tabs.map((tab) => (
+        {visibleTabs.map((tab) => (
           <button
             key={tab.id}
             role="tab"
