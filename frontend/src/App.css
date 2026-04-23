@@ -36,7 +36,7 @@
 }
 
 .error-container h2 {
-  color: var(--isu-cardinal);
+  color: var(--isu-cardinal-text);
   margin-bottom: 1rem;
 }
 

@@ -1,5 +1,5 @@
 .site-footer {
-  background: var(--isu-cardinal);
+  background: var(--isu-cardinal-text-dark);
   color: var(--isu-white);
   margin-top: auto;
 }
@@ -61,7 +61,7 @@
 }
 
 .site-footer__bottom-wrap {
-  background: var(--isu-cardinal-dark);
+  background: #3d0d10;
   margin: 2rem -1.5rem 0;
   padding: 1rem 1.5rem;
 }

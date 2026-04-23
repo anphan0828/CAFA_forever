@@ -2,10 +2,11 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.375rem 0.75rem;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
   background: var(--isu-white);
   border: 1px solid var(--isu-border);
-  border-radius: 20px;
+  border-radius: 22px;
   cursor: pointer;
   transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
 }

@@ -8,12 +8,12 @@ export function HeroSection() {
   return (
     <Section variant="hero" id="hero">
       <div className="hero">
-        <h2 className="hero__acronym">
+        <h1 className="hero__acronym">
           <span className="hero__acronym-letter">L</span>ongitudinal{' '}
           <span className="hero__acronym-letter">A</span>ssessment of{' '}
           <span className="hero__acronym-letter">F</span>unction{' '}
           <span className="hero__acronym-letter">A</span>nnotation
-        </h2>
+        </h1>
         <p className="hero__description">
           A persistent benchmarking system for protein function prediction methods.
           Unlike CAFA's triennial challenges, LAFA continuously evaluates methods

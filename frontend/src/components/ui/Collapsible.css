@@ -9,6 +9,7 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  min-height: 44px;
   padding: 1rem 1.25rem;
   background: none;
   border: none;

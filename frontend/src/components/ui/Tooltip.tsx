@@ -1,14 +1,21 @@
-import { useState, type ReactNode } from 'react'
+import { useState, useId, cloneElement, isValidElement, type ReactNode, type ReactElement } from 'react'
 import './Tooltip.css'
 
 interface TooltipProps {
   content: ReactNode
-  children: ReactNode
+  children: ReactElement
   position?: 'top' | 'bottom' | 'left' | 'right'
 }
 
 export function Tooltip({ content, children, position = 'top' }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false)
+  const tooltipId = useId()
+
+  const childWithAria = isValidElement(children)
+    ? cloneElement(children, {
+        'aria-describedby': isVisible ? tooltipId : undefined,
+      } as React.HTMLAttributes<HTMLElement>)
+    : children
 
   return (
     <div
@@ -18,9 +25,9 @@ export function Tooltip({ content, children, position = 'top' }: TooltipProps) {
       onFocus={() => setIsVisible(true)}
       onBlur={() => setIsVisible(false)}
     >
-      {children}
+      {childWithAria}
       {isVisible && (
-        <div className={`tooltip tooltip--${position}`} role="tooltip">
+        <div id={tooltipId} className={`tooltip tooltip--${position}`} role="tooltip">
           {content}
         </div>
       )}

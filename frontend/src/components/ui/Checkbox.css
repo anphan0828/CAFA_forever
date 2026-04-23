@@ -4,6 +4,8 @@
   gap: 0.5rem;
   cursor: pointer;
   user-select: none;
+  min-height: 44px;
+  padding: 0.5rem 0;
 }
 
 .checkbox--disabled {
@@ -22,12 +24,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border: 2px solid var(--isu-border);
   border-radius: 4px;
   background: var(--isu-white);
   transition: background-color 0.2s, border-color 0.2s;
+  flex-shrink: 0;
 }
 
 .checkbox__input:checked + .checkbox__box {

@@ -12,6 +12,7 @@
 }
 
 .tabs__tab {
+  min-height: 44px;
   padding: 0.75rem 1.25rem;
   border: none;
   background: transparent;
@@ -26,11 +27,11 @@
 
 .tabs__tab:hover {
   background: var(--isu-light);
-  color: var(--isu-cardinal);
+  color: var(--isu-cardinal-text);
 }
 
 .tabs__tab--active {
-  color: var(--isu-cardinal);
+  color: var(--isu-cardinal-text);
 }
 
 .tabs__tab--active::after {

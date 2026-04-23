@@ -38,7 +38,7 @@
 .release-card__title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--isu-cardinal-dark);
+  color: var(--isu-cardinal-text-dark);
   margin: 0;
   line-height: 1.3;
 }
@@ -105,7 +105,7 @@
 .release-card__count-value {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--isu-cardinal);
+  color: var(--isu-cardinal-text);
 }
 
 .release-card__count-label {
