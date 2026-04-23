@@ -1,10 +1,15 @@
 # LAFA Frontend
 
-React-based frontend for the LAFA (Longitudinal Assessment of Function Annotation) leaderboard.
+React-based frontend for the LAFA (Longitudinal Assessment of Function Annotation) leaderboard. This replaces the previous Streamlit implementation.
+
+> **Note**: For comprehensive setup and deployment instructions, see the [main README](../README.md) in the repository root.
 
 ## Why React Instead of Streamlit?
 
-
+### Performance
+- **Client-side rendering**: Interactions are instant, no server round-trips.
+- **Static assets**: Built files are CDN-friendly and cache-efficient.
+- **Lazy loading**: PR curve data is loaded only when the Curves tab is selected.
 
 ### Deployment
 - **Simple infrastructure**: A single Nginx container serves everything. No need for Streamlit server, websocket connections, or session management.
@@ -143,6 +148,24 @@ frontend/
 - Sortable columns
 - Subset/aspect filtering
 - CSV export
+
+### Window Comparison (`ComparisonTab`)
+- Compare method performance across two evaluation windows
+- Subtabs for NK, LK, PK knowledge levels
+- Grouped bar charts showing F-max, Precision, Recall, Coverage
+- Responds to method selector and baseline toggle
+
+## Integration with Backend
+
+The frontend reads published releases from `../data/releases/`. When the backend publishes new releases:
+
+```bash
+# Regenerate JSON data
+python scripts/generate_data.py
+
+# For Docker deployment, rebuild the image
+cd .. && docker build -f frontend/Dockerfile.full -t lafa-frontend .
+```
 
 ## ISU Branding
 
