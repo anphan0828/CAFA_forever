@@ -1,0 +1,62 @@
+# LAFA Frontend Multi-Stage Docker Build
+# Build from repository root: docker build -f frontend/Dockerfile.full -t lafa-frontend .
+
+# ============================================
+# Stage 1: Data Generation
+# ============================================
+FROM python:3.11-slim AS data
+
+WORKDIR /app
+
+# Install minimal Python dependencies
+RUN pip install --no-cache-dir pandas
+
+# Copy application code and data needed for JSON generation
+COPY app/ app/
+COPY data/ data/
+COPY frontend/scripts/ frontend/scripts/
+COPY frontend/public/data/ frontend/public/data/ 2>/dev/null || mkdir -p frontend/public/data
+
+# Generate JSON data
+RUN python frontend/scripts/generate_data.py
+
+# ============================================
+# Stage 2: Build Frontend
+# ============================================
+FROM node:20-slim AS build
+
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY frontend/package*.json ./
+RUN npm ci
+
+# Copy frontend source
+COPY frontend/ ./
+
+# Copy generated data from previous stage
+COPY --from=data /app/frontend/public/data ./public/data
+
+# Build the application
+RUN npm run build
+
+# ============================================
+# Stage 3: Serve with Nginx
+# ============================================
+FROM nginx:alpine
+
+# Copy built frontend
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port
+EXPOSE 8501
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD wget -q --spider http://localhost:8501/_health || exit 1
+
+# Run nginx
+CMD ["nginx", "-g", "daemon off;"]

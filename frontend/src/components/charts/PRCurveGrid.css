@@ -1,0 +1,115 @@
+.pr-curve-grid {
+  background: var(--isu-white);
+  border: 1px solid var(--isu-border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  overflow: visible;
+}
+
+.pr-curve-grid--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: var(--isu-caption);
+}
+
+.pr-curve-grid__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.pr-curve-grid__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.pr-curve-grid__limit-notice {
+  font-size: 0.8rem;
+  color: var(--isu-caption);
+  background: var(--isu-light);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+}
+
+.pr-curve-grid__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--isu-border);
+}
+
+.pr-curve-grid__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pr-curve-grid__legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.pr-curve-grid__legend-label {
+  font-size: 0.85rem;
+  color: var(--isu-charcoal);
+}
+
+.pr-curve-grid__container {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.pr-curve-grid__header {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+  text-align: center;
+  padding: 0.5rem;
+  background: var(--isu-light);
+  border-radius: 4px;
+}
+
+.pr-curve-grid__cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pr-curve-grid__row-label {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: left center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+  white-space: nowrap;
+  margin-left: -1rem;
+}
+
+@media (max-width: 900px) {
+  .pr-curve-grid__container {
+    grid-template-columns: 1fr !important;
+  }
+
+  .pr-curve-grid__row-label {
+    position: static;
+    transform: none;
+    margin: 0 0 0.5rem;
+    text-align: center;
+  }
+}

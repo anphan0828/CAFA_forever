@@ -1,0 +1,52 @@
+.collapsible {
+  border: 1px solid var(--isu-border);
+  border-radius: 8px;
+  background: var(--isu-white);
+}
+
+.collapsible__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s;
+}
+
+.collapsible__trigger:hover {
+  background: var(--isu-light);
+}
+
+.collapsible__trigger:focus-visible {
+  outline: 2px solid var(--isu-gold);
+  outline-offset: -2px;
+}
+
+.collapsible__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+}
+
+.collapsible__icon {
+  flex-shrink: 0;
+  color: var(--isu-charcoal);
+  transition: transform 0.2s ease;
+}
+
+.collapsible--open .collapsible__icon {
+  transform: rotate(180deg);
+}
+
+.collapsible__content {
+  /* Allow tooltips to overflow while still hiding content during animation */
+  overflow: visible;
+}
+
+.collapsible__inner {
+  padding: 0 1.25rem 1.25rem;
+}

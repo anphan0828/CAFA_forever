@@ -1,0 +1,37 @@
+{
+  "releaseId": "Dec_2025_Mar_2026",
+  "startTimepoint": "Dec_2025",
+  "endTimepoint": "Mar_2026",
+  "dates": {
+    "goaStart": "2025-12-04",
+    "goaEnd": "2026-03-04",
+    "uniprotStart": "2025_04 (2025-10-15)",
+    "uniprotEnd": "2026_01 (2026-01-28)"
+  },
+  "targetCounts": {
+    "NK": {
+      "total": 149,
+      "byAspect": {
+        "cellular_component": 53,
+        "biological_process": 85,
+        "molecular_function": 77
+      }
+    },
+    "LK": {
+      "total": 233,
+      "byAspect": {
+        "biological_process": 122,
+        "molecular_function": 93,
+        "cellular_component": 54
+      }
+    },
+    "PK": {
+      "total": 2457,
+      "byAspect": {
+        "biological_process": 1424,
+        "molecular_function": 835,
+        "cellular_component": 490
+      }
+    }
+  }
+}

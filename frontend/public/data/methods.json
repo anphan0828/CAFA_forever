@@ -1,0 +1,56 @@
+{
+  "methods": {
+    "Naive": {
+      "label": "Naive",
+      "description": "GO term frequencies from the training set assigned to all proteins",
+      "dockerUrl": "https://hub.docker.com/r/anphan0828/naive_predictor",
+      "isBaseline": true
+    },
+    "FunBind": {
+      "label": "FunBind",
+      "description": "Multi-modality based model combining sequence, structure, domains, and textual descriptions",
+      "dockerUrl": "https://hub.docker.com/r/yw7bh/funbind_predictor",
+      "isBaseline": false
+    },
+    "ProtT5": {
+      "label": "ProtT5",
+      "description": "ProtT5 embedding-based annotation transfer from training set proteins",
+      "dockerUrl": "https://hub.docker.com/r/anphan0828/prott5_predictor",
+      "isBaseline": true
+    },
+    "TransFew": {
+      "label": "TransFew",
+      "description": "ESM-2-based pipeline combinining representations of both protein sequences and GO terms ",
+      "dockerUrl": "https://hub.docker.com/r/yw7bh/transfew_predictor",
+      "isBaseline": false
+    },
+    "BLAST": {
+      "label": "BLAST",
+      "description": "Homology-based GO annotation transfer from training set proteins",
+      "dockerUrl": "https://hub.docker.com/r/anphan0828/blast_predictor",
+      "isBaseline": true
+    },
+    "GOA Non-exp": {
+      "label": "GOA Non-exp",
+      "description": "Non-experimental GO annotations from UniProt-GOA training set",
+      "dockerUrl": "https://hub.docker.com/r/anphan0828/goa_nonexp_predictor",
+      "isBaseline": true
+    },
+    "DeepGOPlus": {
+      "label": "DeepGOPlus",
+      "description": "Deep neural network and sequence similarity-based predictions",
+      "dockerUrl": "https://hub.docker.com/r/coolmaksat/deepgoplus",
+      "isBaseline": false
+    }
+  },
+  "aspects": {
+    "biological_process": "Biological Process",
+    "molecular_function": "Molecular Function",
+    "cellular_component": "Cellular Component"
+  },
+  "subsets": {
+    "NK": "No Knowledge - targets with no prior experimental annotations",
+    "LK": "Limited Knowledge - targets with some prior experimental annotations",
+    "PK": "Prior Knowledge - targets with prior experimental annotations"
+  }
+}

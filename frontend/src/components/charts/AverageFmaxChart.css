@@ -1,0 +1,40 @@
+.average-fmax-chart {
+  background: var(--isu-white);
+  border: 1px solid var(--isu-border);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.average-fmax-chart--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: var(--isu-caption);
+}
+
+.average-fmax-chart__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+  margin: 0 0 1rem;
+}
+
+.average-fmax-chart__container {
+  width: 100%;
+}
+
+.average-fmax-chart__tooltip {
+  background: var(--isu-charcoal);
+  color: var(--isu-white);
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.average-fmax-chart__tooltip strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  text-transform: capitalize;
+}

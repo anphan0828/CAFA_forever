@@ -1,0 +1,47 @@
+{
+  "releases": [
+    {
+      "id": "Sep_2025_Nov_2025",
+      "startTimepoint": "Sep_2025",
+      "endTimepoint": "Nov_2025",
+      "status": "ready"
+    },
+    {
+      "id": "Sep_2025_Dec_2025",
+      "startTimepoint": "Sep_2025",
+      "endTimepoint": "Dec_2025",
+      "status": "ready"
+    },
+    {
+      "id": "Sep_2025_Mar_2026",
+      "startTimepoint": "Sep_2025",
+      "endTimepoint": "Mar_2026",
+      "status": "ready"
+    },
+    {
+      "id": "Nov_2025_Dec_2025",
+      "startTimepoint": "Nov_2025",
+      "endTimepoint": "Dec_2025",
+      "status": "ready"
+    },
+    {
+      "id": "Nov_2025_Mar_2026",
+      "startTimepoint": "Nov_2025",
+      "endTimepoint": "Mar_2026",
+      "status": "ready"
+    },
+    {
+      "id": "Dec_2025_Mar_2026",
+      "startTimepoint": "Dec_2025",
+      "endTimepoint": "Mar_2026",
+      "status": "ready"
+    }
+  ],
+  "timepoints": [
+    "Sep_2025",
+    "Nov_2025",
+    "Dec_2025",
+    "Mar_2026"
+  ],
+  "generatedAt": "2026-04-23T19:27:58.896807+00:00"
+}

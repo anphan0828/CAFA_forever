@@ -1,0 +1,713 @@
+{
+  "NK_biological_process": [
+    {
+      "method": "GOA Non-exp",
+      "subset": "NK",
+      "aspect": "biological_process",
+      "precision": 0.27740528020464433,
+      "recall": 0.3157941223538785,
+      "fmax": 0.2953575361698542,
+      "coverage": 0.8,
+      "threshold": 0.01,
+      "n": 68.0
+    },
+    {
+      "method": "DeepGOPlus",
+      "subset": "NK",
+      "aspect": "biological_process",
+      "precision": 0.26440072559257566,
+      "recall": 0.2948024842945841,
+      "fmax": 0.2787751907565425,
+      "coverage": 0.8823529411764706,
+      "threshold": 0.28,
+      "n": 75.0
+    },
+    {
+      "method": "TransFew",
+      "subset": "NK",
+      "aspect": "biological_process",
+      "precision": 0.19988178336168902,
+      "recall": 0.33344970284943254,
+      "fmax": 0.24994032038298206,
+      "coverage": 1.0,
+      "threshold": 0.26,
+      "n": 85.0
+    },
+    {
+      "method": "FunBind",
+      "subset": "NK",
+      "aspect": "biological_process",
+      "precision": 0.2771078785934621,
+      "recall": 0.20878424959077974,
+      "fmax": 0.23814240705661724,
+      "coverage": 1.0,
+      "threshold": 0.5,
+      "n": 85.0
+    },
+    {
+      "method": "ProtT5",
+      "subset": "NK",
+      "aspect": "biological_process",
+      "precision": 0.10189288720502464,
+      "recall": 0.38375746815693396,
+      "fmax": 0.16103007435403685,
+      "coverage": 0.8,
+      "threshold": 0.63,
+      "n": 68.0
+    },
+    {
+      "method": "BLAST",
+      "subset": "NK",
+      "aspect": "biological_process",
+      "precision": 0.1083217312305407,
+      "recall": 0.2790696946751565,
+      "fmax": 0.15606598618189393,
+      "coverage": 0.5294117647058824,
+      "threshold": 0.55,
+      "n": 45.0
+    },
+    {
+      "method": "Naive",
+      "subset": "NK",
+      "aspect": "biological_process",
+      "precision": 0.06801241154118615,
+      "recall": 0.08743842867960472,
+      "fmax": 0.07651162756567151,
+      "coverage": 1.0,
+      "threshold": 0.01,
+      "n": 85.0
+    }
+  ],
+  "NK_cellular_component": [
+    {
+      "method": "FunBind",
+      "subset": "NK",
+      "aspect": "cellular_component",
+      "precision": 0.5844631955029689,
+      "recall": 0.5815077399802093,
+      "fmax": 0.5829817220575926,
+      "coverage": 1.0,
+      "threshold": 0.63,
+      "n": 53.0
+    },
+    {
+      "method": "GOA Non-exp",
+      "subset": "NK",
+      "aspect": "cellular_component",
+      "precision": 0.4590925694139543,
+      "recall": 0.5980674371228314,
+      "fmax": 0.5194451449048175,
+      "coverage": 0.8113207547169812,
+      "threshold": 0.01,
+      "n": 43.0
+    },
+    {
+      "method": "TransFew",
+      "subset": "NK",
+      "aspect": "cellular_component",
+      "precision": 0.4166529581316713,
+      "recall": 0.546891810274024,
+      "fmax": 0.4729704275301839,
+      "coverage": 1.0,
+      "threshold": 0.3,
+      "n": 53.0
+    },
+    {
+      "method": "DeepGOPlus",
+      "subset": "NK",
+      "aspect": "cellular_component",
+      "precision": 0.3654584616683517,
+      "recall": 0.5124750046112291,
+      "fmax": 0.42665722181060733,
+      "coverage": 1.0,
+      "threshold": 0.26,
+      "n": 53.0
+    },
+    {
+      "method": "ProtT5",
+      "subset": "NK",
+      "aspect": "cellular_component",
+      "precision": 0.31746157258584395,
+      "recall": 0.4415454982612972,
+      "fmax": 0.36936079683626943,
+      "coverage": 0.5660377358490566,
+      "threshold": 0.78,
+      "n": 30.0
+    },
+    {
+      "method": "BLAST",
+      "subset": "NK",
+      "aspect": "cellular_component",
+      "precision": 0.2872730182264448,
+      "recall": 0.34182872971278055,
+      "fmax": 0.3121853379768023,
+      "coverage": 0.4339622641509434,
+      "threshold": 0.68,
+      "n": 23.0
+    },
+    {
+      "method": "Naive",
+      "subset": "NK",
+      "aspect": "cellular_component",
+      "precision": 0.1745561946119035,
+      "recall": 0.30209230543323806,
+      "fmax": 0.22126192887617957,
+      "coverage": 1.0,
+      "threshold": 0.05,
+      "n": 53.0
+    }
+  ],
+  "NK_molecular_function": [
+    {
+      "method": "GOA Non-exp",
+      "subset": "NK",
+      "aspect": "molecular_function",
+      "precision": 0.5609752585755484,
+      "recall": 0.6671875386808905,
+      "fmax": 0.6094887467133528,
+      "coverage": 0.6883116883116883,
+      "threshold": 0.01,
+      "n": 53.0
+    },
+    {
+      "method": "DeepGOPlus",
+      "subset": "NK",
+      "aspect": "molecular_function",
+      "precision": 0.7276834830515119,
+      "recall": 0.47601647441160516,
+      "fmax": 0.5755409791984669,
+      "coverage": 0.6233766233766234,
+      "threshold": 0.3,
+      "n": 48.0
+    },
+    {
+      "method": "FunBind",
+      "subset": "NK",
+      "aspect": "molecular_function",
+      "precision": 0.7390017046320668,
+      "recall": 0.42190697011842415,
+      "fmax": 0.537148144199504,
+      "coverage": 0.7532467532467533,
+      "threshold": 0.8,
+      "n": 58.0
+    },
+    {
+      "method": "TransFew",
+      "subset": "NK",
+      "aspect": "molecular_function",
+      "precision": 0.5591580016188931,
+      "recall": 0.511220955629104,
+      "fmax": 0.5341160455362745,
+      "coverage": 0.7662337662337663,
+      "threshold": 0.21000000000000002,
+      "n": 59.0
+    },
+    {
+      "method": "ProtT5",
+      "subset": "NK",
+      "aspect": "molecular_function",
+      "precision": 0.3365817953918652,
+      "recall": 0.5128667636940266,
+      "fmax": 0.4064321830311007,
+      "coverage": 0.6103896103896104,
+      "threshold": 0.59,
+      "n": 47.0
+    },
+    {
+      "method": "BLAST",
+      "subset": "NK",
+      "aspect": "molecular_function",
+      "precision": 0.4605869355368538,
+      "recall": 0.36283594898520066,
+      "fmax": 0.40590928667886383,
+      "coverage": 0.42857142857142855,
+      "threshold": 0.5700000000000001,
+      "n": 33.0
+    },
+    {
+      "method": "Naive",
+      "subset": "NK",
+      "aspect": "molecular_function",
+      "precision": 0.049838141522648045,
+      "recall": 0.16145516101610152,
+      "fmax": 0.076165454064089,
+      "coverage": 0.7662337662337663,
+      "threshold": 0.01,
+      "n": 59.0
+    }
+  ],
+  "LK_biological_process": [
+    {
+      "method": "GOA Non-exp",
+      "subset": "LK",
+      "aspect": "biological_process",
+      "precision": 0.3586248127237656,
+      "recall": 0.5597711545978464,
+      "fmax": 0.43717052911561644,
+      "coverage": 0.8524590163934426,
+      "threshold": 0.01,
+      "n": 104.0
+    },
+    {
+      "method": "DeepGOPlus",
+      "subset": "LK",
+      "aspect": "biological_process",
+      "precision": 0.5591349926707495,
+      "recall": 0.3273970145007961,
+      "fmax": 0.4129780443852731,
+      "coverage": 0.8114754098360656,
+      "threshold": 0.33,
+      "n": 99.0
+    },
+    {
+      "method": "FunBind",
+      "subset": "LK",
+      "aspect": "biological_process",
+      "precision": 0.46764785879048015,
+      "recall": 0.3432782007054284,
+      "fmax": 0.3959259013802904,
+      "coverage": 0.9508196721311475,
+      "threshold": 0.51,
+      "n": 116.0
+    },
+    {
+      "method": "TransFew",
+      "subset": "LK",
+      "aspect": "biological_process",
+      "precision": 0.3767260715257754,
+      "recall": 0.36506724116664385,
+      "fmax": 0.3708050349180994,
+      "coverage": 0.9590163934426229,
+      "threshold": 0.63,
+      "n": 117.0
+    },
+    {
+      "method": "ProtT5",
+      "subset": "LK",
+      "aspect": "biological_process",
+      "precision": 0.19909806421078952,
+      "recall": 0.4166089673185997,
+      "fmax": 0.2694334632494125,
+      "coverage": 0.6311475409836066,
+      "threshold": 0.76,
+      "n": 77.0
+    },
+    {
+      "method": "BLAST",
+      "subset": "LK",
+      "aspect": "biological_process",
+      "precision": 0.1887161433365887,
+      "recall": 0.29586589794822526,
+      "fmax": 0.23044465724551635,
+      "coverage": 0.4672131147540984,
+      "threshold": 0.66,
+      "n": 57.0
+    },
+    {
+      "method": "Naive",
+      "subset": "LK",
+      "aspect": "biological_process",
+      "precision": 0.06035713381409063,
+      "recall": 0.06399547514840659,
+      "fmax": 0.06212307870747741,
+      "coverage": 0.9590163934426229,
+      "threshold": 0.01,
+      "n": 117.0
+    }
+  ],
+  "LK_cellular_component": [
+    {
+      "method": "FunBind",
+      "subset": "LK",
+      "aspect": "cellular_component",
+      "precision": 0.44612511625805873,
+      "recall": 0.49147682459976016,
+      "fmax": 0.467704141721607,
+      "coverage": 1.0,
+      "threshold": 0.5800000000000001,
+      "n": 54.0
+    },
+    {
+      "method": "TransFew",
+      "subset": "LK",
+      "aspect": "cellular_component",
+      "precision": 0.38772288590419735,
+      "recall": 0.4956229998126082,
+      "fmax": 0.4350829791931503,
+      "coverage": 1.0,
+      "threshold": 0.5700000000000001,
+      "n": 54.0
+    },
+    {
+      "method": "DeepGOPlus",
+      "subset": "LK",
+      "aspect": "cellular_component",
+      "precision": 0.41272174783419063,
+      "recall": 0.38977123614726894,
+      "fmax": 0.400918310936686,
+      "coverage": 1.0,
+      "threshold": 0.29000000000000004,
+      "n": 54.0
+    },
+    {
+      "method": "GOA Non-exp",
+      "subset": "LK",
+      "aspect": "cellular_component",
+      "precision": 0.30500470680538233,
+      "recall": 0.5376721466143418,
+      "fmax": 0.38921808465491514,
+      "coverage": 0.8703703703703703,
+      "threshold": 0.01,
+      "n": 47.0
+    },
+    {
+      "method": "ProtT5",
+      "subset": "LK",
+      "aspect": "cellular_component",
+      "precision": 0.20894829047899158,
+      "recall": 0.46299301485419997,
+      "fmax": 0.2879465756596962,
+      "coverage": 0.6111111111111112,
+      "threshold": 0.8,
+      "n": 33.0
+    },
+    {
+      "method": "BLAST",
+      "subset": "LK",
+      "aspect": "cellular_component",
+      "precision": 0.20184044450664845,
+      "recall": 0.41910599848168734,
+      "fmax": 0.272463243760092,
+      "coverage": 0.5925925925925926,
+      "threshold": 0.63,
+      "n": 32.0
+    },
+    {
+      "method": "Naive",
+      "subset": "LK",
+      "aspect": "cellular_component",
+      "precision": 0.1680342975891265,
+      "recall": 0.38597301754121155,
+      "fmax": 0.23413663725950848,
+      "coverage": 1.0,
+      "threshold": 0.05,
+      "n": 54.0
+    }
+  ],
+  "LK_molecular_function": [
+    {
+      "method": "TransFew",
+      "subset": "LK",
+      "aspect": "molecular_function",
+      "precision": 0.5249913610864461,
+      "recall": 0.44764986071788004,
+      "fmax": 0.483245629323568,
+      "coverage": 0.9032258064516129,
+      "threshold": 0.5700000000000001,
+      "n": 84.0
+    },
+    {
+      "method": "GOA Non-exp",
+      "subset": "LK",
+      "aspect": "molecular_function",
+      "precision": 0.39494187838543826,
+      "recall": 0.5574647347714261,
+      "fmax": 0.46233649880800465,
+      "coverage": 0.6989247311827957,
+      "threshold": 0.01,
+      "n": 65.0
+    },
+    {
+      "method": "FunBind",
+      "subset": "LK",
+      "aspect": "molecular_function",
+      "precision": 0.5813400631860169,
+      "recall": 0.36937215395754486,
+      "fmax": 0.45172624785657717,
+      "coverage": 0.8602150537634409,
+      "threshold": 0.7000000000000001,
+      "n": 80.0
+    },
+    {
+      "method": "DeepGOPlus",
+      "subset": "LK",
+      "aspect": "molecular_function",
+      "precision": 0.4822968729543482,
+      "recall": 0.42244859430153603,
+      "fmax": 0.4503932727810321,
+      "coverage": 0.7311827956989247,
+      "threshold": 0.16,
+      "n": 68.0
+    },
+    {
+      "method": "ProtT5",
+      "subset": "LK",
+      "aspect": "molecular_function",
+      "precision": 0.4116340226776529,
+      "recall": 0.40049305675860825,
+      "fmax": 0.4059871224154989,
+      "coverage": 0.6236559139784946,
+      "threshold": 0.79,
+      "n": 58.0
+    },
+    {
+      "method": "BLAST",
+      "subset": "LK",
+      "aspect": "molecular_function",
+      "precision": 0.4321736274118302,
+      "recall": 0.36364288055426713,
+      "fmax": 0.3949575340508508,
+      "coverage": 0.5483870967741935,
+      "threshold": 0.67,
+      "n": 51.0
+    },
+    {
+      "method": "Naive",
+      "subset": "LK",
+      "aspect": "molecular_function",
+      "precision": 0.039051165579526606,
+      "recall": 0.14351563061712058,
+      "fmax": 0.061396187819855924,
+      "coverage": 0.9032258064516129,
+      "threshold": 0.01,
+      "n": 84.0
+    }
+  ],
+  "PK_biological_process": [
+    {
+      "method": "FunBind",
+      "subset": "PK",
+      "aspect": "biological_process",
+      "precision": 0.09309319906832836,
+      "recall": 0.12176427855395476,
+      "fmax": 0.10551577118262777,
+      "coverage": 0.8117977528089888,
+      "threshold": 0.49,
+      "n": 1156.0
+    },
+    {
+      "method": "DeepGOPlus",
+      "subset": "PK",
+      "aspect": "biological_process",
+      "precision": 0.07447855887503979,
+      "recall": 0.16073785785184477,
+      "fmax": 0.1017915685992855,
+      "coverage": 0.8623595505617978,
+      "threshold": 0.24000000000000002,
+      "n": 1228.0
+    },
+    {
+      "method": "TransFew",
+      "subset": "PK",
+      "aspect": "biological_process",
+      "precision": 0.08343956271392292,
+      "recall": 0.11023357773104708,
+      "fmax": 0.0949831401622081,
+      "coverage": 0.8377808988764045,
+      "threshold": 0.56,
+      "n": 1193.0
+    },
+    {
+      "method": "GOA Non-exp",
+      "subset": "PK",
+      "aspect": "biological_process",
+      "precision": 0.05656106226893042,
+      "recall": 0.21499331439880262,
+      "fmax": 0.08956033331028489,
+      "coverage": 0.7682584269662921,
+      "threshold": 0.01,
+      "n": 1094.0
+    },
+    {
+      "method": "ProtT5",
+      "subset": "PK",
+      "aspect": "biological_process",
+      "precision": 0.034071303187622394,
+      "recall": 0.20563280868222125,
+      "fmax": 0.05845688432527664,
+      "coverage": 0.660814606741573,
+      "threshold": 0.78,
+      "n": 941.0
+    },
+    {
+      "method": "BLAST",
+      "subset": "PK",
+      "aspect": "biological_process",
+      "precision": 0.03450279980595346,
+      "recall": 0.11941286328586193,
+      "fmax": 0.05353682703169764,
+      "coverage": 0.38412921348314605,
+      "threshold": 0.86,
+      "n": 547.0
+    },
+    {
+      "method": "Naive",
+      "subset": "PK",
+      "aspect": "biological_process",
+      "precision": 0.027441078388419225,
+      "recall": 0.049657713508122404,
+      "fmax": 0.03534844516875432,
+      "coverage": 0.9866573033707865,
+      "threshold": 0.01,
+      "n": 1405.0
+    }
+  ],
+  "PK_cellular_component": [
+    {
+      "method": "GOA Non-exp",
+      "subset": "PK",
+      "aspect": "cellular_component",
+      "precision": 0.23182282689243577,
+      "recall": 0.32793959936303135,
+      "fmax": 0.27162911052416583,
+      "coverage": 0.7653061224489796,
+      "threshold": 0.01,
+      "n": 375.0
+    },
+    {
+      "method": "TransFew",
+      "subset": "PK",
+      "aspect": "cellular_component",
+      "precision": 0.22357665945944669,
+      "recall": 0.222148659124437,
+      "fmax": 0.22286037180133747,
+      "coverage": 0.9244897959183673,
+      "threshold": 0.22,
+      "n": 453.0
+    },
+    {
+      "method": "FunBind",
+      "subset": "PK",
+      "aspect": "cellular_component",
+      "precision": 0.21030141132706656,
+      "recall": 0.21056746071214172,
+      "fmax": 0.2104343519289526,
+      "coverage": 0.789795918367347,
+      "threshold": 0.31,
+      "n": 387.0
+    },
+    {
+      "method": "DeepGOPlus",
+      "subset": "PK",
+      "aspect": "cellular_component",
+      "precision": 0.17390220849415336,
+      "recall": 0.24516574143982472,
+      "fmax": 0.20347470566627196,
+      "coverage": 0.9795918367346939,
+      "threshold": 0.15000000000000002,
+      "n": 480.0
+    },
+    {
+      "method": "ProtT5",
+      "subset": "PK",
+      "aspect": "cellular_component",
+      "precision": 0.13386168449711658,
+      "recall": 0.32786549403372983,
+      "fmax": 0.19010631975133926,
+      "coverage": 0.8612244897959184,
+      "threshold": 0.68,
+      "n": 422.0
+    },
+    {
+      "method": "BLAST",
+      "subset": "PK",
+      "aspect": "cellular_component",
+      "precision": 0.10749927675793403,
+      "recall": 0.17937876229487973,
+      "fmax": 0.13443404225781783,
+      "coverage": 0.5857142857142857,
+      "threshold": 0.6900000000000001,
+      "n": 287.0
+    },
+    {
+      "method": "Naive",
+      "subset": "PK",
+      "aspect": "cellular_component",
+      "precision": 0.05231962807064988,
+      "recall": 0.13387401051586387,
+      "fmax": 0.07523606597614012,
+      "coverage": 0.9938775510204082,
+      "threshold": 0.02,
+      "n": 487.0
+    }
+  ],
+  "PK_molecular_function": [
+    {
+      "method": "GOA Non-exp",
+      "subset": "PK",
+      "aspect": "molecular_function",
+      "precision": 0.14305539035960965,
+      "recall": 0.2628839550243528,
+      "fmax": 0.18528367468157522,
+      "coverage": 0.5724550898203593,
+      "threshold": 0.01,
+      "n": 478.0
+    },
+    {
+      "method": "FunBind",
+      "subset": "PK",
+      "aspect": "molecular_function",
+      "precision": 0.1302845769978169,
+      "recall": 0.22669332479860543,
+      "fmax": 0.16547043265696637,
+      "coverage": 0.6562874251497006,
+      "threshold": 0.25,
+      "n": 548.0
+    },
+    {
+      "method": "TransFew",
+      "subset": "PK",
+      "aspect": "molecular_function",
+      "precision": 0.11717204596648353,
+      "recall": 0.22386960937536118,
+      "fmax": 0.15383024184500574,
+      "coverage": 0.7233532934131737,
+      "threshold": 0.09,
+      "n": 604.0
+    },
+    {
+      "method": "DeepGOPlus",
+      "subset": "PK",
+      "aspect": "molecular_function",
+      "precision": 0.11346378187781464,
+      "recall": 0.1758827487044164,
+      "fmax": 0.13794063329469844,
+      "coverage": 0.6107784431137725,
+      "threshold": 0.15000000000000002,
+      "n": 510.0
+    },
+    {
+      "method": "ProtT5",
+      "subset": "PK",
+      "aspect": "molecular_function",
+      "precision": 0.10268741657781659,
+      "recall": 0.19820885356117132,
+      "fmax": 0.13528619085670868,
+      "coverage": 0.5305389221556887,
+      "threshold": 0.72,
+      "n": 443.0
+    },
+    {
+      "method": "BLAST",
+      "subset": "PK",
+      "aspect": "molecular_function",
+      "precision": 0.08829144130755318,
+      "recall": 0.20753785566574834,
+      "fmax": 0.12388101239520967,
+      "coverage": 0.4407185628742515,
+      "threshold": 0.5700000000000001,
+      "n": 368.0
+    },
+    {
+      "method": "Naive",
+      "subset": "PK",
+      "aspect": "molecular_function",
+      "precision": 0.06559014396192177,
+      "recall": 0.025032090194482777,
+      "fmax": 0.03623522228971444,
+      "coverage": 0.7029940119760479,
+      "threshold": 0.03,
+      "n": 587.0
+    }
+  ]
+}

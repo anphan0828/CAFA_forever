@@ -1,0 +1,148 @@
+.release-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--isu-white);
+  border: 2px solid var(--isu-border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.release-card:hover {
+  border-color: var(--isu-cardinal);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.release-card--selected {
+  border-color: var(--isu-cardinal);
+  background: linear-gradient(to bottom, rgba(200, 16, 46, 0.03), transparent);
+}
+
+.release-card:focus-visible {
+  outline: 3px solid var(--isu-gold);
+  outline-offset: 2px;
+}
+
+.release-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.release-card__title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--isu-cardinal-dark);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.release-card__status {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.release-card__status--ready {
+  background: #d4edda;
+  color: #155724;
+}
+
+.release-card__status--pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.release-card__status--invalid {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.release-card__meta {
+  font-size: 0.875rem;
+  color: var(--isu-charcoal);
+}
+
+.release-card__dates {
+  margin-bottom: 0.75rem;
+}
+
+.release-card__date {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.release-card__label {
+  font-weight: 500;
+  color: var(--isu-charcoal);
+}
+
+.release-card__counts {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.release-card__count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 50px;
+  padding: 0.5rem;
+  background: var(--isu-light);
+  border-radius: 4px;
+}
+
+.release-card__count-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--isu-cardinal);
+}
+
+.release-card__count-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.release-card__total {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--isu-caption);
+}
+
+.release-card__selected-indicator {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 24px;
+  height: 24px;
+  background: var(--isu-cardinal);
+  color: var(--isu-white);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .release-card__counts {
+    justify-content: space-between;
+  }
+
+  .release-card__count {
+    flex: 1;
+    min-width: auto;
+  }
+}

@@ -1,0 +1,73 @@
+.overall-ranking-chart {
+  background: var(--isu-white);
+  border: 1px solid var(--isu-border);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.overall-ranking-chart--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--isu-caption);
+}
+
+.overall-ranking-chart__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.overall-ranking-chart__container {
+  width: 100%;
+}
+
+.overall-ranking-chart__tooltip {
+  background: var(--isu-charcoal);
+  color: var(--isu-white);
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  min-width: 350px;
+  z-index: 9999;
+}
+
+.overall-ranking-chart__tooltip strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.overall-ranking-chart__tooltip-avg {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.overall-ranking-chart__tooltip-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.overall-ranking-chart__tooltip-row {
+  display: grid;
+  grid-template-columns: 80px repeat(3, 1fr);
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.overall-ranking-chart__tooltip-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.overall-ranking-chart__tooltip-cell {
+  font-family: monospace;
+  font-size: 0.75rem;
+  text-align: right;
+}
