@@ -1,0 +1,137 @@
+.timeline-selector {
+  background: var(--isu-white);
+  border: 1px solid var(--isu-border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.timeline-selector__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timeline-selector__chart {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.timeline-selector__chart--dragging {
+  cursor: grabbing;
+}
+
+.timeline-selector__handles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 20px;
+  pointer-events: none;
+}
+
+.timeline-selector__handle {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: grab;
+  pointer-events: auto;
+  transition: transform 0.1s;
+  z-index: 10;
+}
+
+.timeline-selector__handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background: var(--isu-cardinal);
+  border: 2px solid var(--isu-white);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.timeline-selector__handle:hover::after {
+  transform: translate(-50%, -50%) scale(1.15);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.timeline-selector__handle--active {
+  cursor: grabbing;
+}
+
+.timeline-selector__handle--active::after {
+  transform: translate(-50%, -50%) scale(1.25);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.timeline-selector__handle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: var(--isu-white);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.timeline-selector__selection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+}
+
+.timeline-selector__range {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--isu-charcoal);
+}
+
+.timeline-selector__warning {
+  font-size: 0.75rem;
+  color: #856404;
+  background: #fff3cd;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+}
+
+.timeline-selector__hint {
+  font-size: 0.75rem;
+  color: var(--isu-caption);
+  font-style: italic;
+}
+
+/* Recharts customization */
+.timeline-selector .recharts-xAxis .recharts-cartesian-axis-tick-value {
+  font-size: 10px;
+}
+
+.timeline-selector .recharts-reference-line line {
+  pointer-events: none;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .timeline-selector .recharts-xAxis .recharts-cartesian-axis-tick-value {
+    font-size: 8px;
+  }
+}

@@ -1,0 +1,31 @@
+.target-count-chart {
+  background: var(--isu-white);
+  border: 1px solid var(--isu-border);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.target-count-chart__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+  margin: 0 0 1rem;
+}
+
+.target-count-chart__container {
+  width: 100%;
+}
+
+.target-count-chart__tooltip {
+  background: var(--isu-charcoal);
+  color: var(--isu-white);
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.target-count-chart__tooltip strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}

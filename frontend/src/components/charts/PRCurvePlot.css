@@ -1,0 +1,28 @@
+.pr-curve-plot {
+  position: relative;
+  display: inline-block;
+}
+
+.pr-curve-plot__title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+  margin: 0 0 0.5rem;
+  text-align: center;
+}
+
+.pr-curve-plot__tooltip {
+  background: var(--isu-charcoal) !important;
+  color: var(--isu-white) !important;
+  padding: 0.5rem 0.75rem !important;
+  border-radius: 4px !important;
+  font-size: 0.75rem !important;
+  line-height: 1.4 !important;
+  pointer-events: none;
+  z-index: 9999 !important;
+}
+
+.pr-curve-plot__tooltip strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}

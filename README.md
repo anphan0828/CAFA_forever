@@ -2,95 +2,315 @@
 
 CAFA Forever has two main components:
 
-- a Streamlit frontend for browsing published LAFA evaluation releases
-- a Nextflow-based backend for building timepoints and publishing release windows
+- a **React frontend** for browsing published LAFA evaluation releases
+- a **Nextflow backend** for building timepoints and publishing release windows
 
 The frontend and backend share the same repository, but they do not read the same directories at runtime.
 
-## Frontend Overview
+---
 
-The website reads only validated, published release windows under `data/releases/`, optionally filtered by `data/releases/catalog.json`.
+## Quick Start
 
-Important implications:
+### Prerequisites
 
-- the website does not read raw timepoint build directories
-- the website does not read Nextflow `work/` directories
-- the website does not read unpublished staging outputs
+| Component | Requirement |
+|-----------|-------------|
+| Frontend (development) | Node.js 20+, Python 3.9+ |
+| Frontend (Docker) | Docker 20+ |
+| Backend | Nextflow, conda/micromamba |
 
-Each frontend-visible release corresponds to a release window such as `Jun_2025_Oct_2025`, not to a single raw timepoint snapshot. The app discovers available releases from `data/releases/`, derives the available time points from those release ids, and uses the published files in each release directory for plotting and tables.
-
-## Run The Frontend Locally
-
-Install the Python dependencies:
+### Run Frontend Locally (Development)
 
 ```bash
-pip install -r requirements.txt
+cd frontend
+
+# Install Node dependencies
+npm install
+
+# Generate JSON data from TSV releases (requires pandas)
+pip install pandas
+python scripts/generate_data.py
+
+# Start development server
+npm run dev
 ```
 
-Then launch Streamlit from the repo root:
+Open http://localhost:5173 in your browser.
+
+### Run Frontend with Docker (Production)
+
+From the **repository root** (not the frontend folder):
 
 ```bash
-streamlit run app/streamlit_plot.py
+# Build the image (includes data generation)
+docker build -f frontend/Dockerfile.full -t lafa-frontend .
+
+# Run the container
+docker run -p 8501:8501 lafa-frontend
 ```
 
-The frontend expects the release contract under `data/releases/` to already exist.
+Open http://localhost:8501 in your browser.
 
-## Docker / Website Deployment
-
-The Docker image runs the Streamlit frontend on port `8501`. In the current deployment model:
-
-- the container serves Streamlit on `8501`
-- Nginx on the host terminates HTTP/HTTPS
-- Nginx proxies requests to `127.0.0.1:8501`
-
-With Docker Compose:
+Alternatively, use Docker Compose:
 
 ```bash
+cd frontend
+docker compose up -d
+```
+
+### Health Check
+
+```bash
+curl http://localhost:8501/_health
+```
+
+---
+
+## Frontend Architecture
+
+The frontend is a React/TypeScript single-page application that reads pre-generated JSON data. This replaces the previous Streamlit implementation.
+
+### Why React Instead of Streamlit?
+
+| Aspect | React | Streamlit |
+|--------|-------|-----------|
+| Deployment | Single Nginx container, no websockets | Requires Streamlit server process |
+| Performance | Static assets, CDN-friendly | Server-side rendering per request |
+| Responsiveness | Instant client-side interactions | Round-trip latency on every action |
+| Infrastructure | Standard HTTP health checks | Custom Streamlit health endpoint |
+
+### Trade-offs
+
+- **Build step required**: Changes require `npm run build`. Streamlit had instant hot-reload.
+- **JavaScript knowledge**: Maintainers need React/TypeScript familiarity.
+- **Data pipeline**: The `generate_data.py` script must run whenever evaluation data updates.
+
+### Tech Stack
+
+- **Vite** - Build tool
+- **React 18** - UI framework
+- **TypeScript** - Type safety
+- **Visx** - PR curve visualizations
+- **Recharts** - Bar charts and comparisons
+- **Nginx** - Production serving
+
+---
+
+## Data Pipeline
+
+The frontend reads JSON files, not TSV directly. A Python script transforms the backend's TSV output:
+
+```bash
+cd frontend
+python scripts/generate_data.py
+```
+
+**Input:** `../data/releases/{release_id}/*.tsv`
+
+**Output:** `public/data/`
+- `catalog.json` - Available releases and timepoints
+- `methods.json` - Method display names and baseline flags
+- `releases/{id}/meta.json` - Release metadata and target counts
+- `releases/{id}/methods.json` - Method availability per release
+- `releases/{id}/best.json` - Best metrics by subset/aspect
+- `releases/{id}/curves.json` - Full PR curve data (lazy-loaded)
+
+The Docker build runs this script automatically. For local development, run it manually after the backend publishes new releases.
+
+---
+
+## Frontend Features
+
+### Main Dashboard
+- **Timeline Selector**: Visual timeline for choosing evaluation windows
+- **Method Selector**: Filter results by method, with baseline toggle
+- **Summary Charts**: Overall rankings, F-max distributions, target counts
+
+### PR Curves
+- 3×3 grid: subsets (NK, LK, PK) × aspects (BP, MF, CC)
+- F-score iso-contours (0.2, 0.4, 0.6, 0.8)
+- Best threshold points marked on each curve
+
+### Data Table
+- Sortable columns by any metric
+- CSV export functionality
+- Subset and aspect filtering
+
+### Window Comparison
+- Compare method performance across two evaluation windows
+- Side-by-side grouped bar charts
+- Subtabs for NK, LK, PK knowledge levels
+
+---
+
+## Deployment Options
+
+### Option 1: Docker (Recommended for Production)
+
+The multi-stage Dockerfile handles everything:
+
+1. **Stage 1**: Runs `generate_data.py` to create JSON from TSV
+2. **Stage 2**: Builds the React app with `npm run build`
+3. **Stage 3**: Serves static files via Nginx
+
+```bash
+# From repository root
+docker build -f frontend/Dockerfile.full -t lafa-frontend .
+docker run -d -p 8501:8501 --name lafa-frontend lafa-frontend
+```
+
+The container runs on port 8501 for compatibility with existing Nginx proxy configurations.
+
+### Option 2: Docker Compose
+
+```bash
+cd frontend
 docker compose up -d --build
 ```
 
-The current [docker-compose.yml](docker-compose.yml) binds the app to `127.0.0.1:8501:8501`, which is appropriate when Nginx is the public entrypoint.
+The `docker-compose.yml` binds to `127.0.0.1:8501`, suitable when an external Nginx handles HTTPS termination.
 
-## What The Frontend Displays
+### Option 3: Manual Deployment (Static Files)
 
-For each published release window, the app uses:
+Build the frontend and serve with any web server:
 
-- `method_names.tsv`
-- `method_availability.tsv` when present
-- `groundtruth_NK.tsv`
-- `groundtruth_LK.tsv`
-- `groundtruth_PK.tsv`
-- `results_NK/evaluation_best_f_micro_w.tsv`
-- `results_NK/evaluation_all.tsv`
-- `results_LK/evaluation_best_f_micro_w.tsv`
-- `results_LK/evaluation_all.tsv`
-- `results_PK/evaluation_best_f_micro_w.tsv`
-- `results_PK/evaluation_all.tsv`
+```bash
+cd frontend
+python scripts/generate_data.py
+npm ci
+npm run build
+# Deploy contents of dist/ to your web server
+```
 
-The sidebar lets users choose one or two release windows for comparison. From those windows, the app derives the available time points shown in the release sliders.
+---
+
+## Testing Changes
+
+### 1. Local Development Cycle
+
+```bash
+cd frontend
+npm run dev   # Hot-reload at localhost:5173
+```
+
+Edit files in `frontend/src/`. Changes appear instantly.
+
+### 2. Test Production Build
+
+```bash
+cd frontend
+npm run build
+npm run preview   # Serves dist/ at localhost:4173
+```
+
+### 3. Test Docker Build
+
+```bash
+# From repository root
+docker build -f frontend/Dockerfile.full -t lafa-frontend:test .
+docker run --rm -p 8501:8501 lafa-frontend:test
+```
+
+Verify at http://localhost:8501
+
+### 4. Verify Data Generation
+
+If releases have changed:
+
+```bash
+cd frontend
+python scripts/generate_data.py
+# Check public/data/catalog.json for expected releases
+```
+
+---
+
+## Updating After Backend Changes
+
+When the backend publishes new releases to `data/releases/`:
+
+### Local Development
+```bash
+cd frontend
+python scripts/generate_data.py
+# Restart dev server if running
+```
+
+### Docker Deployment
+```bash
+# Rebuild the image to regenerate JSON
+docker build -f frontend/Dockerfile.full -t lafa-frontend .
+docker compose up -d   # Recreates container with new data
+```
+
+---
 
 ## Backend Pointer
 
 Backend setup and Nextflow usage are documented in [README_backend.md](README_backend.md).
 
-In short, the backend is responsible for:
+The backend is responsible for:
 
 - building canonical timepoint artifacts
 - generating or reusing predictions
 - evaluating `NK`, `LK`, and `PK`
 - publishing frontend-ready release windows into `data/releases/`
 
+---
+
 ## Repository Layout
 
-Key paths:
+```
+CAFA_forever/
+├── frontend/                    # React frontend (NEW)
+│   ├── src/                     # React components and hooks
+│   ├── public/data/             # Generated JSON (gitignored)
+│   ├── scripts/generate_data.py # TSV → JSON transformation
+│   ├── Dockerfile.full          # Multi-stage production build
+│   ├── docker-compose.yml       # Frontend-specific compose
+│   └── nginx.conf               # Production server config
+├── app/                         # Legacy Streamlit app (deprecated)
+├── data/releases/               # Published TSV releases (backend output)
+├── workflows/                   # Nextflow backend workflows
+├── modules/local/               # Nextflow reusable processes
+├── main.nf                      # Backend entrypoint
+├── Dockerfile                   # Legacy Streamlit Dockerfile
+└── docker-compose.yml           # Legacy compose (uses Streamlit)
+```
 
-- [app/streamlit_app.py](app/streamlit_app.py): Streamlit application
-- [app/config.py](app/config.py): frontend release discovery and plotting config
-- [main.nf](main.nf): backend Nextflow entrypoint
-- [workflows/](workflows): top-level backend workflows
-- [modules/local/](modules/local): reusable Nextflow processes
-- [data/releases/](data/releases): published frontend-consumable releases
+---
+
+## Migration from Streamlit
+
+The old Streamlit deployment used:
+- `Dockerfile` (root) - Python/Streamlit image
+- `docker-compose.yml` (root) - Streamlit service
+- `app/streamlit_app.py` - Streamlit application
+
+The new React deployment uses:
+- `frontend/Dockerfile.full` - Multi-stage Node/Nginx image
+- `frontend/docker-compose.yml` - React service
+- `frontend/src/App.tsx` - React application
+
+Both deployments serve on port 8501, so the external Nginx configuration remains unchanged.
+
+---
+
+## ISU Branding
+
+CSS variables in `frontend/src/index.css`:
+
+```css
+:root {
+  --isu-cardinal: #c8102e;
+  --isu-cardinal-dark: #7c2529;
+  --isu-gold: #f1be48;
+  --isu-charcoal: #212529;
+}
+```
+
+---
 
 ## Notes
 
-The precision-recall curves are displayed with a monotonic precision option, using a cumulative maximum over precision values. This makes curves easier to compare when small evaluation sets or threshold noise would otherwise introduce non-monotonic segments.
+The precision-recall curves are displayed with monotonic precision using a cumulative maximum over precision values. This makes curves easier to compare when small evaluation sets or threshold noise would otherwise introduce non-monotonic segments.
