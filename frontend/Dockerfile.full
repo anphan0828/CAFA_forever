@@ -15,7 +15,8 @@ RUN pip install --no-cache-dir pandas
 COPY app/ app/
 COPY data/ data/
 COPY frontend/scripts/ frontend/scripts/
-COPY frontend/public/data/ frontend/public/data/ 2>/dev/null || mkdir -p frontend/public/data
+# Ensure output directory exists
+RUN mkdir -p frontend/public/data
 
 # Generate JSON data
 RUN python frontend/scripts/generate_data.py
