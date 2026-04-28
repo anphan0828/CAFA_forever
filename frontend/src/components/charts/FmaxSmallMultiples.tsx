@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import type { BestMetricsMap, Subset } from '../../types'
-import { SUBSETS, ASPECTS, ASPECT_SHORT, SUBSET_LABELS } from '../../types'
+import { SUBSETS, ASPECTS, ASPECT_LABELS, SUBSET_LABELS } from '../../types'
 import { useMethodColors } from '../../hooks'
 import { InfoIcon } from '../ui'
 import './FmaxSmallMultiples.css'
@@ -43,8 +43,8 @@ export function FmaxSmallMultiples({
         const metrics = bestMetrics[key] || []
 
         const row: Record<string, unknown> = {
-          aspect: ASPECT_SHORT[aspect],
-          aspectFull: aspect,
+          aspect: ASPECT_LABELS[aspect],
+          aspectFull: ASPECT_LABELS[aspect],
         }
 
         selectedMethods.forEach((method) => {
@@ -86,7 +86,11 @@ export function FmaxSmallMultiples({
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="aspect" tick={{ fontSize: 12 }} />
+                <XAxis
+                  dataKey="aspect"
+                  interval={0}
+                  tick={{ fontSize: 11 }}
+                />
                 <YAxis
                   domain={[0, 1]}
                   tickFormatter={(v) => v.toFixed(2)}

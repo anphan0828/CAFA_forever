@@ -63,6 +63,13 @@
   margin-bottom: 1.5rem;
 }
 
+.summary-top-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(360px, 1fr));
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
 /* Tab content */
 .tab-content {
   min-height: 300px;
@@ -103,6 +110,10 @@
 
 @media (max-width: 768px) {
   .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-top-grid {
     grid-template-columns: 1fr;
   }
 }

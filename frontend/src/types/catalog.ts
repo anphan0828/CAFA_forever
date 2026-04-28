@@ -11,6 +11,7 @@ export interface ReleaseEntry {
 
 export interface Catalog {
   releases: ReleaseEntry[]
+  invalidReleases?: Record<string, string[]>
   timepoints: string[]
   generatedAt: string
 }

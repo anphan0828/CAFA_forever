@@ -22,10 +22,13 @@ interface PRCurvePlotProps {
   title?: string
   showContours?: boolean
   showAxisLabels?: boolean
+  showXAxisLabel?: boolean
+  showYAxisLabel?: boolean
   margin?: { top: number; right: number; bottom: number; left: number }
 }
 
-const DEFAULT_MARGIN = { top: 30, right: 20, bottom: 50, left: 50 }
+const DEFAULT_MARGIN = { top: 30, right: 20, bottom: 68, left: 58 }
+const AXIS_TICKS = [0, 0.2, 0.4, 0.6, 0.8, 1]
 const EPSILON = 1e-9
 
 function sortCurvePoints(points: CurvePoint[]): CurvePoint[] {
@@ -57,6 +60,8 @@ export function PRCurvePlot({
   title,
   showContours = true,
   showAxisLabels = true,
+  showXAxisLabel = showAxisLabels,
+  showYAxisLabel = showAxisLabels,
   margin = DEFAULT_MARGIN,
 }: PRCurvePlotProps) {
   const innerWidth = width - margin.left - margin.right
@@ -76,7 +81,7 @@ export function PRCurvePlot({
   // F-score contours
   const contours = useMemo(() => {
     if (!showContours) return null
-    return generateAllContours([0.2, 0.4, 0.6, 0.8], 100)
+    return generateAllContours([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], 100)
   }, [showContours])
 
   const renderedCurves = useMemo(
@@ -102,7 +107,7 @@ export function PRCurvePlot({
   return (
     <div className="pr-curve-plot">
       {title && <h5 className="pr-curve-plot__title">{title}</h5>}
-      <svg width={width} height={height}>
+      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
         <Group left={margin.left} top={margin.top}>
           {/* F-score contours */}
           {contours &&
@@ -174,17 +179,19 @@ export function PRCurvePlot({
           <AxisBottom
             scale={xScale}
             top={innerHeight}
-            label={showAxisLabels ? 'Recall' : undefined}
+            label={showXAxisLabel ? 'Recall' : undefined}
             labelOffset={35}
+            tickValues={AXIS_TICKS}
             tickFormat={(v) => Number(v).toFixed(1)}
-            tickLabelProps={() => ({ fontSize: 10, textAnchor: 'middle' })}
+            tickLabelProps={() => ({ fontSize: 11, textAnchor: 'middle' })}
           />
           <AxisLeft
             scale={yScale}
-            label={showAxisLabels ? 'Precision' : undefined}
+            label={showYAxisLabel ? 'Precision' : undefined}
             labelOffset={35}
+            tickValues={AXIS_TICKS}
             tickFormat={(v) => Number(v).toFixed(1)}
-            tickLabelProps={() => ({ fontSize: 10, textAnchor: 'end' })}
+            tickLabelProps={() => ({ fontSize: 11, textAnchor: 'end' })}
           />
         </Group>
       </svg>

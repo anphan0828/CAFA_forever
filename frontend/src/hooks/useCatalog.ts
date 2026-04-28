@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { Catalog } from '../types'
+import { validateCatalog } from '../lib/dataValidation'
 
 interface UseCatalogResult {
   catalog: Catalog | null
@@ -21,7 +22,7 @@ export function useCatalog(): UseCatalogResult {
         if (!response.ok) {
           throw new Error(`Failed to load catalog: ${response.status}`)
         }
-        const data = await response.json()
+        const data = validateCatalog(await response.json())
         if (!cancelled) {
           setCatalog(data)
           setLoading(false)

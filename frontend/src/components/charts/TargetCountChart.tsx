@@ -44,8 +44,8 @@ export function TargetCountChart({ targetCounts }: TargetCountChartProps) {
         <InfoIcon tooltip="Number of proteins evaluated in each knowledge category. NK (No Knowledge) proteins have no prior annotations, making them hardest to predict." />
       </h4>
       <div className="target-count-chart__container">
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+        <ResponsiveContainer width="100%" height={Math.max(250, chartData.length * 72)}>
+          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 8, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="subset" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 12 }} />

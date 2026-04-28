@@ -1,7 +1,8 @@
 # CAFA Forever
 
-CAFA Forever has two main components:
+CAFA Forever has three main components:
 
+- a **Streamlit frontend** in `app/` that remains the default production frontend for now
 - a **React frontend** for browsing published LAFA evaluation releases
 - a **Nextflow backend** for building timepoints and publishing release windows
 
@@ -27,9 +28,10 @@ cd frontend
 # Install Node dependencies
 npm install
 
-# Generate JSON data from TSV releases (requires pandas)
-pip install pandas
-python scripts/generate_data.py
+# Generate JSON data from TSV releases
+cd ..
+python3 scripts/generate_data.py
+cd frontend
 
 # Start development server
 npm run dev
@@ -43,7 +45,7 @@ From the **repository root** (not the frontend folder):
 
 ```bash
 # Build the image (includes data generation)
-docker build -f frontend/Dockerfile.full -t lafa-frontend .
+docker build -f Dockerfile.react -t lafa-frontend .
 
 # Run the container
 docker run -p 8501:8501 lafa-frontend
@@ -54,8 +56,7 @@ Open http://localhost:8501 in your browser.
 Alternatively, use Docker Compose:
 
 ```bash
-cd frontend
-docker compose up -d
+docker compose -f deploy/docker-compose.react.yml up -d --build
 ```
 
 ### Health Check
@@ -68,7 +69,7 @@ curl http://localhost:8501/_health
 
 ## Frontend Architecture
 
-The frontend is a React/TypeScript single-page application that reads pre-generated JSON data. This replaces the previous Streamlit implementation.
+The React frontend is a TypeScript single-page application that reads pre-generated JSON data. The Streamlit frontend remains available in `app/` and is the default deployment target while the React redesign matures.
 
 ### Why React Instead of Streamlit?
 
@@ -101,13 +102,12 @@ The frontend is a React/TypeScript single-page application that reads pre-genera
 The frontend reads JSON files, not TSV directly. A Python script transforms the backend's TSV output:
 
 ```bash
-cd frontend
-python scripts/generate_data.py
+python3 scripts/generate_data.py
 ```
 
-**Input:** `../data/releases/{release_id}/*.tsv`
+**Input:** `data/releases/{release_id}/*.tsv`
 
-**Output:** `public/data/`
+**Output:** `frontend/public/data/`
 - `catalog.json` - Available releases and timepoints
 - `methods.json` - Method display names and baseline flags
 - `releases/{id}/meta.json` - Release metadata and target counts
@@ -155,7 +155,7 @@ The multi-stage Dockerfile handles everything:
 
 ```bash
 # From repository root
-docker build -f frontend/Dockerfile.full -t lafa-frontend .
+docker build -f Dockerfile.react -t lafa-frontend .
 docker run -d -p 8501:8501 --name lafa-frontend lafa-frontend
 ```
 
@@ -164,11 +164,10 @@ The container runs on port 8501 for compatibility with existing Nginx proxy conf
 ### Option 2: Docker Compose
 
 ```bash
-cd frontend
-docker compose up -d --build
+docker compose -f deploy/docker-compose.react.yml up -d --build
 ```
 
-The `docker-compose.yml` binds to `127.0.0.1:8501`, suitable when an external Nginx handles HTTPS termination.
+The React compose file binds to `127.0.0.1:8501`, suitable when an external Nginx handles HTTPS termination.
 
 ### Option 3: Manual Deployment (Static Files)
 
@@ -176,7 +175,9 @@ Build the frontend and serve with any web server:
 
 ```bash
 cd frontend
-python scripts/generate_data.py
+cd ..
+python3 scripts/generate_data.py
+cd frontend
 npm ci
 npm run build
 # Deploy contents of dist/ to your web server
@@ -207,7 +208,7 @@ npm run preview   # Serves dist/ at localhost:4173
 
 ```bash
 # From repository root
-docker build -f frontend/Dockerfile.full -t lafa-frontend:test .
+docker build -f Dockerfile.react -t lafa-frontend:test .
 docker run --rm -p 8501:8501 lafa-frontend:test
 ```
 
@@ -218,8 +219,7 @@ Verify at http://localhost:8501
 If releases have changed:
 
 ```bash
-cd frontend
-python scripts/generate_data.py
+python3 scripts/generate_data.py
 # Check public/data/catalog.json for expected releases
 ```
 
@@ -231,16 +231,15 @@ When the backend publishes new releases to `data/releases/`:
 
 ### Local Development
 ```bash
-cd frontend
-python scripts/generate_data.py
+python3 scripts/generate_data.py
 # Restart dev server if running
 ```
 
 ### Docker Deployment
 ```bash
 # Rebuild the image to regenerate JSON
-docker build -f frontend/Dockerfile.full -t lafa-frontend .
-docker compose up -d   # Recreates container with new data
+docker build -f Dockerfile.react -t lafa-frontend .
+docker compose -f deploy/docker-compose.react.yml up -d   # Recreates container with new data
 ```
 
 ---
@@ -262,20 +261,19 @@ The backend is responsible for:
 
 ```
 CAFA_forever/
-├── frontend/                    # React frontend (NEW)
+├── app/                         # Streamlit frontend (default/legacy)
+├── frontend/                    # React frontend redesign
 │   ├── src/                     # React components and hooks
 │   ├── public/data/             # Generated JSON (gitignored)
-│   ├── scripts/generate_data.py # TSV → JSON transformation
-│   ├── Dockerfile.full          # Multi-stage production build
-│   ├── docker-compose.yml       # Frontend-specific compose
 │   └── nginx.conf               # Production server config
-├── app/                         # Legacy Streamlit app (deprecated)
+├── scripts/generate_data.py     # Shared TSV → JSON contract generator
+├── deploy/                      # Compose files for Streamlit and React
 ├── data/releases/               # Published TSV releases (backend output)
 ├── workflows/                   # Nextflow backend workflows
 ├── modules/local/               # Nextflow reusable processes
 ├── main.nf                      # Backend entrypoint
-├── Dockerfile                   # Legacy Streamlit Dockerfile
-└── docker-compose.yml           # Legacy compose (uses Streamlit)
+├── Dockerfile.streamlit         # Streamlit image
+└── Dockerfile.react             # React/Nginx image
 ```
 
 ---
@@ -283,13 +281,13 @@ CAFA_forever/
 ## Migration from Streamlit
 
 The old Streamlit deployment used:
-- `Dockerfile` (root) - Python/Streamlit image
-- `docker-compose.yml` (root) - Streamlit service
+- `Dockerfile.streamlit` (root) - Python/Streamlit image
+- `deploy/docker-compose.streamlit.yml` - Streamlit service
 - `app/streamlit_app.py` - Streamlit application
 
 The new React deployment uses:
-- `frontend/Dockerfile.full` - Multi-stage Node/Nginx image
-- `frontend/docker-compose.yml` - React service
+- `Dockerfile.react` - Multi-stage Node/Nginx image
+- `deploy/docker-compose.react.yml` - React service
 - `frontend/src/App.tsx` - React application
 
 Both deployments serve on port 8501, so the external Nginx configuration remains unchanged.

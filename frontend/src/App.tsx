@@ -7,6 +7,7 @@ import { MethodSelector } from './components/methods'
 import { OverallRankingChart, FmaxSmallMultiples, TargetCountChart, PRCurveGrid, ComparisonTab } from './components/charts'
 import { SummaryTable } from './components/table'
 import { Tabs, Collapsible, type Tab } from './components/ui'
+import { MAX_SELECTED_METHODS } from './types'
 import './App.css'
 
 function AppContent() {
@@ -85,7 +86,7 @@ function AppContent() {
   // Auto-select all methods when release data loads
   useEffect(() => {
     if (releaseData.methods && state.selectedMethods.length === 0) {
-      const methods = Object.keys(releaseData.methods.methods)
+      const methods = Object.keys(releaseData.methods.methods).slice(0, MAX_SELECTED_METHODS)
       dispatch({ type: 'SET_SELECTED_METHODS', payload: methods })
     }
   }, [releaseData.methods, state.selectedMethods.length, dispatch])
@@ -151,13 +152,19 @@ function AppContent() {
       label: 'Summary',
       content: (
         <div className="tab-content">
-          {releaseData.best && (
-            <OverallRankingChart
-              bestMetrics={releaseData.best}
-              selectedMethods={state.selectedMethods}
-              colorDomain={methodColorDomain}
-            />
-          )}
+          <div className="summary-top-grid">
+            {releaseData.meta && (
+              <TargetCountChart targetCounts={releaseData.meta.targetCounts} />
+            )}
+
+            {releaseData.best && (
+              <OverallRankingChart
+                bestMetrics={releaseData.best}
+                selectedMethods={state.selectedMethods}
+                colorDomain={methodColorDomain}
+              />
+            )}
+          </div>
 
           {releaseData.best && (
             <FmaxSmallMultiples
@@ -167,9 +174,6 @@ function AppContent() {
             />
           )}
 
-          {releaseData.meta && (
-            <TargetCountChart targetCounts={releaseData.meta.targetCounts} />
-          )}
         </div>
       ),
     },
@@ -187,7 +191,7 @@ function AppContent() {
             <PRCurveGrid
               curves={releaseData.curves}
               bestMetrics={releaseData.best}
-              selectedMethods={state.selectedMethods.slice(0, 5)}
+              selectedMethods={state.selectedMethods}
               colorDomain={methodColorDomain}
               totalSelectedCount={state.selectedMethods.length}
             />

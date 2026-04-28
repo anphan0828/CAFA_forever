@@ -1,10 +1,8 @@
-version: '3.8'
-
 services:
   lafa-frontend:
     build:
       context: ..
-      dockerfile: frontend/Dockerfile.full
+      dockerfile: Dockerfile.react
     container_name: lafa-frontend
     ports:
       - "127.0.0.1:8501:8501"

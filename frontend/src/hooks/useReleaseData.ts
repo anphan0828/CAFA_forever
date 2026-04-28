@@ -6,6 +6,13 @@ import type {
   CurvesMap,
   MethodsConfig,
 } from '../types'
+import {
+  validateBestMetrics,
+  validateCurvesMap,
+  validateMethodsConfig,
+  validateReleaseMeta,
+  validateReleaseMethods,
+} from '../lib/dataValidation'
 
 interface ReleaseData {
   meta: ReleaseMeta | null
@@ -63,11 +70,14 @@ export function useReleaseData(releaseId: string | null): UseReleaseDataResult {
           throw new Error('Failed to load release data')
         }
 
-        const [meta, methods, best] = await Promise.all([
+        const [metaRaw, methodsRaw, bestRaw] = await Promise.all([
           metaRes.json(),
           methodsRes.json(),
           bestRes.json(),
         ])
+        const meta = validateReleaseMeta(metaRaw)
+        const methods = validateReleaseMethods(methodsRaw)
+        const best = validateBestMetrics(bestRaw)
 
         if (!cancelled) {
           setData((prev) => ({ ...prev, meta, methods, best }))
@@ -98,7 +108,7 @@ export function useReleaseData(releaseId: string | null): UseReleaseDataResult {
       if (!response.ok) {
         throw new Error('Failed to load curves data')
       }
-      const curves = await response.json()
+      const curves = validateCurvesMap(await response.json())
       setData((prev) => ({ ...prev, curves }))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load curves')
@@ -127,7 +137,7 @@ export function useMethodsConfig() {
         if (!response.ok) {
           throw new Error('Failed to load methods config')
         }
-        const data = await response.json()
+        const data = validateMethodsConfig(await response.json())
         if (!cancelled) {
           setConfig(data)
           setLoading(false)

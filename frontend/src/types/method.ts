@@ -5,6 +5,7 @@
 export type Subset = 'NK' | 'LK' | 'PK'
 export type Aspect = 'biological_process' | 'molecular_function' | 'cellular_component'
 
+export const MAX_SELECTED_METHODS = 30
 export const SUBSETS: Subset[] = ['NK', 'LK', 'PK']
 export const ASPECTS: Aspect[] = ['biological_process', 'molecular_function', 'cellular_component']
 

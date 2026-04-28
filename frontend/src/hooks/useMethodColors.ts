@@ -1,32 +1,25 @@
 import { useMemo } from 'react'
 
-/**
- * Color palette for methods - designed for colorblind accessibility
- * Based on Paul Tol's colorblind-friendly palette
- */
 const METHOD_COLORS = [
-  '#4477AA', // Blue
-  '#EE6677', // Red/Pink
-  '#228833', // Green
-  '#CCBB44', // Yellow
-  '#66CCEE', // Cyan
-  '#AA3377', // Purple
-  '#BBBBBB', // Grey
-  '#000000', // Black (for additional methods)
+  '#0072B2', // Blue
+  '#D55E00', // Vermillion
+  '#009E73', // Bluish green
+  '#CC79A7', // Reddish purple
+  '#E69F00', // Orange
+  '#56B4E9', // Sky blue
+  '#B58900', // Gold
+  '#332288', // Indigo
 ]
 
-/**
- * Additional colors if we need more than 8
- */
 const EXTENDED_COLORS = [
-  '#332288', // Indigo
-  '#88CCEE', // Light Blue
-  '#44AA99', // Teal
-  '#117733', // Dark Green
-  '#999933', // Olive
-  '#DDCC77', // Sand
-  '#CC6677', // Rose
-  '#882255', // Wine
+  '#117733',
+  '#88CCEE',
+  '#AA4499',
+  '#44AA99',
+  '#882255',
+  '#999933',
+  '#CC6677',
+  '#6699CC',
 ]
 
 const CANONICAL_METHOD_ORDER = [

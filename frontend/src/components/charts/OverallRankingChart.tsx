@@ -4,7 +4,6 @@ import {
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   Cell,
@@ -100,20 +99,26 @@ export function OverallRankingChart({
           <BarChart
             data={chartData}
             layout="vertical"
-            margin={{ top: 10, right: 30, left: 120, bottom: 10 }}
+            margin={{ top: 10, right: 36, left: 8, bottom: 30 }}
           >
-            <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
             <XAxis
               type="number"
               domain={[0, 1]}
               tickFormatter={(value) => value.toFixed(2)}
               tick={{ fontSize: 12 }}
+              label={{
+                value: 'Average weighted F-max',
+                position: 'insideBottom',
+                offset: -14,
+                fontSize: 12,
+                fill: 'var(--isu-charcoal)',
+              }}
             />
             <YAxis
               type="category"
               dataKey="method"
               tick={{ fontSize: 12 }}
-              width={110}
+              width={94}
             />
             <Tooltip
               content={({ active, payload }) => {

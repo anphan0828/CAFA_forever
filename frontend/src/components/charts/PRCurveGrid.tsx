@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { Fragment, useMemo } from 'react'
 import type { CurvesMap, BestMetricsMap, Subset, Aspect } from '../../types'
-import { SUBSETS, ASPECTS, SUBSET_LABELS, ASPECT_SHORT, makeCurveKey, makeBestKey } from '../../types'
+import { SUBSETS, ASPECTS, SUBSET_LABELS, ASPECT_LABELS, makeCurveKey, makeBestKey } from '../../types'
 import { useMethodColors } from '../../hooks'
 import { InfoIcon } from '../ui'
 import { PRCurvePlot } from './PRCurvePlot'
@@ -110,49 +110,44 @@ export function PRCurveGrid({
       </div>
 
       <div className="pr-curve-grid__plot-area">
-        <div className="pr-curve-grid__shared-y-label">Precision</div>
-
         <div className="pr-curve-grid__plot-stack">
           {/* Grid */}
           <div
             className="pr-curve-grid__container"
             style={{
-              gridTemplateColumns: `repeat(${aspects.length}, 1fr)`,
+              gridTemplateColumns: `repeat(${aspects.length}, minmax(0, 1fr))`,
             }}
           >
-            {/* Column headers (aspects) */}
-            {aspects.map((aspect) => (
-              <div key={aspect} className="pr-curve-grid__header">
-                {ASPECT_SHORT[aspect]}
-              </div>
-            ))}
-
             {/* Plots with row headers */}
-            {subsets.map((subset) => (
-              aspects.map((aspect, i) => (
+            {subsets.map((subset, rowIndex) => (
+              <Fragment key={subset}>
                 <div
-                  key={`${subset}_${aspect}`}
-                  className="pr-curve-grid__cell"
+                  className="pr-curve-grid__row-label"
+                  style={{ gridColumn: `1 / span ${aspects.length}` }}
                 >
-                  {i === 0 && (
-                    <div className="pr-curve-grid__row-label">
-                      {SUBSET_LABELS[subset]}
-                    </div>
-                  )}
-                  <PRCurvePlot
-                    curves={gridPlots.find(
-                      (p) => p.subset === subset && p.aspect === aspect
-                    )?.curveData || []}
-                    width={280}
-                    height={240}
-                    showAxisLabels={false}
-                  />
+                  {SUBSET_LABELS[subset]}
                 </div>
-              ))
+                {aspects.map((aspect, colIndex) => (
+                  <div
+                    key={`${subset}_${aspect}`}
+                    className="pr-curve-grid__cell"
+                  >
+                    <PRCurvePlot
+                      curves={gridPlots.find(
+                        (p) => p.subset === subset && p.aspect === aspect
+                      )?.curveData || []}
+                      width={250}
+                      height={250}
+                      title={ASPECT_LABELS[aspect]}
+                      showAxisLabels={false}
+                      showYAxisLabel={colIndex === 0}
+                      showXAxisLabel={rowIndex === subsets.length - 1}
+                    />
+                  </div>
+                ))}
+              </Fragment>
             ))}
           </div>
-
-          <div className="pr-curve-grid__shared-x-label">Recall</div>
         </div>
       </div>
     </div>

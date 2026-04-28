@@ -120,8 +120,8 @@ export function TimelineSelector({
   const getXPositionFromMouse = useCallback((clientX: number): number => {
     if (!containerRef.current) return 0
     const rect = containerRef.current.getBoundingClientRect()
-    const chartLeft = rect.left + 50 // Account for left margin
-    const chartWidth = rect.width - 80 // Account for both margins
+    const chartLeft = rect.left + 36 // Account for left margin
+    const chartWidth = rect.width - 72 // Account for both margins
     const relativeX = clientX - chartLeft
     return Math.max(0, Math.min(100, (relativeX / chartWidth) * 100))
   }, [])
@@ -235,10 +235,10 @@ export function TimelineSelector({
         onMouseLeave={handleMouseUp}
         onClick={handleTimelineClick}
       >
-        <ResponsiveContainer width="100%" height={80}>
+        <ResponsiveContainer width="100%" height={100}>
           <ComposedChart
             data={chartData}
-            margin={{ top: 20, right: 30, left: 50, bottom: 20 }}
+            margin={{ top: 24, right: 36, left: 36, bottom: 34 }}
           >
             <XAxis
               dataKey="position"
@@ -249,7 +249,7 @@ export function TimelineSelector({
                 const tp = sortedTimepoints.find(t => Math.abs((timepointPositions.get(t) || 0) - value) < 0.1)
                 return tp ? formatTimepoint(tp) : ''
               }}
-              tick={{ fontSize: 11, fill: 'var(--isu-charcoal)' }}
+              tick={{ fontSize: 14, fill: 'var(--isu-charcoal)', fontWeight: 600 }}
               axisLine={{ stroke: 'var(--isu-border)' }}
               tickLine={{ stroke: 'var(--isu-border)' }}
             />
@@ -270,9 +270,9 @@ export function TimelineSelector({
               <ReferenceArea
                 x1={startPosition}
                 x2={endPosition}
-                fill={isValidSelection ? 'var(--isu-cardinal)' : 'var(--isu-caption)'}
+                fill={isValidSelection ? 'var(--timeline-accent)' : 'var(--isu-caption)'}
                 fillOpacity={0.15}
-                stroke={isValidSelection ? 'var(--isu-cardinal)' : 'var(--isu-caption)'}
+                stroke={isValidSelection ? 'var(--timeline-accent)' : 'var(--isu-caption)'}
                 strokeDasharray={isValidSelection ? undefined : '4 4'}
               />
             )}
@@ -281,7 +281,7 @@ export function TimelineSelector({
             {startPosition !== undefined && (
               <ReferenceLine
                 x={startPosition}
-                stroke="var(--isu-cardinal)"
+                stroke="var(--timeline-accent)"
                 strokeWidth={3}
                 label={{
                   value: '',
@@ -292,7 +292,7 @@ export function TimelineSelector({
             {endPosition !== undefined && (
               <ReferenceLine
                 x={endPosition}
-                stroke="var(--isu-cardinal)"
+                stroke="var(--timeline-accent)"
                 strokeWidth={3}
               />
             )}
@@ -304,7 +304,7 @@ export function TimelineSelector({
           {startPosition !== undefined && (
             <div
               className={`timeline-selector__handle timeline-selector__handle--start ${activeHandle === 'start' ? 'timeline-selector__handle--active' : ''}`}
-              style={{ left: `calc(50px + ${(startPosition / 100) * (containerRef.current?.offsetWidth ? containerRef.current.offsetWidth - 80 : 0)}px)` }}
+              style={{ left: `calc(36px + ${(startPosition / 100) * (containerRef.current?.offsetWidth ? containerRef.current.offsetWidth - 72 : 0)}px)` }}
               onMouseDown={(e) => {
                 e.stopPropagation()
                 handleMouseDown('start')
@@ -315,7 +315,7 @@ export function TimelineSelector({
           {endPosition !== undefined && (
             <div
               className={`timeline-selector__handle timeline-selector__handle--end ${activeHandle === 'end' ? 'timeline-selector__handle--active' : ''}`}
-              style={{ left: `calc(50px + ${(endPosition / 100) * (containerRef.current?.offsetWidth ? containerRef.current.offsetWidth - 80 : 0)}px)` }}
+              style={{ left: `calc(36px + ${(endPosition / 100) * (containerRef.current?.offsetWidth ? containerRef.current.offsetWidth - 72 : 0)}px)` }}
               onMouseDown={(e) => {
                 e.stopPropagation()
                 handleMouseDown('end')

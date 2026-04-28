@@ -1,6 +1,6 @@
 # LAFA Frontend
 
-React-based frontend for the LAFA (Longitudinal Assessment of Function Annotation) leaderboard. This replaces the previous Streamlit implementation.
+React-based frontend redesign for the LAFA (Longitudinal Assessment of Function Annotation) leaderboard. The Streamlit app in `../app/` remains the default deployment target for now.
 
 > **Note**: For comprehensive setup and deployment instructions, see the [main README](../README.md) in the repository root.
 
@@ -44,7 +44,9 @@ React-based frontend for the LAFA (Longitudinal Assessment of Function Annotatio
 npm install
 
 # Generate JSON data from TSV files
-python scripts/generate_data.py
+cd ..
+python3 scripts/generate_data.py
+cd frontend
 
 # Start development server
 npm run dev
@@ -62,9 +64,9 @@ Output is in `dist/`.
 
 ## Data Pipeline
 
-The `scripts/generate_data.py` script transforms TSV evaluation data into JSON:
+The root `scripts/generate_data.py` script transforms validated TSV evaluation data into JSON:
 
-**Input:** `data/releases/{release_id}/*.tsv`
+**Input:** `../data/releases/{release_id}/*.tsv`
 
 **Output:** `public/data/`
 - `catalog.json` - Available releases
@@ -82,7 +84,7 @@ From repository root:
 
 ```bash
 # Build
-docker build -f frontend/Dockerfile.full -t lafa-frontend .
+docker build -f Dockerfile.react -t lafa-frontend .
 
 # Run
 docker run -p 8501:8501 lafa-frontend
@@ -91,8 +93,7 @@ docker run -p 8501:8501 lafa-frontend
 ### Docker Compose
 
 ```bash
-cd frontend
-docker compose up -d
+docker compose -f deploy/docker-compose.react.yml up -d --build
 ```
 
 Access at http://localhost:8501
@@ -110,8 +111,6 @@ frontend/
 ├── public/
 │   ├── assets/iastate/     # ISU brand logos
 │   └── data/               # Generated JSON data
-├── scripts/
-│   └── generate_data.py    # TSV → JSON transformation
 ├── src/
 │   ├── components/
 │   │   ├── charts/         # Visualizations (Recharts, Visx)
@@ -127,8 +126,7 @@ frontend/
 ├── package.json
 ├── vite.config.ts
 ├── tsconfig.json
-├── nginx.conf
-└── Dockerfile.full
+└── nginx.conf
 ```
 
 ## Key Components
@@ -161,10 +159,11 @@ The frontend reads published releases from `../data/releases/`. When the backend
 
 ```bash
 # Regenerate JSON data
-python scripts/generate_data.py
+cd ..
+python3 scripts/generate_data.py
 
 # For Docker deployment, rebuild the image
-cd .. && docker build -f frontend/Dockerfile.full -t lafa-frontend .
+docker build -f Dockerfile.react -t lafa-frontend .
 ```
 
 ## ISU Branding

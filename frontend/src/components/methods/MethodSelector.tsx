@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { ReleaseMethod, MethodConfig, Subset } from '../../types'
+import { MAX_SELECTED_METHODS } from '../../types'
 import { useMethodColors } from '../../hooks'
 import { MethodBadge } from './MethodBadge'
 import { Checkbox } from '../ui'
@@ -69,12 +70,12 @@ export function MethodSelector({
     if (selectedMethods.includes(method)) {
       onSelectionChange(selectedMethods.filter((m) => m !== method))
     } else {
-      onSelectionChange([...selectedMethods, method])
+      onSelectionChange([...selectedMethods, method].slice(0, MAX_SELECTED_METHODS))
     }
   }
 
   const handleSelectAll = () => {
-    onSelectionChange(filteredMethods)
+    onSelectionChange(filteredMethods.slice(0, MAX_SELECTED_METHODS))
   }
 
   const handleClearAll = () => {
@@ -87,10 +88,10 @@ export function MethodSelector({
   return (
     <div className="method-selector">
       <div className="method-selector__header">
-        <h3 className="method-selector__title">Methods</h3>
         <div className="method-selector__summary">
           {selectedCount} of {filteredMethods.length} selected
           {baselineCount > 0 && ` (${baselineCount} baselines)`}
+          {filteredMethods.length > MAX_SELECTED_METHODS && `, max ${MAX_SELECTED_METHODS}`}
         </div>
       </div>
 

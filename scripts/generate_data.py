@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-Data generation script for LAFA frontend.
+Shared LAFA data contract generator.
 
-Transforms TSV data files into JSON format for the React frontend.
-Reads from data/releases/ and outputs to frontend/public/data/.
+Transforms validated release TSV files into JSON consumed by the React frontend.
+The validation rules mirror the Streamlit frontend's release/data guardrails.
 """
 
+import csv
 import json
 import sys
 from collections import defaultdict
@@ -13,10 +14,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-# Resolve paths
 SCRIPT_DIR = Path(__file__).resolve().parent
-FRONTEND_DIR = SCRIPT_DIR.parent
-REPO_ROOT = FRONTEND_DIR.parent
+REPO_ROOT = SCRIPT_DIR.parent
+FRONTEND_DIR = REPO_ROOT / "frontend"
 DATA_ROOT = REPO_ROOT / "data"
 RELEASES_DIR = DATA_ROOT / "releases"
 OUTPUT_DIR = FRONTEND_DIR / "public" / "data"
@@ -46,31 +46,96 @@ except ImportError:
 SUBSETS = ["NK", "LK", "PK"]
 ASPECT_SHORT = {"biological_process": "P", "molecular_function": "F", "cellular_component": "C"}
 ASPECT_LONG = {v: k for k, v in ASPECT_SHORT.items()}
+ALLOWED_ASPECTS = set(ASPECT_SHORT)
+ALLOWED_GT_ASPECTS = set(ASPECT_LONG)
+REQUIRED_RELEASE_FILES = [
+    "method_names.tsv",
+    "groundtruth_NK.tsv",
+    "groundtruth_LK.tsv",
+    "groundtruth_PK.tsv",
+    "results_NK/evaluation_best_f_micro_w.tsv",
+    "results_NK/evaluation_all.tsv",
+    "results_LK/evaluation_best_f_micro_w.tsv",
+    "results_LK/evaluation_all.tsv",
+    "results_PK/evaluation_best_f_micro_w.tsv",
+    "results_PK/evaluation_all.tsv",
+]
+REQUIRED_GT_COLUMNS = {"EntryID", "aspect"}
+REQUIRED_BEST_COLUMNS = {
+    "filename",
+    "ns",
+    "n",
+    "pr_micro_w",
+    "rc_micro_w",
+    "f_micro_w",
+    "cov_w",
+    "tau",
+}
+REQUIRED_ALL_COLUMNS = {"filename", "ns", "tau", "cov", "rc_micro_w", "pr_micro_w", "f_micro_w"}
+REQUIRED_METHOD_COLUMNS = {"filename", "label"}
+REQUIRED_AVAILABILITY_COLUMNS = {"method", "NK", "LK", "PK"}
+NUMERIC_BEST_COLUMNS = ["n", "pr_micro_w", "rc_micro_w", "f_micro_w", "cov_w", "tau"]
+NUMERIC_ALL_COLUMNS = ["tau", "cov", "rc_micro_w", "pr_micro_w", "f_micro_w"]
+BOOLEAN_VALUES = {"true": True, "false": False, "1": True, "0": False, "yes": True, "no": False}
+
+
+class ContractError(ValueError):
+    """Raised when a release does not satisfy the shared frontend data contract."""
 
 
 def parse_tsv(path: Path) -> list[dict]:
     """Parse a TSV file into a list of dicts."""
     if not path.exists():
-        print(f"  Warning: File not found: {path}")
-        return []
+        raise ContractError(f"{path} does not exist")
 
-    with open(path, "r", encoding="utf-8") as f:
-        lines = f.read().strip().split("\n")
+    with path.open("r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        if reader.fieldnames is None:
+            return []
+        return [dict(row) for row in reader if any((value or "").strip() for value in row.values())]
 
-    if not lines:
-        return []
 
-    headers = lines[0].split("\t")
-    rows = []
-    for line in lines[1:]:
-        if not line.strip():
-            continue
-        values = line.split("\t")
-        row = {}
-        for i, header in enumerate(headers):
-            row[header] = values[i] if i < len(values) else ""
-        rows.append(row)
-    return rows
+def validate_required_columns(rows: list[dict], required_columns: set[str], name: str) -> None:
+    fieldnames = set(rows[0].keys()) if rows else set()
+    missing = sorted(required_columns - fieldnames)
+    if missing:
+        raise ContractError(f"{name} missing required columns: {', '.join(missing)}")
+
+
+def validate_numeric_columns(rows: list[dict], numeric_columns: list[str], name: str) -> None:
+    for row_idx, row in enumerate(rows, start=2):
+        for column in numeric_columns:
+            try:
+                float(row.get(column, ""))
+            except (TypeError, ValueError):
+                raise ContractError(f"{name} has non-numeric value in column '{column}' on row {row_idx}")
+
+
+def validate_ns_values(rows: list[dict], name: str) -> None:
+    invalid = sorted({str(row.get("ns", "")).strip() for row in rows} - ALLOWED_ASPECTS)
+    if invalid:
+        raise ContractError(f"{name} has invalid ns values: {', '.join(invalid)}")
+
+
+def validate_gt_aspects(rows: list[dict], name: str) -> None:
+    invalid = sorted({str(row.get("aspect", "")).strip() for row in rows} - ALLOWED_GT_ASPECTS)
+    if invalid:
+        raise ContractError(f"{name} has invalid aspect values: {', '.join(invalid)}")
+
+
+def coerce_bool(value: str, field_name: str) -> bool:
+    normalized = str(value).strip().lower()
+    if normalized not in BOOLEAN_VALUES:
+        raise ContractError(f"{field_name} must contain true/false style values")
+    return BOOLEAN_VALUES[normalized]
+
+
+def inspect_release_dir(release_dir: Path) -> list[str]:
+    errors = []
+    for relative_path in REQUIRED_RELEASE_FILES:
+        if not (release_dir / relative_path).exists():
+            errors.append(f"missing {relative_path}")
+    return errors
 
 
 def split_release_id(release_id: str) -> tuple[str, str]:
@@ -86,6 +151,26 @@ def parse_timepoint_label(timepoint_label: str) -> datetime:
     return datetime.strptime(str(timepoint_label), "%b_%Y")
 
 
+def normalize_catalog_entry(entry: dict) -> dict:
+    release_id = entry.get("release_id") or entry.get("id") or entry.get("name")
+    release_path = entry.get("path")
+    status = entry.get("status", "ready")
+
+    if not release_id and release_path:
+        release_id = Path(release_path).name
+    if not release_id:
+        raise ContractError("catalog entry missing release_id")
+
+    if release_path:
+        path = Path(release_path)
+        if not path.is_absolute():
+            path = REPO_ROOT / path
+    else:
+        path = RELEASES_DIR / release_id
+
+    return {"release_id": release_id, "path": path, "status": status}
+
+
 def generate_catalog() -> dict:
     """Generate catalog.json from existing catalog and release directories."""
     catalog_path = RELEASES_DIR / "catalog.json"
@@ -95,7 +180,6 @@ def generate_catalog() -> dict:
             raw_catalog = json.load(f)
         raw_releases = raw_catalog.get("releases", raw_catalog)
     else:
-        # Discover releases from directories
         raw_releases = []
         for item in sorted(RELEASES_DIR.iterdir()):
             if item.is_dir() and not item.name.startswith("."):
@@ -106,16 +190,31 @@ def generate_catalog() -> dict:
                 })
 
     releases = []
+    invalid = {}
     timepoints = set()
 
     for entry in raw_releases:
-        release_id = entry.get("release_id") or entry.get("id") or entry.get("name")
-        status = entry.get("status", "ready")
-
-        if not release_id:
+        try:
+            normalized_entry = normalize_catalog_entry(entry)
+            release_id = normalized_entry["release_id"]
+            release_dir = normalized_entry["path"]
+            status = normalized_entry["status"]
+        except ContractError as exc:
+            invalid["catalog"] = invalid.get("catalog", []) + [str(exc)]
             continue
 
         try:
+            if status != "ready":
+                invalid[release_id] = [f"catalog status is '{status}'"]
+                continue
+            if not release_dir.exists():
+                invalid[release_id] = [f"release path not found: {release_dir}"]
+                continue
+            release_errors = inspect_release_dir(release_dir)
+            if release_errors:
+                invalid[release_id] = release_errors
+                continue
+
             start_tp, end_tp = split_release_id(release_id)
             timepoints.add(start_tp)
             timepoints.add(end_tp)
@@ -124,21 +223,19 @@ def generate_catalog() -> dict:
                 "id": release_id,
                 "startTimepoint": start_tp,
                 "endTimepoint": end_tp,
-                "status": status
+                "status": "ready"
             })
         except ValueError as e:
-            print(f"  Warning: {e}")
+            invalid[release_id] = [str(e)]
             continue
 
-    # Sort releases by timepoints
     releases.sort(key=lambda r: (parse_timepoint_label(r["startTimepoint"]),
                                   parse_timepoint_label(r["endTimepoint"])))
-
-    # Sort timepoints
     sorted_timepoints = sorted(timepoints, key=parse_timepoint_label)
 
     return {
         "releases": releases,
+        "invalidReleases": invalid,
         "timepoints": sorted_timepoints,
         "generatedAt": datetime.now(timezone.utc).isoformat()
     }
@@ -177,16 +274,17 @@ def count_groundtruth_targets(release_dir: Path) -> dict:
     for subset in SUBSETS:
         gt_path = release_dir / f"groundtruth_{subset}.tsv"
         rows = parse_tsv(gt_path)
+        validate_required_columns(rows, REQUIRED_GT_COLUMNS, str(gt_path))
+        validate_gt_aspects(rows, str(gt_path))
 
         if not rows:
             counts[subset] = {"total": 0, "byAspect": {}}
             continue
 
-        # Count unique EntryIDs
+        rows = [row for row in rows if row.get("EntryID") and row.get("aspect")]
         entry_ids = set(row.get("EntryID", "") for row in rows)
         total = len(entry_ids)
 
-        # Count by aspect
         aspect_counts = defaultdict(set)
         for row in rows:
             entry_id = row.get("EntryID", "")
@@ -230,11 +328,11 @@ def generate_release_methods(release_dir: Path) -> dict:
     """Generate methods.json for a release from method_names and method_availability."""
     methods = {}
 
-    # Read method names
     names_rows = parse_tsv(release_dir / "method_names.tsv")
+    validate_required_columns(names_rows, REQUIRED_METHOD_COLUMNS, str(release_dir / "method_names.tsv"))
     for row in names_rows:
-        filename = row.get("filename", "")
-        label = row.get("label", "")
+        filename = row.get("filename", "").strip()
+        label = row.get("label", "").strip()
         group = row.get("group", "")
         if label:
             methods[label] = {
@@ -244,64 +342,69 @@ def generate_release_methods(release_dir: Path) -> dict:
                 "availability": {}
             }
 
-    # Read availability
     avail_rows = parse_tsv(release_dir / "method_availability.tsv")
+    validate_required_columns(avail_rows, REQUIRED_AVAILABILITY_COLUMNS, str(release_dir / "method_availability.tsv"))
     for row in avail_rows:
         method_name = row.get("method", "")
         if method_name in methods:
             for subset in SUBSETS:
-                methods[method_name]["availability"][subset] = row.get(subset, "").lower() == "true"
+                methods[method_name]["availability"][subset] = coerce_bool(
+                    row.get(subset, ""),
+                    f"{release_dir / 'method_availability.tsv'} column '{subset}'",
+                )
 
     return {"methods": methods}
+
+
+def load_method_name_map(release_dir: Path) -> dict[str, str]:
+    names_rows = parse_tsv(release_dir / "method_names.tsv")
+    validate_required_columns(names_rows, REQUIRED_METHOD_COLUMNS, str(release_dir / "method_names.tsv"))
+    return {
+        row.get("filename", "").strip(): row.get("label", "").strip()
+        for row in names_rows
+        if row.get("filename") and row.get("label")
+    }
 
 
 def generate_best_metrics(release_dir: Path) -> dict:
     """Generate best.json with best metrics by subset and aspect."""
     best = {}
+    name_map = load_method_name_map(release_dir)
 
     for subset in SUBSETS:
         best_path = release_dir / f"results_{subset}" / "evaluation_best_f_micro_w.tsv"
         rows = parse_tsv(best_path)
+        validate_required_columns(rows, REQUIRED_BEST_COLUMNS, str(best_path))
+        validate_ns_values(rows, str(best_path))
+        validate_numeric_columns(rows, NUMERIC_BEST_COLUMNS, str(best_path))
 
         if not rows:
             continue
 
         for row in rows:
-            filename = row.get("filename", "")
-            aspect = row.get("ns", "")  # namespace
-
-            # Extract method label from filename
+            filename = row.get("filename", "").strip()
+            aspect = row.get("ns", "").strip()
             method_label = filename.replace("_predictions.tsv", "").replace("_", " ").title()
-
-            # Map back to actual method name using method_names.tsv
-            names_rows = parse_tsv(release_dir / "method_names.tsv")
-            for name_row in names_rows:
-                if name_row.get("filename", "") == filename:
-                    method_label = name_row.get("label", method_label)
-                    break
+            method_label = name_map.get(filename, method_label)
 
             key = f"{subset}_{aspect}"
 
-            try:
-                entry = {
-                    "method": method_label,
-                    "subset": subset,
-                    "aspect": aspect,
-                    "precision": float(row.get("pr_micro_w", 0)),
-                    "recall": float(row.get("rc_micro_w", 0)),
-                    "fmax": float(row.get("f_micro_w", 0)),
-                    "coverage": float(row.get("cov_w", 0)),
-                    "threshold": float(row.get("tau", 0)),
-                    "n": float(row.get("n_w", row.get("n", 0)))
-                }
+            entry = {
+                "method": method_label,
+                "subset": subset,
+                "aspect": aspect,
+                "precision": float(row.get("pr_micro_w", 0)),
+                "recall": float(row.get("rc_micro_w", 0)),
+                "fmax": float(row.get("f_micro_w", 0)),
+                "coverage": float(row.get("cov_w", 0)),
+                "threshold": float(row.get("tau", 0)),
+                "n": float(row.get("n", 0))
+            }
 
-                if key not in best:
-                    best[key] = []
-                best[key].append(entry)
-            except (ValueError, TypeError) as e:
-                print(f"  Warning: Could not parse metrics for {filename}/{aspect}: {e}")
+            if key not in best:
+                best[key] = []
+            best[key].append(entry)
 
-    # Sort each list by fmax descending
     for key in best:
         best[key].sort(key=lambda x: x["fmax"], reverse=True)
 
@@ -311,39 +414,32 @@ def generate_best_metrics(release_dir: Path) -> dict:
 def generate_curves(release_dir: Path) -> dict:
     """Generate curves.json with PR curve points."""
     curves = {}
+    name_map = load_method_name_map(release_dir)
 
     for subset in SUBSETS:
         all_path = release_dir / f"results_{subset}" / "evaluation_all.tsv"
         rows = parse_tsv(all_path)
+        validate_required_columns(rows, REQUIRED_ALL_COLUMNS, str(all_path))
+        validate_ns_values(rows, str(all_path))
+        validate_numeric_columns(rows, NUMERIC_ALL_COLUMNS, str(all_path))
 
         if not rows:
             continue
 
-        # Load method name mappings
-        name_map = {}
-        names_rows = parse_tsv(release_dir / "method_names.tsv")
-        for name_row in names_rows:
-            name_map[name_row.get("filename", "")] = name_row.get("label", "")
-
-        # Group by method and aspect
         grouped = defaultdict(list)
         for row in rows:
-            filename = row.get("filename", "")
-            aspect = row.get("ns", "")
+            filename = row.get("filename", "").strip()
+            aspect = row.get("ns", "").strip()
             method = name_map.get(filename, filename.replace("_predictions.tsv", ""))
 
-            try:
-                point = {
-                    "tau": float(row.get("tau", 0)),
-                    "precision": float(row.get("pr_micro_w", 0)),
-                    "recall": float(row.get("rc_micro_w", 0))
-                }
-                key = f"{subset}_{aspect}_{method}"
-                grouped[key].append(point)
-            except (ValueError, TypeError):
-                continue
+            point = {
+                "tau": float(row.get("tau", 0)),
+                "precision": float(row.get("pr_micro_w", 0)),
+                "recall": float(row.get("rc_micro_w", 0))
+            }
+            key = f"{subset}_{aspect}_{method}"
+            grouped[key].append(point)
 
-        # Sort points by tau
         for key, points in grouped.items():
             points.sort(key=lambda p: p["tau"])
             curves[key] = points
