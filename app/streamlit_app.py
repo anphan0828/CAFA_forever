@@ -915,8 +915,18 @@ def main():
     render_skip_link()
     render_iastate_header()
     render_main_content_anchor()
-    st.title("LAFA")
-    st.markdown("Longitudinal Assessment of Protein Function Annotation Models")
+    title_col, url_col = st.columns([2,0.5])
+    with title_col:
+        st.title("LAFA")
+        st.markdown("Longitudinal Assessment of Protein Function Annotation Models")
+    with url_col:
+        col1, col2 = st.columns([0.3,0.7])
+        with col1:
+            st.link_button("**GitHub**", 
+                           url="https://github.com/anphan0828/CAFA_forever")
+        with col2:
+            st.link_button("**📃 Read the Paper**", 
+                           url="https://arxiv.org/pdf/2604.20782")
 
     catalog = get_release_catalog()
     available_release_ids = get_available_release_ids()
