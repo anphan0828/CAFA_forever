@@ -4,6 +4,7 @@ Interactive CAFA/LAFA results visualization with validated release discovery.
 """
 
 from html import escape
+import re
 
 import numpy as np
 import pandas as pd
@@ -90,6 +91,60 @@ def method_url(label):
     label = str(label).strip()
     raw_label = label.removesuffix(" (Baseline)")
     return METHOD_DOCKER_URLS.get(raw_label)
+
+
+def method_detail_fields(label):
+    help_text = method_help_text(label)
+    field_matches = list(re.finditer(r"\b(Summary|Input|Publication):", help_text))
+    if not field_matches:
+        return {"Summary": help_text}
+
+    fields = {}
+    for idx, match in enumerate(field_matches):
+        field_name = match.group(1)
+        field_start = match.end()
+        field_end = field_matches[idx + 1].start() if idx + 1 < len(field_matches) else len(help_text)
+        fields[field_name] = help_text[field_start:field_end].strip()
+
+    return fields
+
+
+def method_publication_url(label):
+    publication = method_detail_fields(label).get("Publication", "")
+    url_match = re.search(r"https?://\S+", publication)
+    if not url_match:
+        return None
+    return url_match.group(0).rstrip(".,);")
+
+
+def render_method_details(method):
+    fields = method_detail_fields(method)
+    publication_url = method_publication_url(method)
+    container_url = method_url(method)
+
+    with st.expander(f"{method}", expanded=False):
+        if fields.get("Summary"):
+            st.markdown(f"**Summary:** {fields['Summary']}")
+        if fields.get("Input"):
+            st.markdown(f"**Input:** {fields['Input']}")
+
+        link_columns = st.columns(2)
+        if publication_url:
+            with link_columns[0]:
+                st.link_button(
+                    "Publication",
+                    url=publication_url,
+                    type="tertiary",
+                    icon=":material/open_in_new:",
+                )
+        if container_url:
+            with link_columns[1 if publication_url else 0]:
+                st.link_button(
+                    "Container image",
+                    url=container_url,
+                    type="tertiary",
+                    icon=":material/open_in_new:",
+                )
 
 def inject_iastate_theme():
     css_path = STATIC_DIR / "iastate" / "streamlit_iastate.css"
@@ -730,34 +785,31 @@ def _default_selected_methods(comparable_methods):
 
 
 def render_method_selector(release_bundles):
-    availability_lookup, comparable_methods = build_method_availability_lookup(release_bundles)
+    _, comparable_methods = build_method_availability_lookup(release_bundles)
     if not comparable_methods:
         return [], comparable_methods
 
     st.markdown("**Methods available**")
-    checkbox_columns = st.columns(1)
     selected_methods = []
     default_methods = set(_default_selected_methods(comparable_methods))
-        
-    for idx, method in enumerate(comparable_methods):
-        col1, col2 = st.columns([0.1, 1.5])
-        release_details = []
-        for release_id in release_bundles:
-            subset_flags = availability_lookup[release_id].get(method, {})
-            available_subsets = [subset for subset in SUBSETS if subset_flags.get(subset, False)]
-            release_details.append(f"{release_id}: {', '.join(available_subsets) if available_subsets else 'Unavailable'}")
-            
-        with col1:
-            url = method_url(method)
-            if url:
-                st.link_button("", url,type='tertiary',icon=":material/open_in_new:")
-        with col2:
-            checked = st.checkbox(
+    
+    col1, col2 = st.columns([5, 1])
+    with col1:
+        st.markdown("Expand for details and container image")
+    with col2:
+        st.markdown("Selected", unsafe_allow_html=True)
+    for method in comparable_methods:
+        details_col, checkbox_col = st.columns([5, 1], vertical_alignment="top")
+        with details_col:
+            render_method_details(method)
+        with checkbox_col:
+            with st.container(horizontal=True, horizontal_alignment="center"):
+                checked = st.checkbox(
                     method,
                     value=method in default_methods,
                     key=f"method_checkbox::{method}",
-                    help=method_help_text(method),
-                )
+                    label_visibility="collapsed",
+            )
         
         if checked:
             selected_methods.append(method)
@@ -911,6 +963,72 @@ def render_invalid_release_warning(catalog):
                 st.markdown(f"- {escape(str(reason))}")
 
 
+def render_how_it_works():
+    with st.expander("How It Works", expanded=False):
+        overview_col, windows_col, subsets_col = st.columns(3)
+
+        with overview_col:
+            st.markdown("#### Gene Ontology & Protein Function Prediction")
+            st.markdown(
+                """
+                The **Gene Ontology (GO)** is a structured vocabulary describing protein
+                functions across three aspects: *Biological Process* (BP) describes
+                large processes accomplished by multiple molecular activities, *Molecular Function* 
+                (MF) describes molecular-level activities performed by gene products, and 
+                *Cellular Component* (CC) describes the cellular location where a molecular function takes place.
+                GO terms are organized in a directed acyclic graph where child terms inherit
+                properties from their ancestors. If a protein performs a specific function,
+                it implicitly performs all parent functions.
+                
+                **Protein function prediction** is the computational task of assigning GO 
+                terms to proteins based on various data sources such as amino acid sequence,
+                3D structure, interaction networks, and literature. Accurate function prediction
+                is crucial for understanding biology and disease, but it is challenging due to
+                the vast diversity of protein functions and the incomplete nature of experimental annotations.
+                The **Critical Assessment of Function Annotation (CAFA)** is a community challenge that evaluates
+                computational methods for protein function prediction using a time-delayed evaluation framework.
+                """
+            )
+
+        with windows_col:
+            st.markdown("#### Evaluation of Prediction Methods")
+            st.markdown(
+                """
+                Predictions are evaluated on future annotations, which accumulate between two
+                time points: **Start (t0)** when predictions are made, and **End (t1)** when new experimental annotations 
+                accumulate. Longer windows provide a larger set of annotations and a more robust evaluation.
+                
+                Prediction files in protein-term-score format are compared with the corresponding protein-term 
+                ground truth over score thresholds from 0 to 1 in increments of 0.01. This produces threshold-dependent 
+                **precision, recall, and F1 scores**. CAFA-style evaluation also uses information-theoretic weighting 
+                to emphasize the correct prediction of more specific terms.
+                """
+            )
+
+        with subsets_col:
+            st.markdown("#### Knowledge Subsets")
+            st.markdown(
+                """
+                Proteins are classified by their annotation status at prediction time (t0) and 
+                after the accumulation period (t1). The classification is crucial because methods 
+                that rely on sequence homology or existing annotations may perform differently when 
+                existing annotations are unavailable.
+
+                **NK (No Knowledge)**: Proteins with no existing experimental GO annotations
+                at t0. This knowledge setting tests a method's ability to predict function purely 
+                from sequence or structure without functional hints.
+
+                **LK (Limited Knowledge)**: Proteins with experimental annotations at t0 in at least 
+                one GO aspect and gain additional aspects after accumulation period. Methods can leverage 
+                the existing annotations to predict additional functions in the remaining unannotated aspects.
+
+                **PK (Partial Knowledge)**: Proteins with existing experimental annotations
+                and gain deeper annotations after accumulation period. This is the most challenging subset,
+                testing a method's ability to discover more specific functions beyond what is already known.
+                """
+            )
+
+
 def main():
     render_skip_link()
     render_iastate_header()
@@ -927,6 +1045,8 @@ def main():
         with col2:
             st.link_button("**📃 Read the Paper**", 
                            url="https://arxiv.org/pdf/2604.20782")
+
+    render_how_it_works()
 
     catalog = get_release_catalog()
     available_release_ids = get_available_release_ids()
@@ -976,12 +1096,12 @@ def main():
         if secondary_release_id in release_bundles and secondary_release_id != primary_release_id:
             render_release_card(secondary_release_id, release_bundles[secondary_release_id])
 
-    method_col, coverage_col = st.columns([2, 1])
+    method_col, coverage_col = st.columns([3, 1])
     with method_col:
-        col1, col2 = st.columns([0.7, 1.5])
+        col1, col2 = st.columns([1.2, 1.5])
         with col1:
             selected_methods, comparable_methods = render_method_selector(release_bundles)
-            st.link_button("**Want your method featured on LAFA?**", 
+            st.link_button("**Want your method featured on LAFA?  \nCheck out our guide to containerization**", 
                            url="https://github.com/anphan0828/LAFA_container_guide")
     if not comparable_methods:
         st.error("No methods are available across all selected releases and subsets.")
