@@ -40,13 +40,13 @@ DATA_DATES = {
 }
 
 METHOD_HELP_MSG = dict({
-    "BLAST": "Homology-based GO annotation transfer from training set proteins",
-    "Naive": "GO term frequencies from the training set assigned to all proteins",
-    "ProtT5": "ProtT5 embedding-based annotation transfer from training set proteins",
-    "GOA Non-exp": "Non-experimental GO annotations from UniProt-GOA training set",
-    "FunBind": "Multi-modality based model combining sequence, structure, domains, and textual descriptions",
-    "TransFew": "ESM-2-based pipeline combinining representations of both protein sequences and GO terms ",
-    "DeepGOPlus": "Deep neural network and sequence similarity-based predictions",
+    "BLAST": "Homology-based GO annotation transfer from training set proteins.",
+    "Naive": "GO term frequencies from the training set assigned to all proteins.",
+    "ProtT5": "ProtT5 embedding-based annotation transfer from training set proteins.",
+    "GOA Non-exp": "Non-experimental GO annotations from UniProt-GOA training set.",
+    "FunBind": "Summary: Multi-modality based model combining sequence, structure, domains, textual descriptions, and GO terms. Input: protein sequences (FASTA, required), protein structures (PDB, optional), domains (InterPro, optional), textual descriptions (UniProt flat text, optional). Publication: https://doi.org/10.1101/2025.05.09.653226",
+    "TransFew": "Summary: ESM-2-based pipeline combinining representations of both protein sequences and GO terms to improve prediction accuracy for common and rare functions. Input: protein sequences (FASTA). Publication: https://doi.org/10.1093/bioadv/vbae120",
+    "DeepGOPlus": "Summary: Combining sequence motifs from deep learning and sequence similarity-based predictions. Input: protein sequences (FASTA). Publication: https://doi.org/10.1093/bioinformatics/btz595",
 })
 
 METHOD_DOCKER_URLS = dict({

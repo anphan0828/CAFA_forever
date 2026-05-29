@@ -74,6 +74,8 @@ tooltip_error*.png
 *.out
 *.err
 .nextflow/cache/*
+.env.umami
+.env*.local
 
 # Notes
 00notes
