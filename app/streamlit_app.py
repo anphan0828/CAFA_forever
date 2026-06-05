@@ -95,7 +95,7 @@ def method_url(label):
 
 def method_detail_fields(label):
     help_text = method_help_text(label)
-    field_matches = list(re.finditer(r"\b(Summary|Input|Publication):", help_text))
+    field_matches = list(re.finditer(r"\b(Summary|Input|Publication|Documentation):", help_text))
     if not field_matches:
         return {"Summary": help_text}
 
