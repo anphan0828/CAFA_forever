@@ -115,11 +115,19 @@ def method_publication_url(label):
     if not url_match:
         return None
     return url_match.group(0).rstrip(".,);")
+    
+def method_documentation_url(label):
+    documentation = method_detail_fields(label).get("Documentation", "")
+    url_match = re.search(r"https?://\S+", documentation)
+    if not url_match:
+        return None
+    return url_match.group(0).rstrip(".,);")
 
 
 def render_method_details(method):
     fields = method_detail_fields(method)
     publication_url = method_publication_url(method)
+    documentation_url = method_documentation_url(method)
     container_url = method_url(method)
 
     with st.expander(f"{method}", expanded=False):
@@ -137,8 +145,16 @@ def render_method_details(method):
                     type="tertiary",
                     icon=":material/open_in_new:",
                 )
+        if documentation_url:
+            with link_columns[0 if not publication_url else 1]:
+                st.link_button(
+                    "Documentation",
+                    url=documentation_url,
+                    type="tertiary",
+                    icon=":material/open_in_new:",
+                )
         if container_url:
-            with link_columns[1 if publication_url else 0]:
+            with link_columns[1 if (publication_url or documentation_url) else 0]:
                 st.link_button(
                     "Container image",
                     url=container_url,
