@@ -40,10 +40,10 @@ DATA_DATES = {
 }
 
 METHOD_HELP_MSG = dict({
-    "BLAST": "Homology-based GO annotation transfer from training set proteins.",
-    "Naive": "GO term frequencies from the training set assigned to all proteins.",
-    "ProtT5": "ProtT5 embedding-based annotation transfer from training set proteins.",
-    "GOA Non-exp": "Non-experimental GO annotations from UniProt-GOA training set.",
+    "BLAST": "Summary: Homology-based GO annotation transfer from training set proteins. Input: protein sequences (FASTA, required, train and test set), GO annotations (GAF, required, train set), GO graph (OBO, required). Documentation: https://github.com/anphan0828/democafa_package/tree/0ab84edbaddf5fef11125dc8adbd19167c3cc038/democafa/baselines/blast_container",
+    "Naive": "Summary: GO term frequencies from the training set assigned to all proteins. Input: protein sequences (FASTA, required), GO annotations (GAF, required, train set). Documentation: https://github.com/anphan0828/democafa_package/tree/0ab84edbaddf5fef11125dc8adbd19167c3cc038/democafa/baselines/naive_container",
+    "ProtT5": "Summary: ProtT5 embedding-based annotation transfer from training set proteins. Input: protein sequences (FASTA, required), GO annotations (GAF, required, train set). Documentation: https://github.com/anphan0828/democafa_package/tree/0ab84edbaddf5fef11125dc8adbd19167c3cc038/democafa/baselines/prott5_container",
+    "GOA Non-exp": "Summary: Use non-experimental GO annotations of all proteins as predictions. Input: protein sequences (FASTA, required), GO annotations (GAF, required, not filtered). Documentation: https://github.com/anphan0828/democafa_package/tree/0ab84edbaddf5fef11125dc8adbd19167c3cc038/democafa/baselines/goa_nonexp_container",
     "FunBind": "Summary: Multi-modality based model combining sequence, structure, domains, textual descriptions, and GO terms. Input: protein sequences (FASTA, required), protein structures (PDB, optional), domains (InterPro, optional), textual descriptions (UniProt flat text, optional). Publication: https://doi.org/10.1101/2025.05.09.653226",
     "TransFew": "Summary: ESM-2-based pipeline combinining representations of both protein sequences and GO terms to improve prediction accuracy for common and rare functions. Input: protein sequences (FASTA). Publication: https://doi.org/10.1093/bioadv/vbae120",
     "DeepGOPlus": "Summary: Combining sequence motifs from deep learning and sequence similarity-based predictions. Input: protein sequences (FASTA). Publication: https://doi.org/10.1093/bioinformatics/btz595",
