@@ -206,9 +206,8 @@ a:visited {
 
 /* Footer */
 .site-footer {
-  background: var(--isu-cardinal-text-dark);
+  background: var(--isu-cardinal);
   color: var(--isu-white);
-  padding: 2rem;
   margin-top: auto;
 }
 
@@ -236,13 +235,12 @@ a:visited {
 }
 
 .site-footer__bottom-wrap {
-  background: #3d0d10;
-  margin: 2rem -2rem -2rem;
-  padding: 1rem 2rem;
+  background: var(--isu-cardinal-dark);
+  width: 100%;
 }
 
 .site-footer__copyright {
-  text-align: center;
+  text-align: left;
   margin: 0;
   font-size: 0.9rem;
 }

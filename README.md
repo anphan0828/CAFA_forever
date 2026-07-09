@@ -59,10 +59,12 @@ Alternatively, use Docker Compose:
 docker compose -f deploy/docker-compose.react.yml up -d --build
 ```
 
+The Compose setup publishes the React frontend on http://localhost:8502 so it can run alongside the Streamlit frontend on port 8501.
+
 ### Health Check
 
 ```bash
-curl http://localhost:8501/_health
+curl http://localhost:8502/_health
 ```
 
 ---

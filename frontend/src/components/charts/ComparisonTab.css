@@ -70,6 +70,89 @@
   margin: 0;
 }
 
+.comparison-tab__overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.comparison-tab__panel,
+.comparison-tab__section {
+  margin-bottom: 1.5rem;
+}
+
+.comparison-tab__panel h4,
+.comparison-tab__section h4 {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: var(--isu-charcoal);
+}
+
+.comparison-tab__table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.comparison-tab__table-header h4 {
+  margin-bottom: 0;
+}
+
+.comparison-tab__export {
+  min-height: 36px;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--isu-cardinal);
+  border-radius: 4px;
+  background: var(--isu-cardinal);
+  color: var(--isu-white);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.comparison-tab__export:disabled {
+  border-color: var(--isu-border);
+  background: var(--isu-light);
+  color: var(--isu-caption);
+  cursor: not-allowed;
+}
+
+.comparison-tab__summary-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--isu-border);
+  border-radius: 8px;
+}
+
+.comparison-tab__summary-table {
+  width: 100%;
+  min-width: 1100px;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.comparison-tab__summary-table th,
+.comparison-tab__summary-table td {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--isu-border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.comparison-tab__summary-table th {
+  background: var(--isu-light);
+  font-weight: 600;
+  color: var(--isu-charcoal);
+}
+
+.comparison-tab__summary-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
 /* Subtabs for knowledge levels */
 .comparison-tab__subtabs {
   display: flex;
@@ -108,10 +191,10 @@
   border-bottom-color: var(--isu-cardinal);
 }
 
-/* Table-like grid layout - now 3 rows instead of 9 */
+/* Table-like grid layout: metric rows by GO aspect columns */
 .comparison-tab__table {
   display: grid;
-  grid-template-columns: auto repeat(4, 1fr);
+  grid-template-columns: minmax(92px, auto) repeat(3, minmax(0, 1fr));
   gap: 2px;
   background: var(--isu-border);
   border: 1px solid var(--isu-border);
@@ -158,17 +241,13 @@
 
 /* Responsive */
 @media (max-width: 900px) {
+  .comparison-tab__overview-grid {
+    grid-template-columns: 1fr;
+  }
+
   .comparison-tab__table {
-    grid-template-columns: auto repeat(2, 1fr);
-  }
-
-  .comparison-tab__col-header:nth-child(n+4) {
-    display: none;
-  }
-
-  .comparison-tab__cell:nth-child(5n+4),
-  .comparison-tab__cell:nth-child(5n+5) {
-    display: none;
+    grid-template-columns: minmax(82px, auto) repeat(3, minmax(220px, 1fr));
+    overflow-x: auto;
   }
 
   .comparison-tab__subtabs {

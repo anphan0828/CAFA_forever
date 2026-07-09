@@ -17,6 +17,14 @@
   transform: translateY(-2px);
 }
 
+.release-card--static {
+  cursor: default;
+}
+
+.release-card--static:hover {
+  transform: none;
+}
+
 .release-card--selected {
   border-color: var(--isu-cardinal);
   background: linear-gradient(to bottom, rgba(200, 16, 46, 0.03), transparent);

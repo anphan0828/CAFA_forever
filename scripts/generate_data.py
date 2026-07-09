@@ -232,11 +232,19 @@ def generate_catalog() -> dict:
     releases.sort(key=lambda r: (parse_timepoint_label(r["startTimepoint"]),
                                   parse_timepoint_label(r["endTimepoint"])))
     sorted_timepoints = sorted(timepoints, key=parse_timepoint_label)
+    timepoint_dates = {
+        timepoint: {
+            "goa": DATA_DATES.get(timepoint, {}).get("goa", "N/A"),
+            "uniprot": DATA_DATES.get(timepoint, {}).get("uniprot", "N/A"),
+        }
+        for timepoint in sorted_timepoints
+    }
 
     return {
         "releases": releases,
         "invalidReleases": invalid,
         "timepoints": sorted_timepoints,
+        "timepointDates": timepoint_dates,
         "generatedAt": datetime.now(timezone.utc).isoformat()
     }
 
@@ -269,7 +277,8 @@ def generate_methods_config() -> dict:
 
 def count_groundtruth_targets(release_dir: Path) -> dict:
     """Count targets by subset and aspect from groundtruth files."""
-    counts = {}
+    counts = {"uniqueAcrossSubsets": 0}
+    all_entry_ids = set()
 
     for subset in SUBSETS:
         gt_path = release_dir / f"groundtruth_{subset}.tsv"
@@ -283,6 +292,7 @@ def count_groundtruth_targets(release_dir: Path) -> dict:
 
         rows = [row for row in rows if row.get("EntryID") and row.get("aspect")]
         entry_ids = set(row.get("EntryID", "") for row in rows)
+        all_entry_ids.update(entry_ids)
         total = len(entry_ids)
 
         aspect_counts = defaultdict(set)
@@ -300,6 +310,7 @@ def count_groundtruth_targets(release_dir: Path) -> dict:
             }
         }
 
+    counts["uniqueAcrossSubsets"] = len(all_entry_ids)
     return counts
 
 

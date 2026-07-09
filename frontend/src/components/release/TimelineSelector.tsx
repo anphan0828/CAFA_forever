@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { ComposedChart, XAxis, YAxis, ReferenceLine, ReferenceArea, ResponsiveContainer } from 'recharts'
-import type { ReleaseEntry } from '../../types'
+import type { ReleaseEntry, TimepointDates } from '../../types'
 import { InfoIcon } from '../ui'
 import './TimelineSelector.css'
 
@@ -10,6 +10,11 @@ interface TimelineSelectorProps {
   selectedRelease: string | null
   onSelectRelease: (releaseId: string | null) => void
   label?: string
+  timepointDates?: Record<string, TimepointDates>
+  selectedTargetCount?: number | null
+  showTimepointDetails?: boolean
+  targetPlacement?: 'below' | 'right'
+  helpText?: string
 }
 
 // Format timepoint for display (e.g., "Dec_2025" -> "Dec 2025")
@@ -44,10 +49,16 @@ export function TimelineSelector({
   selectedRelease,
   onSelectRelease,
   label = 'Evaluation Window',
+  timepointDates = {},
+  selectedTargetCount,
+  showTimepointDetails = true,
+  targetPlacement = 'below',
+  helpText = 'Select a time range to evaluate methods. Drag the handles or click on timepoints. Start = when predictions were made; End = when annotations are used as ground truth.',
 }: TimelineSelectorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [activeHandle, setActiveHandle] = useState<'start' | 'end' | null>(null)
+  const [chartWidth, setChartWidth] = useState(0)
 
   const parsed = parseReleaseId(selectedRelease)
   const [startTimepoint, setStartTimepoint] = useState<string>(parsed?.start || '')
@@ -59,6 +70,17 @@ export function TimelineSelector({
       parseTimepoint(a).getTime() - parseTimepoint(b).getTime()
     )
   }, [timepoints])
+
+  useEffect(() => {
+    if (!containerRef.current) return
+
+    const updateWidth = () => setChartWidth(containerRef.current?.offsetWidth ?? 0)
+    updateWidth()
+
+    const observer = new ResizeObserver(updateWidth)
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [])
 
   // Map timepoints to x-positions (0-100 scale)
   const timepointPositions = useMemo(() => {
@@ -224,123 +246,147 @@ export function TimelineSelector({
     <div className="timeline-selector">
       <h3 className="timeline-selector__title">
         {label}
-        <InfoIcon tooltip="Select a time range to evaluate methods. Drag the handles or click on timepoints. Start = when predictions were made; End = when annotations are used as ground truth." />
+        <InfoIcon tooltip={helpText} />
       </h3>
 
-      <div
-        ref={containerRef}
-        className={`timeline-selector__chart ${isDragging ? 'timeline-selector__chart--dragging' : ''}`}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onClick={handleTimelineClick}
-      >
-        <ResponsiveContainer width="100%" height={100}>
-          <ComposedChart
-            data={chartData}
-            margin={{ top: 24, right: 36, left: 36, bottom: 34 }}
-          >
-            <XAxis
-              dataKey="position"
-              type="number"
-              domain={[0, 100]}
-              ticks={chartData.map(d => d.position)}
-              tickFormatter={(value) => {
-                const tp = sortedTimepoints.find(t => Math.abs((timepointPositions.get(t) || 0) - value) < 0.1)
-                return tp ? formatTimepoint(tp) : ''
-              }}
-              tick={{ fontSize: 14, fill: 'var(--isu-charcoal)', fontWeight: 600 }}
-              axisLine={{ stroke: 'var(--isu-border)' }}
-              tickLine={{ stroke: 'var(--isu-border)' }}
-            />
-            <YAxis hide domain={[0, 1]} />
-
-            {/* Timepoint markers */}
-            {sortedTimepoints.map((tp) => (
-              <ReferenceLine
-                key={tp}
-                x={timepointPositions.get(tp)}
-                stroke="var(--isu-border)"
-                strokeWidth={1}
-              />
-            ))}
-
-            {/* Selected range highlight */}
-            {startPosition !== undefined && endPosition !== undefined && (
-              <ReferenceArea
-                x1={startPosition}
-                x2={endPosition}
-                fill={isValidSelection ? 'var(--timeline-accent)' : 'var(--isu-caption)'}
-                fillOpacity={0.15}
-                stroke={isValidSelection ? 'var(--timeline-accent)' : 'var(--isu-caption)'}
-                strokeDasharray={isValidSelection ? undefined : '4 4'}
-              />
-            )}
-
-            {/* Custom handles rendered via reference lines with custom styling */}
-            {startPosition !== undefined && (
-              <ReferenceLine
-                x={startPosition}
-                stroke="var(--timeline-accent)"
-                strokeWidth={3}
-                label={{
-                  value: '',
-                  position: 'center',
+      {showTimepointDetails && (
+        <div
+          className="timeline-selector__timepoints timeline-selector__timepoints--top"
+        >
+          {sortedTimepoints.map((timepoint) => {
+            const dates = timepointDates[timepoint]
+            const position = timepointPositions.get(timepoint) ?? 0
+            return (
+              <div
+                key={timepoint}
+                className="timeline-selector__timepoint"
+                style={{
+                  left: `calc(36px + ${(position / 100) * Math.max(chartWidth - 72, 0)}px)`,
                 }}
+              >
+                <div className="timeline-selector__timepoint-label">{formatTimepoint(timepoint)}</div>
+                <div className="timeline-selector__timepoint-date">GOA {dates?.goa ?? 'N/A'}</div>
+                <div className="timeline-selector__timepoint-date">UniProt {dates?.uniprot ?? 'N/A'}</div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      <div className={`timeline-selector__body timeline-selector__body--target-${targetPlacement}`}>
+        <div
+          ref={containerRef}
+          className={`timeline-selector__chart ${isDragging ? 'timeline-selector__chart--dragging' : ''}`}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onClick={handleTimelineClick}
+        >
+          <ResponsiveContainer width="100%" height={72}>
+            <ComposedChart
+              data={chartData}
+              margin={{ top: 14, right: 36, left: 36, bottom: 22 }}
+            >
+              <XAxis
+                dataKey="position"
+                type="number"
+                domain={[0, 100]}
+                ticks={chartData.map(d => d.position)}
+                tickFormatter={() => ''}
+                tick={{ fontSize: 14, fill: 'var(--isu-charcoal)', fontWeight: 600 }}
+                axisLine={{ stroke: 'var(--isu-border)' }}
+                tickLine={{ stroke: 'var(--isu-border)' }}
+              />
+              <YAxis hide domain={[0, 1]} />
+
+              {/* Timepoint markers */}
+              {sortedTimepoints.map((tp) => (
+                <ReferenceLine
+                  key={tp}
+                  x={timepointPositions.get(tp)}
+                  stroke="var(--isu-border)"
+                  strokeWidth={1}
+                />
+              ))}
+
+              {/* Selected range highlight */}
+              {startPosition !== undefined && endPosition !== undefined && (
+                <ReferenceArea
+                  x1={startPosition}
+                  x2={endPosition}
+                  fill={isValidSelection ? 'var(--timeline-accent)' : 'var(--isu-caption)'}
+                  fillOpacity={0.15}
+                  stroke={isValidSelection ? 'var(--timeline-accent)' : 'var(--isu-caption)'}
+                  strokeDasharray={isValidSelection ? undefined : '4 4'}
+                />
+              )}
+
+              {/* Custom handles rendered via reference lines with custom styling */}
+              {startPosition !== undefined && (
+                <ReferenceLine
+                  x={startPosition}
+                  stroke="var(--timeline-accent)"
+                  strokeWidth={3}
+                  label={{
+                    value: '',
+                    position: 'center',
+                  }}
+                />
+              )}
+              {endPosition !== undefined && (
+                <ReferenceLine
+                  x={endPosition}
+                  stroke="var(--timeline-accent)"
+                  strokeWidth={3}
+                />
+              )}
+            </ComposedChart>
+          </ResponsiveContainer>
+
+          {/* Draggable handles overlay */}
+          <div className="timeline-selector__handles">
+            {startPosition !== undefined && (
+              <div
+                className={`timeline-selector__handle timeline-selector__handle--start ${activeHandle === 'start' ? 'timeline-selector__handle--active' : ''}`}
+                style={{ left: `calc(36px + ${(startPosition / 100) * Math.max(chartWidth - 72, 0)}px)` }}
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  handleMouseDown('start')
+                }}
+                title={startTimepoint ? formatTimepoint(startTimepoint) : 'Start'}
               />
             )}
             {endPosition !== undefined && (
-              <ReferenceLine
-                x={endPosition}
-                stroke="var(--timeline-accent)"
-                strokeWidth={3}
+              <div
+                className={`timeline-selector__handle timeline-selector__handle--end ${activeHandle === 'end' ? 'timeline-selector__handle--active' : ''}`}
+                style={{ left: `calc(36px + ${(endPosition / 100) * Math.max(chartWidth - 72, 0)}px)` }}
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  handleMouseDown('end')
+                }}
+                title={endTimepoint ? formatTimepoint(endTimepoint) : 'End'}
               />
             )}
-          </ComposedChart>
-        </ResponsiveContainer>
-
-        {/* Draggable handles overlay */}
-        <div className="timeline-selector__handles">
-          {startPosition !== undefined && (
-            <div
-              className={`timeline-selector__handle timeline-selector__handle--start ${activeHandle === 'start' ? 'timeline-selector__handle--active' : ''}`}
-              style={{ left: `calc(36px + ${(startPosition / 100) * (containerRef.current?.offsetWidth ? containerRef.current.offsetWidth - 72 : 0)}px)` }}
-              onMouseDown={(e) => {
-                e.stopPropagation()
-                handleMouseDown('start')
-              }}
-              title={startTimepoint ? formatTimepoint(startTimepoint) : 'Start'}
-            />
-          )}
-          {endPosition !== undefined && (
-            <div
-              className={`timeline-selector__handle timeline-selector__handle--end ${activeHandle === 'end' ? 'timeline-selector__handle--active' : ''}`}
-              style={{ left: `calc(36px + ${(endPosition / 100) * (containerRef.current?.offsetWidth ? containerRef.current.offsetWidth - 72 : 0)}px)` }}
-              onMouseDown={(e) => {
-                e.stopPropagation()
-                handleMouseDown('end')
-              }}
-              title={endTimepoint ? formatTimepoint(endTimepoint) : 'End'}
-            />
-          )}
+          </div>
         </div>
-      </div>
 
-      {/* Current selection display */}
-      <div className="timeline-selector__selection">
-        {startTimepoint && endTimepoint ? (
-          <>
-            <span className="timeline-selector__range">
-              {formatTimepoint(startTimepoint)} — {formatTimepoint(endTimepoint)}
+        {typeof selectedTargetCount === 'number' && (
+          <div className="timeline-selector__targets">
+            <span className="timeline-selector__targets-value">
+              {selectedTargetCount.toLocaleString()}
             </span>
-            {!isValidSelection && (
-              <span className="timeline-selector__warning">No data available</span>
-            )}
-          </>
-        ) : (
-          <span className="timeline-selector__hint">Click or drag to select range</span>
+            <span className="timeline-selector__targets-label">
+              unique targets
+            </span>
+          </div>
         )}
       </div>
+
+      {!isValidSelection && startTimepoint && endTimepoint && (
+        <div className="timeline-selector__selection timeline-selector__selection--warning-only">
+          <span className="timeline-selector__warning">No data available</span>
+        </div>
+      )}
     </div>
   )
 }

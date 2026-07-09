@@ -25,9 +25,11 @@ interface PRCurvePlotProps {
   showXAxisLabel?: boolean
   showYAxisLabel?: boolean
   margin?: { top: number; right: number; bottom: number; left: number }
+  tickFontSize?: number
+  contourLabelFontSize?: number
 }
 
-const DEFAULT_MARGIN = { top: 30, right: 20, bottom: 68, left: 58 }
+const DEFAULT_MARGIN = { top: 24, right: 10, bottom: 48, left: 44 }
 const AXIS_TICKS = [0, 0.2, 0.4, 0.6, 0.8, 1]
 const EPSILON = 1e-9
 
@@ -63,6 +65,8 @@ export function PRCurvePlot({
   showXAxisLabel = showAxisLabels,
   showYAxisLabel = showAxisLabels,
   margin = DEFAULT_MARGIN,
+  tickFontSize = 9,
+  contourLabelFontSize = 8,
 }: PRCurvePlotProps) {
   const innerWidth = width - margin.left - margin.right
   const innerHeight = height - margin.top - margin.bottom
@@ -126,7 +130,7 @@ export function PRCurvePlot({
                   <text
                     x={xScale(points[Math.floor(points.length * 0.7)]?.x ?? 0)}
                     y={yScale(points[Math.floor(points.length * 0.7)]?.y ?? 0) - 5}
-                    fontSize={10}
+                    fontSize={contourLabelFontSize}
                     fill="#999"
                   >
                     F={fScore}
@@ -180,18 +184,18 @@ export function PRCurvePlot({
             scale={xScale}
             top={innerHeight}
             label={showXAxisLabel ? 'Recall' : undefined}
-            labelOffset={35}
+            labelOffset={28}
             tickValues={AXIS_TICKS}
             tickFormat={(v) => Number(v).toFixed(1)}
-            tickLabelProps={() => ({ fontSize: 11, textAnchor: 'middle' })}
+            tickLabelProps={() => ({ fontSize: tickFontSize, textAnchor: 'middle' })}
           />
           <AxisLeft
             scale={yScale}
             label={showYAxisLabel ? 'Precision' : undefined}
-            labelOffset={35}
+            labelOffset={28}
             tickValues={AXIS_TICKS}
             tickFormat={(v) => Number(v).toFixed(1)}
-            tickLabelProps={() => ({ fontSize: 11, textAnchor: 'end' })}
+            tickLabelProps={() => ({ fontSize: tickFontSize, textAnchor: 'end' })}
           />
         </Group>
       </svg>

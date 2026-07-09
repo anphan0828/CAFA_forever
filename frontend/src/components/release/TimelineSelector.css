@@ -3,7 +3,7 @@
   background: var(--isu-white);
   border: 1px solid var(--isu-border);
   border-radius: 8px;
-  padding: 1rem;
+  padding: 0.75rem 0.85rem;
   margin-bottom: 1rem;
 }
 
@@ -11,7 +11,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: var(--isu-charcoal);
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.25rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -21,6 +21,7 @@
   position: relative;
   cursor: pointer;
   user-select: none;
+  min-width: 0;
 }
 
 .timeline-selector__chart--dragging {
@@ -32,7 +33,7 @@
   top: 0;
   left: 0;
   right: 0;
-  bottom: 34px;
+  bottom: 22px;
   pointer-events: none;
 }
 
@@ -93,12 +94,84 @@
   z-index: 1;
 }
 
+.timeline-selector__timepoints {
+  position: relative;
+  height: 3.1rem;
+  margin-top: 0;
+  margin-bottom: -0.35rem;
+  padding: 0 36px 0.2rem;
+}
+
+.timeline-selector__timepoint {
+  position: absolute;
+  top: 0;
+  min-width: 0;
+  width: 9.5rem;
+  text-align: left;
+}
+
+.timeline-selector__timepoint-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--isu-charcoal);
+  line-height: 1.25;
+}
+
+.timeline-selector__timepoint-date {
+  font-size: 0.68rem;
+  color: var(--isu-caption);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
 .timeline-selector__selection {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
   padding-top: 0.25rem;
+}
+
+.timeline-selector__selection--warning-only {
+  justify-content: flex-start;
+  padding-top: 0;
+}
+
+.timeline-selector__body {
+  display: grid;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timeline-selector__body--target-right {
+  grid-template-columns: minmax(0, 1fr) minmax(110px, max-content);
+}
+
+.timeline-selector__body--target-below {
+  grid-template-columns: 1fr;
+}
+
+.timeline-selector__targets {
+  display: flex;
+  flex-direction: column;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.1rem;
+  padding: 0.25rem 0 0.25rem 0.5rem;
+  border-left: 0;
+  min-height: 54px;
+}
+
+.timeline-selector__targets-value {
+  color: var(--isu-cardinal-text);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.timeline-selector__targets-label {
+  color: var(--isu-caption);
+  font-size: 0.8rem;
+  line-height: 1.2;
 }
 
 .timeline-selector__range {
@@ -135,5 +208,25 @@
 @media (max-width: 600px) {
   .timeline-selector .recharts-xAxis .recharts-cartesian-axis-tick-value {
     font-size: 12px;
+  }
+
+  .timeline-selector__timepoints {
+    overflow-x: auto;
+    height: 3.8rem;
+  }
+
+  .timeline-selector__timepoint {
+    width: 8rem;
+  }
+
+  .timeline-selector__body--target-right {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-selector__targets {
+    border-left: 0;
+    border-top: 0;
+    min-height: auto;
+    align-items: center;
   }
 }

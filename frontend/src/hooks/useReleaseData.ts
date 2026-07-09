@@ -61,9 +61,9 @@ export function useReleaseData(releaseId: string | null): UseReleaseDataResult {
         const basePath = `/data/releases/${releaseId}`
 
         const [metaRes, methodsRes, bestRes] = await Promise.all([
-          fetch(`${basePath}/meta.json`),
-          fetch(`${basePath}/methods.json`),
-          fetch(`${basePath}/best.json`),
+          fetch(`${basePath}/meta.json`, { cache: 'no-store' }),
+          fetch(`${basePath}/methods.json`, { cache: 'no-store' }),
+          fetch(`${basePath}/best.json`, { cache: 'no-store' }),
         ])
 
         if (!metaRes.ok || !methodsRes.ok || !bestRes.ok) {
@@ -104,7 +104,7 @@ export function useReleaseData(releaseId: string | null): UseReleaseDataResult {
 
     setCurvesLoading(true)
     try {
-      const response = await fetch(`/data/releases/${releaseId}/curves.json`)
+      const response = await fetch(`/data/releases/${releaseId}/curves.json`, { cache: 'no-store' })
       if (!response.ok) {
         throw new Error('Failed to load curves data')
       }
@@ -133,7 +133,7 @@ export function useMethodsConfig() {
 
     async function fetchConfig() {
       try {
-        const response = await fetch('/data/methods.json')
+        const response = await fetch('/data/methods.json', { cache: 'no-store' })
         if (!response.ok) {
           throw new Error('Failed to load methods config')
         }

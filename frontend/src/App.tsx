@@ -1,22 +1,22 @@
 import { useEffect, useMemo } from 'react'
 import { AppProvider, useAppState } from './context'
-import { useCatalog, useReleaseData, useMethodsConfig, useComparisonData } from './hooks'
+import { useCatalog, useReleaseData, useMethodsConfig, useComparisonData, useComparableMethods } from './hooks'
 import { Header, Footer, Section } from './components/layout'
-import { HeroSection, TimelineSelector, CompareToggle } from './components/release'
+import { HeroSection, TimelineSelector } from './components/release'
 import { MethodSelector } from './components/methods'
 import { OverallRankingChart, FmaxSmallMultiples, TargetCountChart, PRCurveGrid, ComparisonTab } from './components/charts'
-import { SummaryTable } from './components/table'
 import { Tabs, Collapsible, type Tab } from './components/ui'
-import { MAX_SELECTED_METHODS } from './types'
+import { MAX_SELECTED_METHODS, type SelectedReleaseBundle } from './types'
 import './App.css'
 
 function AppContent() {
   const { state, dispatch } = useAppState()
   const { catalog, loading: catalogLoading, error: catalogError } = useCatalog()
-  const { config: methodsConfig, loading: configLoading } = useMethodsConfig()
+  const { config: methodsConfig, loading: configLoading, error: configError } = useMethodsConfig()
   const {
     data: releaseData,
     loading: releaseLoading,
+    error: releaseError,
     loadCurves,
     curvesLoading,
   } = useReleaseData(state.primaryRelease)
@@ -25,41 +25,60 @@ function AppContent() {
   const {
     data: secondaryReleaseData,
     loading: secondaryLoading,
+    error: secondaryReleaseError,
+    loadCurves: loadSecondaryCurves,
+    curvesLoading: secondaryCurvesLoading,
   } = useReleaseData(state.compareMode ? state.secondaryRelease : null)
 
-  // Get method lists for comparison (filtered by selected methods and baseline toggle)
-  const primaryMethods = useMemo(() => {
-    if (!releaseData.methods) return []
-    const available = new Set(Object.keys(releaseData.methods.methods))
-    return state.selectedMethods.filter(m => {
-      if (!available.has(m)) return false
-      if (state.showBaselinesOnly && methodsConfig) {
-        const config = methodsConfig.methods[m]
-        if (!config?.isBaseline) return false
-      }
-      return true
-    })
-  }, [releaseData.methods, state.selectedMethods, state.showBaselinesOnly, methodsConfig])
+  const selectedReleaseIds = useMemo(() => {
+    const ids = state.primaryRelease ? [state.primaryRelease] : []
+    if (
+      state.compareMode &&
+      state.secondaryRelease &&
+      state.secondaryRelease !== state.primaryRelease
+    ) {
+      ids.push(state.secondaryRelease)
+    }
+    return ids
+  }, [state.compareMode, state.primaryRelease, state.secondaryRelease])
 
-  const secondaryMethods = useMemo(() => {
-    if (!secondaryReleaseData.methods) return []
-    const available = new Set(Object.keys(secondaryReleaseData.methods.methods))
-    return state.selectedMethods.filter(m => {
-      if (!available.has(m)) return false
-      if (state.showBaselinesOnly && methodsConfig) {
-        const config = methodsConfig.methods[m]
-        if (!config?.isBaseline) return false
-      }
-      return true
+  const comparableMethods = useComparableMethods(
+    [
+      releaseData.methods,
+      state.compareMode ? secondaryReleaseData.methods : null,
+    ],
+    methodsConfig?.methods,
+    state.compareMode
+  )
+
+  const selectableMethods = useMemo(() => {
+    return comparableMethods.filter((method) => {
+      if (!state.showBaselinesOnly || !methodsConfig) return true
+      return Boolean(methodsConfig.methods[method]?.isBaseline)
     })
-  }, [secondaryReleaseData.methods, state.selectedMethods, state.showBaselinesOnly, methodsConfig])
+  }, [comparableMethods, methodsConfig, state.showBaselinesOnly])
+
+  const selectedMethods = useMemo(() => {
+    const available = new Set(selectableMethods)
+    return state.selectedMethods.filter((method) => available.has(method))
+  }, [selectableMethods, state.selectedMethods])
+
+  const methodSelectorMethods = useMemo(() => {
+    if (!releaseData.methods) return {}
+    if (!state.compareMode) return releaseData.methods.methods
+
+    const comparable = new Set(comparableMethods)
+    return Object.fromEntries(
+      Object.entries(releaseData.methods.methods).filter(([method]) => comparable.has(method))
+    )
+  }, [comparableMethods, releaseData.methods, state.compareMode])
 
   // Compute comparison data
   const comparisonData = useComparisonData(
     releaseData.best,
     secondaryReleaseData.best,
-    primaryMethods,
-    secondaryMethods
+    selectedMethods,
+    selectedMethods
   )
 
   // Format release ID to readable label
@@ -73,6 +92,55 @@ function AppContent() {
   const primaryLabel = formatReleaseLabel(state.primaryRelease)
   const secondaryLabel = formatReleaseLabel(state.secondaryRelease)
 
+  const releaseBundles = useMemo(() => {
+    const bundles: SelectedReleaseBundle[] = []
+
+    if (state.primaryRelease && releaseData.meta && releaseData.methods && releaseData.best) {
+      bundles.push({
+        releaseId: state.primaryRelease,
+        label: primaryLabel,
+        meta: releaseData.meta,
+        methods: releaseData.methods,
+        best: releaseData.best,
+        curves: releaseData.curves,
+      })
+    }
+
+    if (
+      state.compareMode &&
+      state.secondaryRelease &&
+      state.secondaryRelease !== state.primaryRelease &&
+      secondaryReleaseData.meta &&
+      secondaryReleaseData.methods &&
+      secondaryReleaseData.best
+    ) {
+      bundles.push({
+        releaseId: state.secondaryRelease,
+        label: secondaryLabel,
+        meta: secondaryReleaseData.meta,
+        methods: secondaryReleaseData.methods,
+        best: secondaryReleaseData.best,
+        curves: secondaryReleaseData.curves,
+      })
+    }
+
+    return bundles
+  }, [
+    state.compareMode,
+    state.primaryRelease,
+    state.secondaryRelease,
+    primaryLabel,
+    secondaryLabel,
+    releaseData.meta,
+    releaseData.methods,
+    releaseData.best,
+    releaseData.curves,
+    secondaryReleaseData.meta,
+    secondaryReleaseData.methods,
+    secondaryReleaseData.best,
+    secondaryReleaseData.curves,
+  ])
+
   // Auto-select first release
   useEffect(() => {
     if (catalog?.releases.length && !state.primaryRelease) {
@@ -83,20 +151,56 @@ function AppContent() {
     }
   }, [catalog, state.primaryRelease, dispatch])
 
-  // Auto-select all methods when release data loads
+  // Keep selected methods valid for the active release mode.
   useEffect(() => {
-    if (releaseData.methods && state.selectedMethods.length === 0) {
-      const methods = Object.keys(releaseData.methods.methods).slice(0, MAX_SELECTED_METHODS)
-      dispatch({ type: 'SET_SELECTED_METHODS', payload: methods })
+    if (!releaseData.methods || !methodsConfig || selectableMethods.length === 0) return
+
+    const nextSelected = state.selectedMethods
+      .filter((method) => selectableMethods.includes(method))
+      .slice(0, MAX_SELECTED_METHODS)
+
+    if (nextSelected.length === 0) {
+      const defaultCount = state.compareMode ? 4 : MAX_SELECTED_METHODS
+      dispatch({
+        type: 'SET_SELECTED_METHODS',
+        payload: selectableMethods.slice(0, defaultCount),
+      })
+      return
     }
-  }, [releaseData.methods, state.selectedMethods.length, dispatch])
+
+    if (
+      nextSelected.length !== state.selectedMethods.length ||
+      nextSelected.some((method, index) => method !== state.selectedMethods[index])
+    ) {
+      dispatch({ type: 'SET_SELECTED_METHODS', payload: nextSelected })
+    }
+  }, [dispatch, methodsConfig, releaseData.methods, selectableMethods, state.compareMode, state.selectedMethods])
 
   // Load curves when switching to curves tab
   useEffect(() => {
     if (state.activeTab === 'curves' && !releaseData.curves && !curvesLoading) {
       loadCurves()
     }
-  }, [state.activeTab, releaseData.curves, curvesLoading, loadCurves])
+    if (
+      state.activeTab === 'curves' &&
+      state.compareMode &&
+      state.secondaryRelease &&
+      !secondaryReleaseData.curves &&
+      !secondaryCurvesLoading
+    ) {
+      loadSecondaryCurves()
+    }
+  }, [
+    state.activeTab,
+    state.compareMode,
+    state.secondaryRelease,
+    releaseData.curves,
+    secondaryReleaseData.curves,
+    curvesLoading,
+    secondaryCurvesLoading,
+    loadCurves,
+    loadSecondaryCurves,
+  ])
 
   // Auto-select secondary release when comparison mode is enabled
   useEffect(() => {
@@ -110,6 +214,13 @@ function AppContent() {
       }
     }
   }, [state.compareMode, state.secondaryRelease, state.primaryRelease, catalog, dispatch])
+
+  const baselineMethods = useMemo(
+    () => Object.entries(methodsConfig?.methods ?? {})
+      .filter(([, config]) => config.isBaseline)
+      .map(([method]) => method),
+    [methodsConfig]
+  )
 
   if (catalogLoading || configLoading) {
     return (
@@ -126,14 +237,14 @@ function AppContent() {
     )
   }
 
-  if (catalogError) {
+  if (catalogError || configError) {
     return (
       <div className="app">
         <Header />
         <main className="main-content">
           <div className="error-container">
             <h2>Error Loading Data</h2>
-            <p>{catalogError}</p>
+            <p>{catalogError || configError}</p>
             <p>Please ensure the data pipeline has been run.</p>
           </div>
         </main>
@@ -143,8 +254,8 @@ function AppContent() {
   }
 
   const methodColorDomain = releaseData.methods
-    ? Object.keys(releaseData.methods.methods)
-    : state.selectedMethods
+    ? comparableMethods
+    : selectedMethods
 
   const tabs: Tab[] = [
     {
@@ -152,6 +263,11 @@ function AppContent() {
       label: 'Summary',
       content: (
         <div className="tab-content">
+          <div className="analysis-window-label">
+            <span className="comparison-tab__legend-item comparison-tab__legend-item--a">
+              {primaryLabel}
+            </span>
+          </div>
           <div className="summary-top-grid">
             {releaseData.meta && (
               <TargetCountChart targetCounts={releaseData.meta.targetCounts} />
@@ -160,8 +276,9 @@ function AppContent() {
             {releaseData.best && (
               <OverallRankingChart
                 bestMetrics={releaseData.best}
-                selectedMethods={state.selectedMethods}
+                selectedMethods={selectedMethods}
                 colorDomain={methodColorDomain}
+                baselineMethods={baselineMethods}
               />
             )}
           </div>
@@ -169,8 +286,9 @@ function AppContent() {
           {releaseData.best && (
             <FmaxSmallMultiples
               bestMetrics={releaseData.best}
-              selectedMethods={state.selectedMethods}
+              selectedMethods={selectedMethods}
               colorDomain={methodColorDomain}
+              baselineMethods={baselineMethods}
             />
           )}
 
@@ -179,10 +297,35 @@ function AppContent() {
     },
     {
       id: 'curves',
-      label: 'PR Curves',
+      label: 'Precision Recall Curves',
       content: (
         <div className="tab-content">
-          {curvesLoading ? (
+          <div className="analysis-window-label">
+          </div>
+          {selectedReleaseIds.length > 1 && releaseBundles.length > 1 ? (
+            <Tabs
+              tabs={releaseBundles.map((bundle) => ({
+                id: `curves-${bundle.releaseId}`,
+                label: bundle.label,
+                content: (
+                  bundle.curves && bundle.best ? (
+                    <PRCurveGrid
+                      curves={bundle.curves}
+                      bestMetrics={bundle.best}
+                      selectedMethods={selectedMethods}
+                      colorDomain={methodColorDomain}
+                      totalSelectedCount={selectedMethods.length}
+                    />
+                  ) : (
+                    <div className="loading-container">
+                      <div className="loading-spinner" />
+                      <p>Loading PR curves...</p>
+                    </div>
+                  )
+                ),
+              }))}
+            />
+          ) : curvesLoading ? (
             <div className="loading-container">
               <div className="loading-spinner" />
               <p>Loading PR curves...</p>
@@ -191,29 +334,12 @@ function AppContent() {
             <PRCurveGrid
               curves={releaseData.curves}
               bestMetrics={releaseData.best}
-              selectedMethods={state.selectedMethods}
+              selectedMethods={selectedMethods}
               colorDomain={methodColorDomain}
-              totalSelectedCount={state.selectedMethods.length}
+              totalSelectedCount={selectedMethods.length}
             />
           ) : (
             <p>Select a release to view PR curves</p>
-          )}
-        </div>
-      ),
-    },
-    {
-      id: 'table',
-      label: 'Data Table',
-      content: (
-        <div className="tab-content">
-          {releaseData.best && state.primaryRelease ? (
-            <SummaryTable
-              bestMetrics={releaseData.best}
-              selectedMethods={state.selectedMethods}
-              releaseId={state.primaryRelease}
-            />
-          ) : (
-            <p>Select a release to view data table</p>
           )}
         </div>
       ),
@@ -226,8 +352,10 @@ function AppContent() {
         <div className="tab-content">
           <ComparisonTab
             comparisonData={comparisonData}
+            releaseBundles={releaseBundles}
             windowALabel={primaryLabel}
             windowBLabel={secondaryLabel}
+            selectedMethods={selectedMethods}
             loading={secondaryLoading}
           />
         </div>
@@ -243,31 +371,57 @@ function AppContent() {
         <HeroSection />
 
         {catalog && (
-          <Section id="analysis" title="Results">
-            <div className="analysis-layout">
-              <aside className="analysis-sidebar">
+          <Section id="analysis">
+            <div className="analysis-release-controls">
+              <div className="analysis-release-controls__primary">
                 <TimelineSelector
                   releases={catalog.releases}
                   timepoints={catalog.timepoints}
+                  timepointDates={catalog.timepointDates}
                   selectedRelease={state.primaryRelease}
                   onSelectRelease={(id) => dispatch({ type: 'SET_PRIMARY_RELEASE', payload: id })}
+                  selectedTargetCount={releaseData.meta?.targetCounts.uniqueAcrossSubsets}
+                  targetPlacement="right"
                 />
+              </div>
 
-                <CompareToggle
-                  enabled={state.compareMode}
-                  onToggle={(enabled) => dispatch({ type: 'SET_COMPARE_MODE', payload: enabled })}
-                  releases={catalog.releases}
-                  timepoints={catalog.timepoints}
-                  secondaryRelease={state.secondaryRelease}
-                  onSelectSecondaryRelease={(id) => dispatch({ type: 'SET_SECONDARY_RELEASE', payload: id })}
-                />
+              <div className="analysis-release-controls__comparison-row">
+                <label className="analysis-compare-toggle">
+                  <input
+                    type="checkbox"
+                    checked={state.compareMode}
+                    onChange={(event) =>
+                      dispatch({ type: 'SET_COMPARE_MODE', payload: event.target.checked })
+                    }
+                  />
+                  <span>Compare with another window</span>
+                </label>
+              </div>
+                {state.compareMode && (
+                  <div className="analysis-release-control--secondary">
+                    <TimelineSelector
+                      releases={catalog.releases}
+                      timepoints={catalog.timepoints}
+                      selectedRelease={state.secondaryRelease}
+                      onSelectRelease={(id) => dispatch({ type: 'SET_SECONDARY_RELEASE', payload: id })}
+                      label="Comparison Window"
+                      selectedTargetCount={secondaryReleaseData.meta?.targetCounts.uniqueAcrossSubsets}
+                      showTimepointDetails={false}
+                      targetPlacement="right"
+                      helpText="Choose another time window to compare evaluation results"
+                    />
+                  </div>
+                )}
+            </div>
 
+            <div className="analysis-layout">
+              <aside className="analysis-sidebar">
                 {releaseData.methods && methodsConfig && (
                   <Collapsible title="Methods" defaultOpen={state.configPanelOpen}>
                     <MethodSelector
-                      methods={releaseData.methods.methods}
+                      methods={methodSelectorMethods}
                       methodConfigs={methodsConfig.methods}
-                      selectedMethods={state.selectedMethods}
+                      selectedMethods={selectedMethods}
                       onSelectionChange={(methods) =>
                         dispatch({ type: 'SET_SELECTED_METHODS', payload: methods })
                       }
@@ -286,6 +440,12 @@ function AppContent() {
                   <div className="loading-container">
                     <div className="loading-spinner" />
                     <p>Loading release data...</p>
+                  </div>
+                ) : releaseError || secondaryReleaseError ? (
+                  <div className="error-container">
+                    <h2>Error Loading Release Data</h2>
+                    <p>{releaseError || secondaryReleaseError}</p>
+                    <p>Refresh the page after rebuilding the frontend data.</p>
                   </div>
                 ) : state.primaryRelease && releaseData.best ? (
                   <Tabs

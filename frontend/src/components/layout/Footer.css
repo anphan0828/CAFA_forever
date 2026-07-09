@@ -1,13 +1,22 @@
 .site-footer {
-  background: var(--isu-cardinal-text-dark);
+  background: var(--isu-cardinal);
   color: var(--isu-white);
   margin-top: auto;
+}
+
+.site-footer__main {
+  background: var(--isu-cardinal);
 }
 
 .site-footer__inner {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 0;
+  padding: 2rem 1.5rem;
+}
+
+.site-footer__inner--bottom {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 
 .site-footer__flex-wrap {
@@ -61,16 +70,15 @@
 }
 
 .site-footer__bottom-wrap {
-  background: #3d0d10;
-  margin: 2rem -1.5rem 0;
-  padding: 1rem 1.5rem;
+  width: 100%;
+  background: var(--isu-cardinal-dark);
 }
 
 .site-footer__copyright {
-  text-align: center;
+  text-align: left;
   margin: 0;
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--isu-white);
 }
 
 @media (max-width: 768px) {

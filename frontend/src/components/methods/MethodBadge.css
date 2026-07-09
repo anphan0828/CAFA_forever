@@ -1,8 +1,7 @@
 .method-badge-row {
-  display: grid;
-  grid-template-columns: 32px minmax(0, 1fr);
-  align-items: center;
-  gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
   width: 100%;
 }
 
@@ -11,7 +10,7 @@
   align-items: center;
   width: 100%;
   min-height: 44px;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.45rem 0.5rem 0.75rem;
   background: var(--isu-white);
   border: 1px solid var(--isu-border);
   border-radius: 6px;
@@ -39,7 +38,7 @@
   align-items: center;
   gap: 0.625rem;
   min-width: 0;
-  width: 100%;
+  flex: 1;
   cursor: pointer;
 }
 
@@ -85,30 +84,86 @@
   color: var(--isu-charcoal);
 }
 
-.method-badge__link {
-  min-height: 32px;
+.method-badge__details-toggle {
   width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.25rem 0.5rem;
+  border: 0;
   border-radius: 4px;
+  background: transparent;
   color: var(--method-color);
-  text-decoration: none;
+  cursor: pointer;
   flex-shrink: 0;
 }
 
-.method-badge__link:hover {
+.method-badge__details-toggle:hover:not(:disabled) {
   background: color-mix(in srgb, var(--method-color) 12%, white);
-  color: var(--method-color);
 }
 
-.method-badge__link:focus-visible {
+.method-badge__details-toggle:disabled {
+  color: var(--isu-caption);
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.method-badge__details-toggle:focus-visible {
   outline: 2px solid var(--isu-gold);
   outline-offset: 2px;
 }
 
-.method-badge__link-spacer {
-  width: 32px;
-  height: 32px;
+.method-badge__chevron {
+  transition: transform 0.15s ease;
+}
+
+.method-badge__details-toggle[aria-expanded='true'] .method-badge__chevron {
+  transform: rotate(180deg);
+}
+
+.method-badge__details {
+  padding: 0.75rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--method-color) 30%, var(--isu-border));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--method-color) 5%, white);
+  font-size: 0.82rem;
+  color: var(--isu-charcoal);
+}
+
+.method-badge__details p {
+  margin: 0 0 0.45rem;
+  line-height: 1.4;
+}
+
+.method-badge__details p:last-child {
+  margin-bottom: 0;
+}
+
+.method-badge__detail-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.method-badge__detail-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--method-color);
+  border-radius: 4px;
+  color: var(--method-color);
+  background: var(--isu-white);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.method-badge__detail-links a:hover {
+  background: color-mix(in srgb, var(--method-color) 10%, white);
+}
+
+.method-badge__detail-note {
+  margin-top: 0.5rem;
+  color: var(--isu-caption);
 }

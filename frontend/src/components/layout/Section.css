@@ -8,7 +8,7 @@
 
 .section--hero {
   text-align: center;
-  padding: 3rem 0;
+  padding: 1.5rem 0 2.25rem;
   border-bottom: 1px solid var(--isu-border);
 }
 
@@ -59,7 +59,7 @@
   }
 
   .section--hero {
-    padding: 2rem 0;
+    padding: 1.25rem 0 1.75rem;
   }
 
   .section__inner {

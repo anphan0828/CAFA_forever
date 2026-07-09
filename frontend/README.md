@@ -96,12 +96,12 @@ docker run -p 8501:8501 lafa-frontend
 docker compose -f deploy/docker-compose.react.yml up -d --build
 ```
 
-Access at http://localhost:8501
+Access at http://localhost:8502. The Compose setup uses host port 8502 so the React frontend can run alongside the Streamlit frontend on port 8501.
 
 ### Health Check
 
 ```bash
-curl http://localhost:8501/_health
+curl http://localhost:8502/_health
 ```
 
 ## Project Structure

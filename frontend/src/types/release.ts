@@ -24,6 +24,7 @@ export interface TargetCounts {
   NK: SubsetTargetCount
   LK: SubsetTargetCount
   PK: SubsetTargetCount
+  uniqueAcrossSubsets: number
 }
 
 export interface ReleaseMeta {

@@ -20,14 +20,19 @@ interface FmaxSmallMultiplesProps {
   bestMetrics: BestMetricsMap
   selectedMethods: string[]
   colorDomain?: string[]
+  baselineMethods?: string[]
 }
 
 export function FmaxSmallMultiples({
   bestMetrics,
   selectedMethods,
   colorDomain = selectedMethods,
+  baselineMethods = [],
 }: FmaxSmallMultiplesProps) {
   const { getColor } = useMethodColors(colorDomain)
+  const baselineSet = useMemo(() => new Set(baselineMethods), [baselineMethods])
+  const patternId = (subset: Subset, method: string) =>
+    `fmax-baseline-${subset}-${method.replace(/[^a-zA-Z0-9_-]/g, '-')}`
 
   // Data structure: one entry per aspect, with method values
   const chartDataBySubset = useMemo(() => {
@@ -85,11 +90,29 @@ export function FmaxSmallMultiples({
                 data={chartDataBySubset[subset]}
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
               >
+                <defs>
+                  {selectedMethods.filter((method) => baselineSet.has(method)).map((method) => {
+                    const color = getColor(method)
+                    return (
+                      <pattern
+                        key={method}
+                        id={patternId(subset, method)}
+                        patternUnits="userSpaceOnUse"
+                        width="6"
+                        height="6"
+                        patternTransform="rotate(45)"
+                      >
+                        <rect width="6" height="6" fill="white" />
+                        <line x1="0" y1="0" x2="0" y2="6" stroke={color} strokeWidth="3" />
+                      </pattern>
+                    )
+                  })}
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis
                   dataKey="aspect"
                   interval={0}
-                  tick={{ fontSize: 11 }}
+                  tick={{ fontSize: 14, fontWeight: 600 }}
                 />
                 <YAxis
                   domain={[0, 1]}
@@ -119,7 +142,9 @@ export function FmaxSmallMultiples({
                   <Bar
                     key={method}
                     dataKey={method}
-                    fill={getColor(method)}
+                    fill={baselineSet.has(method) ? `url(#${patternId(subset, method)})` : getColor(method)}
+                    stroke={baselineSet.has(method) ? getColor(method) : undefined}
+                    strokeWidth={baselineSet.has(method) ? 1 : 0}
                     radius={[4, 4, 0, 0]}
                   >
                     <LabelList

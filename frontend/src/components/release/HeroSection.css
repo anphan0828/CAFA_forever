@@ -57,6 +57,17 @@
   transform: translateY(-1px);
 }
 
+.hero__badge--button {
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.hero__badge:focus-visible {
+  outline: 2px solid var(--isu-gold);
+  outline-offset: 2px;
+}
+
 .hero__badge--secondary {
   background: transparent;
   color: var(--isu-cardinal-text);
@@ -72,35 +83,7 @@
   color: var(--isu-white);
 }
 
-.hero__learn-more-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  min-height: 44px;
-  padding: 0.625rem 1rem;
-  background: transparent;
-  border: 1px solid var(--isu-border);
-  border-radius: 6px;
-  color: var(--isu-cardinal-text);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s, background-color 0.2s;
-}
-
-.hero__learn-more-toggle:hover {
-  color: var(--isu-cardinal-text-hover);
-  border-color: var(--isu-cardinal-text);
-  background: var(--isu-light);
-}
-
-.hero__learn-more-toggle:focus-visible {
-  outline: 2px solid var(--isu-gold);
-  outline-offset: 2px;
-}
-
-.hero__learn-more-toggle svg {
+.hero__badge svg {
   transition: transform 0.2s;
 }
 

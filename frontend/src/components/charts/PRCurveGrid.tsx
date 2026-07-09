@@ -115,15 +115,13 @@ export function PRCurveGrid({
           <div
             className="pr-curve-grid__container"
             style={{
-              gridTemplateColumns: `repeat(${aspects.length}, minmax(0, 1fr))`,
+              gridTemplateColumns: `42px repeat(${aspects.length}, minmax(0, 1fr))`,
             }}
           >
-            {/* Plots with row headers */}
             {subsets.map((subset, rowIndex) => (
               <Fragment key={subset}>
                 <div
                   className="pr-curve-grid__row-label"
-                  style={{ gridColumn: `1 / span ${aspects.length}` }}
                 >
                   {SUBSET_LABELS[subset]}
                 </div>
@@ -136,12 +134,15 @@ export function PRCurveGrid({
                       curves={gridPlots.find(
                         (p) => p.subset === subset && p.aspect === aspect
                       )?.curveData || []}
-                      width={250}
-                      height={250}
+                      width={230}
+                      height={220}
                       title={ASPECT_LABELS[aspect]}
                       showAxisLabels={false}
                       showYAxisLabel={colIndex === 0}
                       showXAxisLabel={rowIndex === subsets.length - 1}
+                      margin={{ top: 26, right: 8, bottom: rowIndex === subsets.length - 1 ? 42 : 26, left: colIndex === 0 ? 42 : 28 }}
+                      tickFontSize={8}
+                      contourLabelFontSize={7}
                     />
                   </div>
                 ))}

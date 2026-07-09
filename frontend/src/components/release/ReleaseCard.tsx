@@ -12,13 +12,12 @@ interface ReleaseCardProps {
 export function ReleaseCard({ release, meta, isSelected, onClick }: ReleaseCardProps) {
   const formatTimepoint = (tp: string) => tp.replace('_', ' ')
 
-  const totalTargets = meta
-    ? meta.targetCounts.NK.total + meta.targetCounts.LK.total + meta.targetCounts.PK.total
-    : null
+  const totalTargets = meta?.targetCounts.uniqueAcrossSubsets ?? null
 
   return (
     <button
-      className={`release-card ${isSelected ? 'release-card--selected' : ''}`}
+      type="button"
+      className={`release-card ${isSelected ? 'release-card--selected' : ''} ${!onClick ? 'release-card--static' : ''}`}
       onClick={onClick}
       aria-pressed={isSelected}
     >
@@ -37,6 +36,10 @@ export function ReleaseCard({ release, meta, isSelected, onClick }: ReleaseCardP
             <div className="release-card__date">
               <span className="release-card__label">GOA:</span>
               <span>{meta.dates.goaStart} &rarr; {meta.dates.goaEnd}</span>
+            </div>
+            <div className="release-card__date">
+              <span className="release-card__label">UniProt:</span>
+              <span>{meta.dates.uniprotStart} &rarr; {meta.dates.uniprotEnd}</span>
             </div>
           </div>
 
@@ -57,7 +60,7 @@ export function ReleaseCard({ release, meta, isSelected, onClick }: ReleaseCardP
 
           {totalTargets && (
             <p className="release-card__total">
-              {totalTargets.toLocaleString()} total targets
+              {totalTargets.toLocaleString()} unique targets
             </p>
           )}
         </div>

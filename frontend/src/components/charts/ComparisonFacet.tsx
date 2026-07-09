@@ -13,16 +13,25 @@ import './ComparisonFacet.css'
 interface ComparisonFacetProps {
   data: ComparisonMetric[]
   metric: 'fmax' | 'precision' | 'recall' | 'coverage'
+  methodOrder?: string[]
   maxMethods?: number
 }
 
 export function ComparisonFacet({
   data,
   metric,
+  methodOrder,
   maxMethods = 10,
 }: ComparisonFacetProps) {
-  // Limit methods for readability
-  const displayData = data.slice(0, maxMethods)
+  const order = new Map((methodOrder ?? []).map((method, index) => [method, index]))
+  const displayData = [...data]
+    .sort((a, b) => {
+      const aIndex = order.get(a.method) ?? Number.MAX_SAFE_INTEGER
+      const bIndex = order.get(b.method) ?? Number.MAX_SAFE_INTEGER
+      if (aIndex !== bIndex) return aIndex - bIndex
+      return a.method.localeCompare(b.method)
+    })
+    .slice(0, maxMethods)
 
   if (displayData.length === 0) {
     return (

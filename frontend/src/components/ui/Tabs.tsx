@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import './Tabs.css'
 
 export interface Tab {
@@ -17,6 +17,18 @@ interface TabsProps {
 export function Tabs({ tabs, defaultTab, onChange }: TabsProps) {
   const visibleTabs = tabs.filter((tab) => !tab.hidden)
   const [activeTab, setActiveTab] = useState(defaultTab || visibleTabs[0]?.id)
+
+  useEffect(() => {
+    const visibleIds = new Set(visibleTabs.map((tab) => tab.id))
+    if (defaultTab && visibleIds.has(defaultTab) && defaultTab !== activeTab) {
+      setActiveTab(defaultTab)
+      return
+    }
+
+    if (!activeTab || !visibleIds.has(activeTab)) {
+      setActiveTab(visibleTabs[0]?.id)
+    }
+  }, [activeTab, defaultTab, visibleTabs])
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId)

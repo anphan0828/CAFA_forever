@@ -18,7 +18,7 @@ export function useCatalog(): UseCatalogResult {
 
     async function fetchCatalog() {
       try {
-        const response = await fetch('/data/catalog.json')
+        const response = await fetch('/data/catalog.json', { cache: 'no-store' })
         if (!response.ok) {
           throw new Error(`Failed to load catalog: ${response.status}`)
         }

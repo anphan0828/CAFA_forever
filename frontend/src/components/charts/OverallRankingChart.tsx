@@ -19,6 +19,7 @@ interface OverallRankingChartProps {
   bestMetrics: BestMetricsMap
   selectedMethods: string[]
   colorDomain?: string[]
+  baselineMethods?: string[]
 }
 
 interface MethodScore {
@@ -32,7 +33,9 @@ export function OverallRankingChart({
   bestMetrics,
   selectedMethods,
   colorDomain = selectedMethods,
+  baselineMethods = [],
 }: OverallRankingChartProps) {
+  const baselineSet = useMemo(() => new Set(baselineMethods), [baselineMethods])
   const chartData = useMemo(() => {
     // Compute average F-max across all subset/aspect combinations for each method
     const methodScores = new Map<string, MethodScore>()
@@ -79,6 +82,7 @@ export function OverallRankingChart({
   }, [bestMetrics, selectedMethods])
 
   const { getColor } = useMethodColors(colorDomain)
+  const patternId = (method: string) => `overall-baseline-${method.replace(/[^a-zA-Z0-9_-]/g, '-')}`
 
   if (chartData.length === 0) {
     return (
@@ -101,6 +105,24 @@ export function OverallRankingChart({
             layout="vertical"
             margin={{ top: 10, right: 36, left: 8, bottom: 30 }}
           >
+            <defs>
+              {chartData.filter((entry) => baselineSet.has(entry.method)).map((entry) => {
+                const color = getColor(entry.method)
+                return (
+                  <pattern
+                    key={entry.method}
+                    id={patternId(entry.method)}
+                    patternUnits="userSpaceOnUse"
+                    width="6"
+                    height="6"
+                    patternTransform="rotate(45)"
+                  >
+                    <rect width="6" height="6" fill="white" />
+                    <line x1="0" y1="0" x2="0" y2="6" stroke={color} strokeWidth="3" />
+                  </pattern>
+                )
+              })}
+            </defs>
             <XAxis
               type="number"
               domain={[0, 1]}
@@ -154,7 +176,12 @@ export function OverallRankingChart({
             />
             <Bar dataKey="avgFmax" radius={[0, 4, 4, 0]}>
               {chartData.map((entry) => (
-                <Cell key={entry.method} fill={getColor(entry.method)} />
+                <Cell
+                  key={entry.method}
+                  fill={baselineSet.has(entry.method) ? `url(#${patternId(entry.method)})` : getColor(entry.method)}
+                  stroke={baselineSet.has(entry.method) ? getColor(entry.method) : undefined}
+                  strokeWidth={baselineSet.has(entry.method) ? 1 : 0}
+                />
               ))}
               <LabelList
                 dataKey="avgFmax"
