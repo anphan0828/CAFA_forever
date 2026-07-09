@@ -1,0 +1,19 @@
+name: lafa-react
+
+services:
+  lafa-frontend:
+    build:
+      context: ..
+      dockerfile: Dockerfile.react
+    ports:
+      - "127.0.0.1:8502:8501"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8501/_health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "com.lafa.description=LAFA Frontend - Longitudinal Assessment of Function Annotation"
+      - "com.lafa.version=1.0.0"

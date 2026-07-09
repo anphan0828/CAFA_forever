@@ -1,0 +1,198 @@
+import { useMemo } from 'react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  LabelList,
+} from 'recharts'
+import type { BestMetricsMap } from '../../types'
+import { SUBSETS, ASPECTS, SUBSET_LABELS } from '../../types'
+import { useMethodColors } from '../../hooks'
+import { InfoIcon } from '../ui'
+import './OverallRankingChart.css'
+
+interface OverallRankingChartProps {
+  bestMetrics: BestMetricsMap
+  selectedMethods: string[]
+  colorDomain?: string[]
+  baselineMethods?: string[]
+}
+
+interface MethodScore {
+  method: string
+  avgFmax: number
+  scores: Record<string, number>
+  count: number
+}
+
+export function OverallRankingChart({
+  bestMetrics,
+  selectedMethods,
+  colorDomain = selectedMethods,
+  baselineMethods = [],
+}: OverallRankingChartProps) {
+  const baselineSet = useMemo(() => new Set(baselineMethods), [baselineMethods])
+  const chartData = useMemo(() => {
+    // Compute average F-max across all subset/aspect combinations for each method
+    const methodScores = new Map<string, MethodScore>()
+
+    // Initialize scores for selected methods
+    selectedMethods.forEach((method) => {
+      methodScores.set(method, {
+        method,
+        avgFmax: 0,
+        scores: {},
+        count: 0,
+      })
+    })
+
+    // Aggregate scores across all subset/aspect combinations
+    for (const subset of SUBSETS) {
+      for (const aspect of ASPECTS) {
+        const key = `${subset}_${aspect}`
+        const metrics = bestMetrics[key] || []
+
+        metrics.forEach((metric) => {
+          if (selectedMethods.includes(metric.method)) {
+            const entry = methodScores.get(metric.method)!
+            entry.scores[key] = metric.fmax
+            entry.count++
+          }
+        })
+      }
+    }
+
+    // Calculate averages and sort
+    const result = Array.from(methodScores.values())
+      .map((entry) => {
+        const values = Object.values(entry.scores)
+        const avgFmax = values.length > 0
+          ? values.reduce((sum, v) => sum + v, 0) / values.length
+          : 0
+        return { ...entry, avgFmax }
+      })
+      .filter((entry) => entry.count > 0)
+      .sort((a, b) => b.avgFmax - a.avgFmax)
+
+    return result
+  }, [bestMetrics, selectedMethods])
+
+  const { getColor } = useMethodColors(colorDomain)
+  const patternId = (method: string) => `overall-baseline-${method.replace(/[^a-zA-Z0-9_-]/g, '-')}`
+
+  if (chartData.length === 0) {
+    return (
+      <div className="overall-ranking-chart overall-ranking-chart--empty">
+        <p>Select methods to view rankings</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="overall-ranking-chart">
+      <h4 className="overall-ranking-chart__title">
+        Overall Method Ranking
+        <InfoIcon tooltip="Average F-max across all 3 knowledge subsets (NK, LK, PK) and all 3 GO aspects (BP, MF, CC). Higher is better." />
+      </h4>
+      <div className="overall-ranking-chart__container">
+        <ResponsiveContainer width="100%" height={Math.max(250, chartData.length * 36)}>
+          <BarChart
+            data={chartData}
+            layout="vertical"
+            margin={{ top: 10, right: 36, left: 8, bottom: 30 }}
+          >
+            <defs>
+              {chartData.filter((entry) => baselineSet.has(entry.method)).map((entry) => {
+                const color = getColor(entry.method)
+                return (
+                  <pattern
+                    key={entry.method}
+                    id={patternId(entry.method)}
+                    patternUnits="userSpaceOnUse"
+                    width="6"
+                    height="6"
+                    patternTransform="rotate(45)"
+                  >
+                    <rect width="6" height="6" fill="white" />
+                    <line x1="0" y1="0" x2="0" y2="6" stroke={color} strokeWidth="3" />
+                  </pattern>
+                )
+              })}
+            </defs>
+            <XAxis
+              type="number"
+              domain={[0, 1]}
+              tickFormatter={(value) => value.toFixed(2)}
+              tick={{ fontSize: 12 }}
+              label={{
+                value: 'Average weighted F-max',
+                position: 'insideBottom',
+                offset: -14,
+                fontSize: 12,
+                fill: 'var(--isu-charcoal)',
+              }}
+            />
+            <YAxis
+              type="category"
+              dataKey="method"
+              tick={{ fontSize: 12 }}
+              width={94}
+            />
+            <Tooltip
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null
+                const data = payload[0].payload as MethodScore
+                return (
+                  <div className="overall-ranking-chart__tooltip">
+                    <strong>{data.method}</strong>
+                    <div className="overall-ranking-chart__tooltip-avg">
+                      Average F-max: {data.avgFmax.toFixed(4)}
+                    </div>
+                    <div className="overall-ranking-chart__tooltip-grid">
+                      {SUBSETS.map((subset) => (
+                        <div key={subset} className="overall-ranking-chart__tooltip-row">
+                          <span className="overall-ranking-chart__tooltip-label">
+                            {SUBSET_LABELS[subset]}:
+                          </span>
+                          {ASPECTS.map((aspect) => {
+                            const key = `${subset}_${aspect}`
+                            const score = data.scores[key]
+                            return (
+                              <span key={key} className="overall-ranking-chart__tooltip-cell">
+                                {score !== undefined ? score.toFixed(3) : '-'}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              }}
+            />
+            <Bar dataKey="avgFmax" radius={[0, 4, 4, 0]}>
+              {chartData.map((entry) => (
+                <Cell
+                  key={entry.method}
+                  fill={baselineSet.has(entry.method) ? `url(#${patternId(entry.method)})` : getColor(entry.method)}
+                  stroke={baselineSet.has(entry.method) ? getColor(entry.method) : undefined}
+                  strokeWidth={baselineSet.has(entry.method) ? 1 : 0}
+                />
+              ))}
+              <LabelList
+                dataKey="avgFmax"
+                position="right"
+                formatter={(value: number) => value.toFixed(2)}
+                style={{ fontSize: 11, fill: 'var(--isu-charcoal)' }}
+              />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  )
+}

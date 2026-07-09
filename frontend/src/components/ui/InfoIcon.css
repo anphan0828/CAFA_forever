@@ -1,0 +1,14 @@
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--isu-caption);
+  cursor: help;
+  vertical-align: middle;
+  margin-left: 0.25rem;
+  transition: color 0.2s;
+}
+
+.info-icon:hover {
+  color: var(--isu-cardinal-text);
+}

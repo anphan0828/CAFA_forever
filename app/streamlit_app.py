@@ -1060,7 +1060,7 @@ def main():
                            url="https://github.com/anphan0828/CAFA_forever")
         with col2:
             st.link_button("**📃 Read the Paper**", 
-                           url="https://arxiv.org/pdf/2604.20782")
+                           url="https://arxiv.org/abs/2604.20782")
 
     render_how_it_works()
 

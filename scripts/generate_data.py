@@ -1,0 +1,534 @@
+#!/usr/bin/env python3
+"""
+Shared LAFA data contract generator.
+
+Transforms validated release TSV files into JSON consumed by the React frontend.
+The validation rules mirror the Streamlit frontend's release/data guardrails.
+"""
+
+import csv
+import json
+import sys
+from collections import defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+FRONTEND_DIR = REPO_ROOT / "frontend"
+DATA_ROOT = REPO_ROOT / "data"
+RELEASES_DIR = DATA_ROOT / "releases"
+OUTPUT_DIR = FRONTEND_DIR / "public" / "data"
+
+# Import config from app module
+sys.path.insert(0, str(REPO_ROOT / "app"))
+try:
+    from config import (
+        DATA_DATES,
+        METHOD_HELP_MSG,
+        METHOD_DOCKER_URLS,
+        BASELINE_METHOD_LABELS,
+        GO_ASPECTS,
+    )
+except ImportError:
+    print("Warning: Could not import from app/config.py, using defaults")
+    DATA_DATES = {}
+    METHOD_HELP_MSG = {}
+    METHOD_DOCKER_URLS = {}
+    BASELINE_METHOD_LABELS = set()
+    GO_ASPECTS = {
+        "biological_process": "Biological Process",
+        "molecular_function": "Molecular Function",
+        "cellular_component": "Cellular Component",
+    }
+
+SUBSETS = ["NK", "LK", "PK"]
+ASPECT_SHORT = {"biological_process": "P", "molecular_function": "F", "cellular_component": "C"}
+ASPECT_LONG = {v: k for k, v in ASPECT_SHORT.items()}
+ALLOWED_ASPECTS = set(ASPECT_SHORT)
+ALLOWED_GT_ASPECTS = set(ASPECT_LONG)
+REQUIRED_RELEASE_FILES = [
+    "method_names.tsv",
+    "groundtruth_NK.tsv",
+    "groundtruth_LK.tsv",
+    "groundtruth_PK.tsv",
+    "results_NK/evaluation_best_f_micro_w.tsv",
+    "results_NK/evaluation_all.tsv",
+    "results_LK/evaluation_best_f_micro_w.tsv",
+    "results_LK/evaluation_all.tsv",
+    "results_PK/evaluation_best_f_micro_w.tsv",
+    "results_PK/evaluation_all.tsv",
+]
+REQUIRED_GT_COLUMNS = {"EntryID", "aspect"}
+REQUIRED_BEST_COLUMNS = {
+    "filename",
+    "ns",
+    "n",
+    "pr_micro_w",
+    "rc_micro_w",
+    "f_micro_w",
+    "cov_w",
+    "tau",
+}
+REQUIRED_ALL_COLUMNS = {"filename", "ns", "tau", "cov", "rc_micro_w", "pr_micro_w", "f_micro_w"}
+REQUIRED_METHOD_COLUMNS = {"filename", "label"}
+REQUIRED_AVAILABILITY_COLUMNS = {"method", "NK", "LK", "PK"}
+NUMERIC_BEST_COLUMNS = ["n", "pr_micro_w", "rc_micro_w", "f_micro_w", "cov_w", "tau"]
+NUMERIC_ALL_COLUMNS = ["tau", "cov", "rc_micro_w", "pr_micro_w", "f_micro_w"]
+BOOLEAN_VALUES = {"true": True, "false": False, "1": True, "0": False, "yes": True, "no": False}
+
+
+class ContractError(ValueError):
+    """Raised when a release does not satisfy the shared frontend data contract."""
+
+
+def parse_tsv(path: Path) -> list[dict]:
+    """Parse a TSV file into a list of dicts."""
+    if not path.exists():
+        raise ContractError(f"{path} does not exist")
+
+    with path.open("r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        if reader.fieldnames is None:
+            return []
+        return [dict(row) for row in reader if any((value or "").strip() for value in row.values())]
+
+
+def validate_required_columns(rows: list[dict], required_columns: set[str], name: str) -> None:
+    fieldnames = set(rows[0].keys()) if rows else set()
+    missing = sorted(required_columns - fieldnames)
+    if missing:
+        raise ContractError(f"{name} missing required columns: {', '.join(missing)}")
+
+
+def validate_numeric_columns(rows: list[dict], numeric_columns: list[str], name: str) -> None:
+    for row_idx, row in enumerate(rows, start=2):
+        for column in numeric_columns:
+            try:
+                float(row.get(column, ""))
+            except (TypeError, ValueError):
+                raise ContractError(f"{name} has non-numeric value in column '{column}' on row {row_idx}")
+
+
+def validate_ns_values(rows: list[dict], name: str) -> None:
+    invalid = sorted({str(row.get("ns", "")).strip() for row in rows} - ALLOWED_ASPECTS)
+    if invalid:
+        raise ContractError(f"{name} has invalid ns values: {', '.join(invalid)}")
+
+
+def validate_gt_aspects(rows: list[dict], name: str) -> None:
+    invalid = sorted({str(row.get("aspect", "")).strip() for row in rows} - ALLOWED_GT_ASPECTS)
+    if invalid:
+        raise ContractError(f"{name} has invalid aspect values: {', '.join(invalid)}")
+
+
+def coerce_bool(value: str, field_name: str) -> bool:
+    normalized = str(value).strip().lower()
+    if normalized not in BOOLEAN_VALUES:
+        raise ContractError(f"{field_name} must contain true/false style values")
+    return BOOLEAN_VALUES[normalized]
+
+
+def inspect_release_dir(release_dir: Path) -> list[str]:
+    errors = []
+    for relative_path in REQUIRED_RELEASE_FILES:
+        if not (release_dir / relative_path).exists():
+            errors.append(f"missing {relative_path}")
+    return errors
+
+
+def split_release_id(release_id: str) -> tuple[str, str]:
+    """Split a release folder name into start and end time points."""
+    parts = str(release_id).split("_")
+    if len(parts) != 4:
+        raise ValueError(f"Release id must follow Mon_YYYY_Mon_YYYY: {release_id}")
+    return "_".join(parts[:2]), "_".join(parts[2:])
+
+
+def parse_timepoint_label(timepoint_label: str) -> datetime:
+    """Parse a Mon_YYYY label into a sortable datetime."""
+    return datetime.strptime(str(timepoint_label), "%b_%Y")
+
+
+def normalize_catalog_entry(entry: dict) -> dict:
+    release_id = entry.get("release_id") or entry.get("id") or entry.get("name")
+    release_path = entry.get("path")
+    status = entry.get("status", "ready")
+
+    if not release_id and release_path:
+        release_id = Path(release_path).name
+    if not release_id:
+        raise ContractError("catalog entry missing release_id")
+
+    if release_path:
+        path = Path(release_path)
+        if not path.is_absolute():
+            path = REPO_ROOT / path
+    else:
+        path = RELEASES_DIR / release_id
+
+    return {"release_id": release_id, "path": path, "status": status}
+
+
+def generate_catalog() -> dict:
+    """Generate catalog.json from existing catalog and release directories."""
+    catalog_path = RELEASES_DIR / "catalog.json"
+
+    if catalog_path.exists():
+        with open(catalog_path, "r", encoding="utf-8") as f:
+            raw_catalog = json.load(f)
+        raw_releases = raw_catalog.get("releases", raw_catalog)
+    else:
+        raw_releases = []
+        for item in sorted(RELEASES_DIR.iterdir()):
+            if item.is_dir() and not item.name.startswith("."):
+                raw_releases.append({
+                    "release_id": item.name,
+                    "path": str(item.relative_to(REPO_ROOT)),
+                    "status": "ready"
+                })
+
+    releases = []
+    invalid = {}
+    timepoints = set()
+
+    for entry in raw_releases:
+        try:
+            normalized_entry = normalize_catalog_entry(entry)
+            release_id = normalized_entry["release_id"]
+            release_dir = normalized_entry["path"]
+            status = normalized_entry["status"]
+        except ContractError as exc:
+            invalid["catalog"] = invalid.get("catalog", []) + [str(exc)]
+            continue
+
+        try:
+            if status != "ready":
+                invalid[release_id] = [f"catalog status is '{status}'"]
+                continue
+            if not release_dir.exists():
+                invalid[release_id] = [f"release path not found: {release_dir}"]
+                continue
+            release_errors = inspect_release_dir(release_dir)
+            if release_errors:
+                invalid[release_id] = release_errors
+                continue
+
+            start_tp, end_tp = split_release_id(release_id)
+            timepoints.add(start_tp)
+            timepoints.add(end_tp)
+
+            releases.append({
+                "id": release_id,
+                "startTimepoint": start_tp,
+                "endTimepoint": end_tp,
+                "status": "ready"
+            })
+        except ValueError as e:
+            invalid[release_id] = [str(e)]
+            continue
+
+    releases.sort(key=lambda r: (parse_timepoint_label(r["startTimepoint"]),
+                                  parse_timepoint_label(r["endTimepoint"])))
+    sorted_timepoints = sorted(timepoints, key=parse_timepoint_label)
+    timepoint_dates = {
+        timepoint: {
+            "goa": DATA_DATES.get(timepoint, {}).get("goa", "N/A"),
+            "uniprot": DATA_DATES.get(timepoint, {}).get("uniprot", "N/A"),
+        }
+        for timepoint in sorted_timepoints
+    }
+
+    return {
+        "releases": releases,
+        "invalidReleases": invalid,
+        "timepoints": sorted_timepoints,
+        "timepointDates": timepoint_dates,
+        "generatedAt": datetime.now(timezone.utc).isoformat()
+    }
+
+
+def generate_methods_config() -> dict:
+    """Generate methods.json with help text, URLs, and baseline flags."""
+    methods = {}
+
+    # Combine all known methods from various sources
+    all_method_names = set(METHOD_HELP_MSG.keys()) | set(METHOD_DOCKER_URLS.keys()) | BASELINE_METHOD_LABELS
+
+    for name in all_method_names:
+        methods[name] = {
+            "label": name,
+            "description": METHOD_HELP_MSG.get(name, ""),
+            "dockerUrl": METHOD_DOCKER_URLS.get(name, ""),
+            "isBaseline": name in BASELINE_METHOD_LABELS
+        }
+
+    return {
+        "methods": methods,
+        "aspects": GO_ASPECTS,
+        "subsets": {
+            "NK": "No Knowledge - targets with no existing experimental annotations",
+            "LK": "Limited Knowledge - targets with some existing experimental annotations",
+            "PK": "Partial Knowledge - targets with existing experimental annotations"
+        }
+    }
+
+
+def count_groundtruth_targets(release_dir: Path) -> dict:
+    """Count targets by subset and aspect from groundtruth files."""
+    counts = {"uniqueAcrossSubsets": 0}
+    all_entry_ids = set()
+
+    for subset in SUBSETS:
+        gt_path = release_dir / f"groundtruth_{subset}.tsv"
+        rows = parse_tsv(gt_path)
+        validate_required_columns(rows, REQUIRED_GT_COLUMNS, str(gt_path))
+        validate_gt_aspects(rows, str(gt_path))
+
+        if not rows:
+            counts[subset] = {"total": 0, "byAspect": {}}
+            continue
+
+        rows = [row for row in rows if row.get("EntryID") and row.get("aspect")]
+        entry_ids = set(row.get("EntryID", "") for row in rows)
+        all_entry_ids.update(entry_ids)
+        total = len(entry_ids)
+
+        aspect_counts = defaultdict(set)
+        for row in rows:
+            entry_id = row.get("EntryID", "")
+            aspect_code = row.get("aspect", "")
+            if entry_id and aspect_code:
+                aspect_name = ASPECT_LONG.get(aspect_code, aspect_code)
+                aspect_counts[aspect_name].add(entry_id)
+
+        counts[subset] = {
+            "total": total,
+            "byAspect": {
+                aspect: len(ids) for aspect, ids in aspect_counts.items()
+            }
+        }
+
+    counts["uniqueAcrossSubsets"] = len(all_entry_ids)
+    return counts
+
+
+def generate_release_meta(release_id: str, release_dir: Path) -> dict:
+    """Generate meta.json for a release."""
+    start_tp, end_tp = split_release_id(release_id)
+
+    start_dates = DATA_DATES.get(start_tp, {})
+    end_dates = DATA_DATES.get(end_tp, {})
+
+    return {
+        "releaseId": release_id,
+        "startTimepoint": start_tp,
+        "endTimepoint": end_tp,
+        "dates": {
+            "goaStart": start_dates.get("goa", "N/A"),
+            "goaEnd": end_dates.get("goa", "N/A"),
+            "uniprotStart": start_dates.get("uniprot", "N/A"),
+            "uniprotEnd": end_dates.get("uniprot", "N/A")
+        },
+        "targetCounts": count_groundtruth_targets(release_dir)
+    }
+
+
+def generate_release_methods(release_dir: Path) -> dict:
+    """Generate methods.json for a release from method_names and method_availability."""
+    methods = {}
+
+    names_rows = parse_tsv(release_dir / "method_names.tsv")
+    validate_required_columns(names_rows, REQUIRED_METHOD_COLUMNS, str(release_dir / "method_names.tsv"))
+    for row in names_rows:
+        filename = row.get("filename", "").strip()
+        label = row.get("label", "").strip()
+        group = row.get("group", "")
+        if label:
+            methods[label] = {
+                "filename": filename,
+                "label": label,
+                "group": group,
+                "availability": {}
+            }
+
+    avail_rows = parse_tsv(release_dir / "method_availability.tsv")
+    validate_required_columns(avail_rows, REQUIRED_AVAILABILITY_COLUMNS, str(release_dir / "method_availability.tsv"))
+    for row in avail_rows:
+        method_name = row.get("method", "")
+        if method_name in methods:
+            for subset in SUBSETS:
+                methods[method_name]["availability"][subset] = coerce_bool(
+                    row.get(subset, ""),
+                    f"{release_dir / 'method_availability.tsv'} column '{subset}'",
+                )
+
+    return {"methods": methods}
+
+
+def load_method_name_map(release_dir: Path) -> dict[str, str]:
+    names_rows = parse_tsv(release_dir / "method_names.tsv")
+    validate_required_columns(names_rows, REQUIRED_METHOD_COLUMNS, str(release_dir / "method_names.tsv"))
+    return {
+        row.get("filename", "").strip(): row.get("label", "").strip()
+        for row in names_rows
+        if row.get("filename") and row.get("label")
+    }
+
+
+def generate_best_metrics(release_dir: Path) -> dict:
+    """Generate best.json with best metrics by subset and aspect."""
+    best = {}
+    name_map = load_method_name_map(release_dir)
+
+    for subset in SUBSETS:
+        best_path = release_dir / f"results_{subset}" / "evaluation_best_f_micro_w.tsv"
+        rows = parse_tsv(best_path)
+        validate_required_columns(rows, REQUIRED_BEST_COLUMNS, str(best_path))
+        validate_ns_values(rows, str(best_path))
+        validate_numeric_columns(rows, NUMERIC_BEST_COLUMNS, str(best_path))
+
+        if not rows:
+            continue
+
+        for row in rows:
+            filename = row.get("filename", "").strip()
+            aspect = row.get("ns", "").strip()
+            method_label = filename.replace("_predictions.tsv", "").replace("_", " ").title()
+            method_label = name_map.get(filename, method_label)
+
+            key = f"{subset}_{aspect}"
+
+            entry = {
+                "method": method_label,
+                "subset": subset,
+                "aspect": aspect,
+                "precision": float(row.get("pr_micro_w", 0)),
+                "recall": float(row.get("rc_micro_w", 0)),
+                "fmax": float(row.get("f_micro_w", 0)),
+                "coverage": float(row.get("cov_w", 0)),
+                "threshold": float(row.get("tau", 0)),
+                "n": float(row.get("n", 0))
+            }
+
+            if key not in best:
+                best[key] = []
+            best[key].append(entry)
+
+    for key in best:
+        best[key].sort(key=lambda x: x["fmax"], reverse=True)
+
+    return best
+
+
+def generate_curves(release_dir: Path) -> dict:
+    """Generate curves.json with PR curve points."""
+    curves = {}
+    name_map = load_method_name_map(release_dir)
+
+    for subset in SUBSETS:
+        all_path = release_dir / f"results_{subset}" / "evaluation_all.tsv"
+        rows = parse_tsv(all_path)
+        validate_required_columns(rows, REQUIRED_ALL_COLUMNS, str(all_path))
+        validate_ns_values(rows, str(all_path))
+        validate_numeric_columns(rows, NUMERIC_ALL_COLUMNS, str(all_path))
+
+        if not rows:
+            continue
+
+        grouped = defaultdict(list)
+        for row in rows:
+            filename = row.get("filename", "").strip()
+            aspect = row.get("ns", "").strip()
+            method = name_map.get(filename, filename.replace("_predictions.tsv", ""))
+
+            point = {
+                "tau": float(row.get("tau", 0)),
+                "precision": float(row.get("pr_micro_w", 0)),
+                "recall": float(row.get("rc_micro_w", 0))
+            }
+            key = f"{subset}_{aspect}_{method}"
+            grouped[key].append(point)
+
+        for key, points in grouped.items():
+            points.sort(key=lambda p: p["tau"])
+            curves[key] = points
+
+    return curves
+
+
+def process_release(release_id: str, release_dir: Path, output_dir: Path):
+    """Process a single release and generate all JSON files."""
+    release_output = output_dir / "releases" / release_id
+    release_output.mkdir(parents=True, exist_ok=True)
+
+    print(f"  Generating meta.json...")
+    meta = generate_release_meta(release_id, release_dir)
+    with open(release_output / "meta.json", "w", encoding="utf-8") as f:
+        json.dump(meta, f, indent=2)
+
+    print(f"  Generating methods.json...")
+    methods = generate_release_methods(release_dir)
+    with open(release_output / "methods.json", "w", encoding="utf-8") as f:
+        json.dump(methods, f, indent=2)
+
+    print(f"  Generating best.json...")
+    best = generate_best_metrics(release_dir)
+    with open(release_output / "best.json", "w", encoding="utf-8") as f:
+        json.dump(best, f, indent=2)
+
+    print(f"  Generating curves.json...")
+    curves = generate_curves(release_dir)
+    with open(release_output / "curves.json", "w", encoding="utf-8") as f:
+        json.dump(curves, f)  # No indent for size efficiency
+
+
+def main():
+    """Main entry point."""
+    print(f"LAFA Frontend Data Generator")
+    print(f"=" * 40)
+    print(f"Data source: {RELEASES_DIR}")
+    print(f"Output dir:  {OUTPUT_DIR}")
+    print()
+
+    # Create output directory
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Generate catalog
+    print("Generating catalog.json...")
+    catalog = generate_catalog()
+    with open(OUTPUT_DIR / "catalog.json", "w", encoding="utf-8") as f:
+        json.dump(catalog, f, indent=2)
+    print(f"  Found {len(catalog['releases'])} releases, {len(catalog['timepoints'])} timepoints")
+
+    # Generate methods config
+    print("\nGenerating methods.json...")
+    methods_config = generate_methods_config()
+    with open(OUTPUT_DIR / "methods.json", "w", encoding="utf-8") as f:
+        json.dump(methods_config, f, indent=2)
+    print(f"  Configured {len(methods_config['methods'])} methods")
+
+    # Process each release
+    print("\nProcessing releases...")
+    for release in catalog["releases"]:
+        release_id = release["id"]
+        release_dir = RELEASES_DIR / release_id
+
+        if not release_dir.exists():
+            print(f"\n  Skipping {release_id}: directory not found")
+            continue
+
+        print(f"\n[{release_id}]")
+        process_release(release_id, release_dir, OUTPUT_DIR)
+
+    print("\n" + "=" * 40)
+    print("Data generation complete!")
+
+    # Print summary
+    total_size = sum(f.stat().st_size for f in OUTPUT_DIR.rglob("*.json"))
+    print(f"Total output size: {total_size / 1024:.1f} KB")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,187 @@
+/* App-specific styles */
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  gap: 1rem;
+  padding: 2rem;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--isu-border);
+  border-top-color: var(--isu-cardinal);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.error-container h2 {
+  color: var(--isu-cardinal-text);
+  margin-bottom: 1rem;
+}
+
+/* Analysis layout */
+.analysis-release-controls {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.analysis-release-controls__primary {
+  min-width: 0;
+}
+
+.analysis-release-controls__primary .timeline-selector,
+.analysis-release-control--secondary .timeline-selector {
+  margin-bottom: 0;
+}
+
+.analysis-release-controls__comparison-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: -0.35rem;
+  margin-bottom: -0.35rem;
+}
+
+.analysis-release-control--secondary {
+  min-width: 0;
+  --timeline-accent: var(--isu-gold);
+}
+
+.analysis-release-control--secondary .timeline-selector {
+  --timeline-accent: var(--isu-gold);
+  border-color: var(--isu-gold);
+  background: linear-gradient(to bottom, rgba(241, 190, 72, 0.05), var(--isu-white));
+}
+
+.analysis-compare-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 32px;
+  padding: 0.35rem 0.75rem;
+  background: var(--isu-white);
+  border: 1px solid var(--isu-border);
+  border-radius: 999px;
+  color: var(--isu-charcoal);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.analysis-compare-toggle:hover {
+  border-color: var(--isu-cardinal);
+}
+
+.analysis-compare-toggle input {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--isu-cardinal);
+  cursor: pointer;
+}
+
+.analysis-window-label {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.analysis-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 2rem;
+}
+
+.analysis-sidebar {
+  min-width: 0;
+}
+
+.analysis-main {
+  min-width: 0;
+}
+
+/* Charts grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-top-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(360px, 1fr));
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+/* Tab content */
+.tab-content {
+  min-height: 300px;
+}
+
+.tab-content > * + * {
+  margin-top: 1.5rem;
+}
+
+/* Placeholder state */
+.analysis-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: 2rem;
+  background: var(--isu-light);
+  border-radius: 8px;
+  text-align: center;
+  color: var(--isu-caption);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .analysis-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-sidebar {
+    order: 2;
+  }
+
+  .analysis-main {
+    order: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-top-grid {
+    grid-template-columns: 1fr;
+  }
+}

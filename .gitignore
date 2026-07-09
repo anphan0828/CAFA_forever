@@ -33,6 +33,7 @@ wheels/
 *.egg
 
 # Virtual environments
+.venv/
 venv/
 env/
 ENV/
@@ -61,11 +62,20 @@ data/old_releases/*
 new_data/time_points/*
 tests/
 work/
+
+# Generated frontend data and local review artifacts
+frontend/public/data/
+image.png
+paper.pdf
+tooltip_error*.png
+
 # Logs
 *.log
 *.out
 *.err
 .nextflow/cache/*
+.env.umami
+.env*.local
 
 # Notes
 00notes

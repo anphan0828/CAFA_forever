@@ -1,0 +1,232 @@
+.timeline-selector {
+  --timeline-accent: var(--isu-cardinal);
+  background: var(--isu-white);
+  border: 1px solid var(--isu-border);
+  border-radius: 8px;
+  padding: 0.75rem 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.timeline-selector__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--isu-charcoal);
+  margin: 0 0 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timeline-selector__chart {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  min-width: 0;
+}
+
+.timeline-selector__chart--dragging {
+  cursor: grabbing;
+}
+
+.timeline-selector__handles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 22px;
+  pointer-events: none;
+}
+
+.timeline-selector__handle {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: grab;
+  pointer-events: auto;
+  transition: transform 0.1s;
+  z-index: 10;
+}
+
+.timeline-selector__handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  background: var(--timeline-accent);
+  border: 2px solid var(--isu-white);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.timeline-selector__handle:hover::after {
+  transform: translate(-50%, -50%) scale(1.08);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.timeline-selector__handle--active {
+  cursor: grabbing;
+}
+
+.timeline-selector__handle--active::after {
+  transform: translate(-50%, -50%) scale(1.12);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.timeline-selector__handle::before {
+  content: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: var(--isu-white);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.timeline-selector__timepoints {
+  position: relative;
+  height: 3.1rem;
+  margin-top: 0;
+  margin-bottom: -0.35rem;
+  padding: 0 36px 0.2rem;
+}
+
+.timeline-selector__timepoint {
+  position: absolute;
+  top: 0;
+  min-width: 0;
+  width: 9.5rem;
+  text-align: left;
+}
+
+.timeline-selector__timepoint-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--isu-charcoal);
+  line-height: 1.25;
+}
+
+.timeline-selector__timepoint-date {
+  font-size: 0.68rem;
+  color: var(--isu-caption);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.timeline-selector__selection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+}
+
+.timeline-selector__selection--warning-only {
+  justify-content: flex-start;
+  padding-top: 0;
+}
+
+.timeline-selector__body {
+  display: grid;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timeline-selector__body--target-right {
+  grid-template-columns: minmax(0, 1fr) minmax(110px, max-content);
+}
+
+.timeline-selector__body--target-below {
+  grid-template-columns: 1fr;
+}
+
+.timeline-selector__targets {
+  display: flex;
+  flex-direction: column;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.1rem;
+  padding: 0.25rem 0 0.25rem 0.5rem;
+  border-left: 0;
+  min-height: 54px;
+}
+
+.timeline-selector__targets-value {
+  color: var(--isu-cardinal-text);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.timeline-selector__targets-label {
+  color: var(--isu-caption);
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+.timeline-selector__range {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--isu-charcoal);
+}
+
+.timeline-selector__warning {
+  font-size: 0.75rem;
+  color: #856404;
+  background: #fff3cd;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+}
+
+.timeline-selector__hint {
+  font-size: 0.75rem;
+  color: var(--isu-caption);
+  font-style: italic;
+}
+
+/* Recharts customization */
+.timeline-selector .recharts-xAxis .recharts-cartesian-axis-tick-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.timeline-selector .recharts-reference-line line {
+  pointer-events: none;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .timeline-selector .recharts-xAxis .recharts-cartesian-axis-tick-value {
+    font-size: 12px;
+  }
+
+  .timeline-selector__timepoints {
+    overflow-x: auto;
+    height: 3.8rem;
+  }
+
+  .timeline-selector__timepoint {
+    width: 8rem;
+  }
+
+  .timeline-selector__body--target-right {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-selector__targets {
+    border-left: 0;
+    border-top: 0;
+    min-height: auto;
+    align-items: center;
+  }
+}
