@@ -14,6 +14,9 @@ export function HeroSection() {
           <span className="hero__acronym-letter">F</span>unction{' '}
           <span className="hero__acronym-letter">A</span>nnotation
         </h1>
+        <p className="viewing-note">
+          (Best viewed on a laptop or desktop. Mobile users should use landscape orientation)
+        </p>
         <p className="hero__description">
           A persistent benchmarking system for protein function prediction methods.
           Unlike CAFA's triennial challenges, LAFA continuously evaluates methods

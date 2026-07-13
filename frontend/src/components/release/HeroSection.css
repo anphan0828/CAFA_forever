@@ -19,6 +19,13 @@
   line-height: 1;
 }
 
+.viewing-note {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: #666;
+  text-align: center;
+}
+
 .hero__description {
   font-size: 1.05rem;
   color: var(--isu-charcoal);
