@@ -1,0 +1,45 @@
+{
+  "comparison_mode": "trusted_published_t0",
+  "compatible": null,
+  "migration": null,
+  "policy_compatibility_required": false,
+  "schema_version": 1,
+  "t0": {
+    "catalog_ready_releases": [
+      "Dec_2025_Mar_2026",
+      "Nov_2025_Mar_2026",
+      "Sep_2025_Mar_2026"
+    ],
+    "catalog_sha256": "4e338baa3e5a71cdb0a842db924665f563e9a51352cbfb50207be48b33f3ef86",
+    "evaluation_artifacts": {
+      "go-basic.obo": {
+        "bytes": 31933366,
+        "sha256": "eee63704b5fe1c4680440341e07e759e92a472f3d30272e4f47497aa97943391"
+      },
+      "test_sequences.fasta": {
+        "bytes": 287479954,
+        "sha256": "987e9d468c2691008b8c7d9d3eea79dec207b5c892312f8d63d1fe6f5b01cead"
+      },
+      "train_terms.tsv": {
+        "bytes": 10983956,
+        "sha256": "619110f42faa2bc635a3a9dbc66142ae66c761006a153d12cc4b3574dc833a96"
+      },
+      "train_terms_propagated.tsv": {
+        "bytes": 72526004,
+        "sha256": "3e974df219be8ed83b957af6473a2a2ec2d1872bde78378c8e09f61f9cf12485"
+      }
+    },
+    "status": "trusted published legacy bundle",
+    "timepoint_id": "Mar_2026"
+  },
+  "t0_policy_id": null,
+  "t1_frozen_graph": {
+    "bytes": 31428837,
+    "filename": "go-basic_frozen.obo",
+    "sha256": "d9a5670865816dd63dcdd49f76864d3a621990d8bcbb6b758e4cdfbfdb9f2982"
+  },
+  "t1_manifest_id": "e9e21e484b45f03bf4847498e72f352e454b355b0e64d71b53645d976c42c799",
+  "t1_policy_id": "5d385136f2607eb4b95ef6fc17bc78de2727db5edf61c000fa8e1cd8f4b013c2",
+  "t1_status": "validated expanded-source bundle",
+  "transition": "accepted: T1 annotation-source expansion"
+}

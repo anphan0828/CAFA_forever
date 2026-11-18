@@ -1,0 +1,351 @@
+{
+  "original_session": "e5232742-5ab5-4d11-bf4a-9dfb5c751a86",
+  "original_source_identity": "a1c975137ff88dbd127d2a43a6845ec438a0a5502fa5c582a85aea012aae67fc",
+  "release_id": "Mar_2026_Jun_2026",
+  "t0_id": "Mar_2026",
+  "t1_id": "Jun_2026",
+  "t0_root": "/work/idoerg/ahphan/CAFA_forever/new_data/time_points/Mar_2026",
+  "t1_root": "/work/idoerg/ahphan/CAFA_forever/new_data/time_points/Jun_2026",
+  "publish_root": "/work/idoerg/ahphan/CAFA_forever/data/new_time_windows",
+  "method_names_file": "/work/idoerg/ahphan/CAFA_forever/data/new_time_windows/Sep_2025_Mar_2026/method_names.tsv",
+  "allow_missing_funbind_batches": true,
+  "predictions": [
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/e5/c2d3623e86918267f5b6c09af9099a/naive_predictions.tsv",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/00/8f12d8f14e5a118467146412e60990/goa_nonexp_predictions.tsv",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/30/dde50b5b358a9f95482dfa89823438/blast_predictions.tsv",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d3/4c6c1f1e55070873e597dcef7c5058/prott5_predictions.tsv",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/37/3546df80e19dcaf6cbd11040e0343b/transfew_predictions.tsv",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/ca/e4b8dbd0e9efdea41b04dc3c7d7621/deepgoplus_predictions.tsv"
+  ],
+  "groundtruth": {
+    "groundtruth_NK.tsv": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d4/f476806c95aa51fce2f89a002848f7/groundtruth_NK.tsv",
+    "groundtruth_LK.tsv": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d4/f476806c95aa51fce2f89a002848f7/groundtruth_LK.tsv",
+    "groundtruth_PK.tsv": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d4/f476806c95aa51fce2f89a002848f7/groundtruth_PK.tsv",
+    "groundtruth_PK_known.tsv": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d4/f476806c95aa51fce2f89a002848f7/groundtruth_PK_known.tsv",
+    "groundtruth_terms_of_interest.txt": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d4/f476806c95aa51fce2f89a002848f7/groundtruth_terms_of_interest.txt",
+    "groundtruth_targets.tsv": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d4/f476806c95aa51fce2f89a002848f7/groundtruth_targets.tsv"
+  },
+  "targets_fasta": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/ed/0379eea7f4cf2cabd354b01665e14f/groundtruth_targets.fasta",
+  "policy_comparison": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/f1/dcb701312608a03fcd59d3725647db/source_policy_comparison.json",
+  "funbind_batches": [
+    {
+      "index": 1,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/2e/61f2501f5e7075baf183afd42d33af/funbind_batch_001.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/2e/61f2501f5e7075baf183afd42d33af/funbind_batch_001.manifest.tsv"
+    },
+    {
+      "index": 2,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/94/e5e6ca068ae47c0e356f2b31b011a9/funbind_batch_002.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/94/e5e6ca068ae47c0e356f2b31b011a9/funbind_batch_002.manifest.tsv"
+    },
+    {
+      "index": 3,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/80/d809b33ae9ba0ddc2111eccd16e692/funbind_batch_003.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/80/d809b33ae9ba0ddc2111eccd16e692/funbind_batch_003.manifest.tsv"
+    },
+    {
+      "index": 4,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/7e/ee03a316fe65d8a805625a4b93a896/funbind_batch_004.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/7e/ee03a316fe65d8a805625a4b93a896/funbind_batch_004.manifest.tsv"
+    },
+    {
+      "index": 5,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/92/339b615001244ad8db6d02c74c52ca/funbind_batch_005.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/92/339b615001244ad8db6d02c74c52ca/funbind_batch_005.manifest.tsv"
+    },
+    {
+      "index": 6,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/7d/364279e35cb9f70fb9cacc6a4e2a12/funbind_batch_006.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/7d/364279e35cb9f70fb9cacc6a4e2a12/funbind_batch_006.manifest.tsv"
+    },
+    {
+      "index": 7,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/8d/e2982278d938f01e303834233ad25e/funbind_batch_007.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/8d/e2982278d938f01e303834233ad25e/funbind_batch_007.manifest.tsv"
+    },
+    {
+      "index": 8,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/09/f70afd2469bfccddc0e27a791dfc53/funbind_batch_008.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/09/f70afd2469bfccddc0e27a791dfc53/funbind_batch_008.manifest.tsv"
+    },
+    {
+      "index": 9,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d3/7eaf04725c38c3631d23a752cea0ff/funbind_batch_009.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d3/7eaf04725c38c3631d23a752cea0ff/funbind_batch_009.manifest.tsv"
+    },
+    {
+      "index": 10,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/38/036ac6623465b448748a458fe6ef44/funbind_batch_010.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/38/036ac6623465b448748a458fe6ef44/funbind_batch_010.manifest.tsv"
+    },
+    {
+      "index": 11,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/f8/7b1c0d0b46279dc29760b824d654b7/funbind_batch_011.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/f8/7b1c0d0b46279dc29760b824d654b7/funbind_batch_011.manifest.tsv"
+    },
+    {
+      "index": 12,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/1d/d6e0379a5afdf9a801e77e38f2ee60/funbind_batch_012.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/1d/d6e0379a5afdf9a801e77e38f2ee60/funbind_batch_012.manifest.tsv"
+    },
+    {
+      "index": 13,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/f2/86e6acec1227bb44be4a23dc3a3c58/funbind_batch_013.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/f2/86e6acec1227bb44be4a23dc3a3c58/funbind_batch_013.manifest.tsv"
+    },
+    {
+      "index": 14,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/18/f6c64b7d3a074b65aaecadf4400b6a/funbind_batch_014.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/18/f6c64b7d3a074b65aaecadf4400b6a/funbind_batch_014.manifest.tsv"
+    },
+    {
+      "index": 15,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/f1/c25cc755cb9159cd8b2fbfb82e6565/funbind_batch_015.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/f1/c25cc755cb9159cd8b2fbfb82e6565/funbind_batch_015.manifest.tsv"
+    },
+    {
+      "index": 16,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/43/de9c4c61fd4bd830e4909e0e4d5b25/funbind_batch_016.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/43/de9c4c61fd4bd830e4909e0e4d5b25/funbind_batch_016.manifest.tsv"
+    },
+    {
+      "index": 17,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/5d/085ddf52411d25c90bf3826107a1a4/funbind_batch_017.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/5d/085ddf52411d25c90bf3826107a1a4/funbind_batch_017.manifest.tsv"
+    },
+    {
+      "index": 18,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/c5/c427005b237f1bb93b2a549e554884/funbind_batch_018.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/c5/c427005b237f1bb93b2a549e554884/funbind_batch_018.manifest.tsv"
+    },
+    {
+      "index": 19,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/cb/29dd61d388a6791a82d253923a625a/funbind_batch_019.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/cb/29dd61d388a6791a82d253923a625a/funbind_batch_019.manifest.tsv"
+    },
+    {
+      "index": 20,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/94/225ae53769b5b11d094024f883d619/funbind_batch_020.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/94/225ae53769b5b11d094024f883d619/funbind_batch_020.manifest.tsv"
+    },
+    {
+      "index": 21,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/61/21576978012111cf3d4857dbbdcf74/funbind_batch_021.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/61/21576978012111cf3d4857dbbdcf74/funbind_batch_021.manifest.tsv"
+    },
+    {
+      "index": 22,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/4b/719d3620eb98b2027d1168ff1e7266/funbind_batch_022.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/4b/719d3620eb98b2027d1168ff1e7266/funbind_batch_022.manifest.tsv"
+    },
+    {
+      "index": 23,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/a9/b231b9fe37fbb5d9b60878f89e4fd9/funbind_batch_023.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/a9/b231b9fe37fbb5d9b60878f89e4fd9/funbind_batch_023.manifest.tsv"
+    },
+    {
+      "index": 24,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/bb/be132678883ed2d3e4043757f7288a/funbind_batch_024.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/bb/be132678883ed2d3e4043757f7288a/funbind_batch_024.manifest.tsv"
+    },
+    {
+      "index": 25,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/1c/2fcb4076d13c3815acd8ff4e60d34a/funbind_batch_025.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/1c/2fcb4076d13c3815acd8ff4e60d34a/funbind_batch_025.manifest.tsv"
+    },
+    {
+      "index": 26,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/10/dc779499ef1f812aa82ffee0e51fd5/funbind_batch_026.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/10/dc779499ef1f812aa82ffee0e51fd5/funbind_batch_026.manifest.tsv"
+    },
+    {
+      "index": 27,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/14/f5d84afd1dc11c4558fc8137d08112/funbind_batch_027.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/14/f5d84afd1dc11c4558fc8137d08112/funbind_batch_027.manifest.tsv"
+    },
+    {
+      "index": 28,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/84/bb775b38b9720fe55dcc4aa1485fe2/funbind_batch_028.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/84/bb775b38b9720fe55dcc4aa1485fe2/funbind_batch_028.manifest.tsv"
+    },
+    {
+      "index": 29,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/98/8a8ddb84ed74332ffcf701007e11f7/funbind_batch_029.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/98/8a8ddb84ed74332ffcf701007e11f7/funbind_batch_029.manifest.tsv"
+    },
+    {
+      "index": 30,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/3c/fa960a8606ef4631e0a93166bac262/funbind_batch_030.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/3c/fa960a8606ef4631e0a93166bac262/funbind_batch_030.manifest.tsv"
+    },
+    {
+      "index": 31,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/46/c6a1fce575da3aabd1dd82f90e7b80/funbind_batch_031.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/46/c6a1fce575da3aabd1dd82f90e7b80/funbind_batch_031.manifest.tsv"
+    },
+    {
+      "index": 32,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/6d/142e0d2ac5d3fba022084abd8591fb/funbind_batch_032.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/6d/142e0d2ac5d3fba022084abd8591fb/funbind_batch_032.manifest.tsv"
+    },
+    {
+      "index": 33,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/9b/e74f34c33a327c566487a6d0ac19d2/funbind_batch_033.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/9b/e74f34c33a327c566487a6d0ac19d2/funbind_batch_033.manifest.tsv"
+    },
+    {
+      "index": 34,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/b9/de9aa7a0c795bf5e5092e30c695c3b/funbind_batch_034.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/b9/de9aa7a0c795bf5e5092e30c695c3b/funbind_batch_034.manifest.tsv"
+    },
+    {
+      "index": 35,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/ce/ce148618829b3761ba129181058902/funbind_batch_035.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/ce/ce148618829b3761ba129181058902/funbind_batch_035.manifest.tsv"
+    },
+    {
+      "index": 36,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/4a/42d7f02e230f0464e888dad06e156c/funbind_batch_036.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/4a/42d7f02e230f0464e888dad06e156c/funbind_batch_036.manifest.tsv"
+    },
+    {
+      "index": 37,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/74/57bb295e7bbeca82a324d735511e77/funbind_batch_037.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/74/57bb295e7bbeca82a324d735511e77/funbind_batch_037.manifest.tsv"
+    },
+    {
+      "index": 40,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/4c/aa11cc7cadfeb94b203e9dcded2823/funbind_batch_040.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/4c/aa11cc7cadfeb94b203e9dcded2823/funbind_batch_040.manifest.tsv"
+    },
+    {
+      "index": 41,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/89/0a23105b6773b50cb089a191da71d8/funbind_batch_041.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/89/0a23105b6773b50cb089a191da71d8/funbind_batch_041.manifest.tsv"
+    },
+    {
+      "index": 42,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/b8/d87656c8f7db45c4e38ae5ed692b98/funbind_batch_042.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/b8/d87656c8f7db45c4e38ae5ed692b98/funbind_batch_042.manifest.tsv"
+    },
+    {
+      "index": 43,
+      "prediction": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/98/3f820fed2f23d4c650678d67613148/funbind_batch_043.tsv",
+      "manifest": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/98/3f820fed2f23d4c650678d67613148/funbind_batch_043.manifest.tsv"
+    }
+  ],
+  "skipped_funbind_batches": [
+    {
+      "index": 39,
+      "reason": "CUDA out of memory on very long sequences",
+      "job": "16602976",
+      "workdir": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/a6/245b27e5c22ff573f273807c333363"
+    },
+    {
+      "index": 38,
+      "reason": "CUDA out of memory on very long sequences",
+      "job": "16602978",
+      "workdir": "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/1f/ee3044cb7ce23a8212ee69de76bac4"
+    }
+  ],
+  "expected_funbind_batches": 43,
+  "reused_sha256": {
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/e5/c2d3623e86918267f5b6c09af9099a/naive_predictions.tsv": "cb4675e0be3d690f62f9549c10923638325cd35cb5279fd25fef7adb9a564bc0",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/00/8f12d8f14e5a118467146412e60990/goa_nonexp_predictions.tsv": "3edd2a38e0a65e1f5d511c1c153ce8c606fff58fd594c4294cf7a37f50392d7c",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/30/dde50b5b358a9f95482dfa89823438/blast_predictions.tsv": "b51f8ab1dd1a0c822d37cf81714d1585b155aea7013bf4db01c22cec2da2e522",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d3/4c6c1f1e55070873e597dcef7c5058/prott5_predictions.tsv": "05f2055f258a06598c87770d9275153f505b7ac332c1c08139ae6bf5c38ae556",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/37/3546df80e19dcaf6cbd11040e0343b/transfew_predictions.tsv": "b07e5eeaea284b2743a0003997b7e4e01fbe87d6dae8b12f9c7f1a0beccf1909",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/ca/e4b8dbd0e9efdea41b04dc3c7d7621/deepgoplus_predictions.tsv": "28058501cb6bb0198468bdb834511d99f79274baa061724096827b749fe55c86",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d4/f476806c95aa51fce2f89a002848f7/groundtruth_NK.tsv": "95d7a7e9ee4c70727bb7559661a05c99baca89daa880536d7bcf5e1858025db3",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d4/f476806c95aa51fce2f89a002848f7/groundtruth_LK.tsv": "8eb7590b90eb49d6f088b7db15e9690b3498810ae2f51f7925eef511f4607823",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d4/f476806c95aa51fce2f89a002848f7/groundtruth_PK.tsv": "1ad08a73cad850290fe900e9fa33a46c858c91676a8df9ae25c53cfe47cc5030",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d4/f476806c95aa51fce2f89a002848f7/groundtruth_PK_known.tsv": "4a725c44ea7f33df21ea03a9f705691daece1428956bbe5ef5a779297dac9c12",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d4/f476806c95aa51fce2f89a002848f7/groundtruth_terms_of_interest.txt": "af0363c9cd81ee6e71661d959d11edfef1a832d712776a2cbfe384cac5ba5530",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d4/f476806c95aa51fce2f89a002848f7/groundtruth_targets.tsv": "ed935d4a4c027bccfeac15af824ac9fd216770cebf88dad2bcda1370a831d51b",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/ed/0379eea7f4cf2cabd354b01665e14f/groundtruth_targets.fasta": "8e5f5a8ea5d8d9c75c176242efbc1fac5a41230a3643bd732c9163a25393b424",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/f1/dcb701312608a03fcd59d3725647db/source_policy_comparison.json": "685aae809ab924e2b591bdf6f7846b8c31ca94b201092a7de8209702584ac6ac",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/2e/61f2501f5e7075baf183afd42d33af/funbind_batch_001.tsv": "212d2a4c2c58a99f85af3a053a2d8eadddcb359b142da2e13a0c362813341c8f",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/2e/61f2501f5e7075baf183afd42d33af/funbind_batch_001.manifest.tsv": "3fc8bd1961cacb3eaeaa1c6802e9dc18af97ac78637e7fd6eb7ed09e842e5996",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/94/e5e6ca068ae47c0e356f2b31b011a9/funbind_batch_002.tsv": "8e8b7e4d13ff940b06ea9ef4421be9fc60dad9db4c0ee5021e4dffcfb2875e3f",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/94/e5e6ca068ae47c0e356f2b31b011a9/funbind_batch_002.manifest.tsv": "c3904c93ed5eb287de2a3b7209e4f6e80b76f79cdbdf8f88f65726d9d3f4df7d",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/80/d809b33ae9ba0ddc2111eccd16e692/funbind_batch_003.tsv": "37110ca9b67975521d7fa325fa75d540b0b00faaeabf53b19838ed966bff915b",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/80/d809b33ae9ba0ddc2111eccd16e692/funbind_batch_003.manifest.tsv": "ea8049875d60ecd9dde0e13f0a4622ed29d7d9785b1276cd144c5ca6d4864fea",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/7e/ee03a316fe65d8a805625a4b93a896/funbind_batch_004.tsv": "96aeed9e08a8e2be25a8fb97ea400d48aac01884061ea6e08a2937296512fa00",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/7e/ee03a316fe65d8a805625a4b93a896/funbind_batch_004.manifest.tsv": "65d0dd8aae96f97305b8ccc276323906fd85d6b852288ea9b1a6b7751807f2a8",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/92/339b615001244ad8db6d02c74c52ca/funbind_batch_005.tsv": "46df225e92c8aefbcc3d639fc50d66d03786d614b61bbf4f24a91f1e34f5fcf4",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/92/339b615001244ad8db6d02c74c52ca/funbind_batch_005.manifest.tsv": "bbbca7ffc9077305f281f8d1d966c534227a9bdce522f7336dc92b6fe995aa03",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/7d/364279e35cb9f70fb9cacc6a4e2a12/funbind_batch_006.tsv": "c4dc708e0860210e52bdd4449926bda49f1dc29f18a4bbafb2241cda2e35444a",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/7d/364279e35cb9f70fb9cacc6a4e2a12/funbind_batch_006.manifest.tsv": "32b179f1b327a42d94ec22bee79e3dbeb3f4c04b450b4ba1f5e5e0fdc2613e6b",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/8d/e2982278d938f01e303834233ad25e/funbind_batch_007.tsv": "522d52d97eb793cdb6b31dc25cdc419b33b9d46cacfb5690525b1c6eb3d65283",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/8d/e2982278d938f01e303834233ad25e/funbind_batch_007.manifest.tsv": "43295ca559ed94362ff993fea1b04f4c9c2f41cb910dbb63ccbebbd0ed2dc14f",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/09/f70afd2469bfccddc0e27a791dfc53/funbind_batch_008.tsv": "e7a5f360d04ea0ecd0133533280aeccd7c617a139984860b212c4c8d3048edce",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/09/f70afd2469bfccddc0e27a791dfc53/funbind_batch_008.manifest.tsv": "d323fd922c5541c61d2a95295f813edd8dc66ca06439178f33cc0e65a853af98",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d3/7eaf04725c38c3631d23a752cea0ff/funbind_batch_009.tsv": "23893be7f0bbfa50f584de2ee733c5b8d070e90e68d9200bef9d1d67b4c95c2c",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/d3/7eaf04725c38c3631d23a752cea0ff/funbind_batch_009.manifest.tsv": "9488f66feb2170aafed7f6280437174d04a7e344ff39d6c86f03a2f2700cb9cb",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/38/036ac6623465b448748a458fe6ef44/funbind_batch_010.tsv": "859184c6dcb7822c47de8294154b94f93e1c2ee2b2961a38330024db330ed33a",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/38/036ac6623465b448748a458fe6ef44/funbind_batch_010.manifest.tsv": "2ec9b291006be8aed4367fa266f206f89d2112cb4c6089f388063e185c446cb3",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/f8/7b1c0d0b46279dc29760b824d654b7/funbind_batch_011.tsv": "c97ffb2343deb688199a6bf5cdfe07194f704ce5832466fda1f3e54f5d7c8ba5",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/f8/7b1c0d0b46279dc29760b824d654b7/funbind_batch_011.manifest.tsv": "3bebba8594d7398152ee67ee7e6e178e7fbedbd2fb0471a67170c4cc3c1ae08e",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/1d/d6e0379a5afdf9a801e77e38f2ee60/funbind_batch_012.tsv": "1ff3d1f71ac21dd70535d16b79d119b8bc5686f2a87af3ddcba18f147386231c",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/1d/d6e0379a5afdf9a801e77e38f2ee60/funbind_batch_012.manifest.tsv": "de4c7a9392833b429ccf489257b4739cddc98cd48b27504ab4ce9c6226087463",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/f2/86e6acec1227bb44be4a23dc3a3c58/funbind_batch_013.tsv": "5e38aa9a2c0a4ee21440dd5d006ec3d18f1d1921e22838c2097fdf89c72631df",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/f2/86e6acec1227bb44be4a23dc3a3c58/funbind_batch_013.manifest.tsv": "8d7c11ff774d72dbb6730185b1f39c9bd89b6342b1ff8be89f8cb5bf2f2e9eb2",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/18/f6c64b7d3a074b65aaecadf4400b6a/funbind_batch_014.tsv": "1b3723a2b25511969d1838540dd4634a4ddf19c68553e30c4ed1935197997601",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/18/f6c64b7d3a074b65aaecadf4400b6a/funbind_batch_014.manifest.tsv": "4f45ccffbed0a4256d58b76a09cb75db4f7ce565e6356ab65ed3afac44b133c4",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/f1/c25cc755cb9159cd8b2fbfb82e6565/funbind_batch_015.tsv": "b32b024d9cac3a684fa38544713b702c8230449c7789e8f980445ff7dae40bfb",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/f1/c25cc755cb9159cd8b2fbfb82e6565/funbind_batch_015.manifest.tsv": "3c9d3c3f1b8ca55e1d9f797389e105f710e6590cc42bede7e63b1628d683e879",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/43/de9c4c61fd4bd830e4909e0e4d5b25/funbind_batch_016.tsv": "2716fb8401a91b45e4405dd5a6609336e36f15d218ef59392ab0c78c21aca47e",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/43/de9c4c61fd4bd830e4909e0e4d5b25/funbind_batch_016.manifest.tsv": "204c4c31722f8445cc8f8bbaaf556db1741cd79895eca7fedc5afe4853f06438",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/5d/085ddf52411d25c90bf3826107a1a4/funbind_batch_017.tsv": "94cac1769ee30f314921e87f90ab8646955ba1e9208649f654f19a18a4ed0657",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/5d/085ddf52411d25c90bf3826107a1a4/funbind_batch_017.manifest.tsv": "83739e8f5f4bf4869a230f6e689d2e10698039f418acd307022455fc1213bea9",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/c5/c427005b237f1bb93b2a549e554884/funbind_batch_018.tsv": "54b4cde151a07cb56932e7a1f3c3af8dbaa0ed98de065d2170d74d597662557a",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/c5/c427005b237f1bb93b2a549e554884/funbind_batch_018.manifest.tsv": "c6028c99c6fd9ff97050b8f10d9bf9c157493edf935e111015d7c6a0b0f9b58b",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/cb/29dd61d388a6791a82d253923a625a/funbind_batch_019.tsv": "04b1883bb2bf4b1b9113958d5dc16abb99825cdb6f51a47f7d9db1f4213a9505",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/cb/29dd61d388a6791a82d253923a625a/funbind_batch_019.manifest.tsv": "dd138b0cbc63bda8476f04301fec73ddf0f4d04c27affd38eecd6dd7f240a854",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/94/225ae53769b5b11d094024f883d619/funbind_batch_020.tsv": "9fa0cab6e308b6b1e15c500e13c5134c25cf98eee170ec1506f2f2cabb9b2cf9",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/94/225ae53769b5b11d094024f883d619/funbind_batch_020.manifest.tsv": "0c20a3904fd194e07cf4a3fdf57bcb2bcc30a3390dd9db080b756f6d35c2cc46",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/61/21576978012111cf3d4857dbbdcf74/funbind_batch_021.tsv": "0eb44d24d15f10458478a820ed74731af81633f151755b34020042f0e15f3848",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/61/21576978012111cf3d4857dbbdcf74/funbind_batch_021.manifest.tsv": "bb28ae8d90377d8d861c97dfe071dcb1830afee6fbc58fd557d01099b4a1d68c",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/4b/719d3620eb98b2027d1168ff1e7266/funbind_batch_022.tsv": "70bf73faa64d30eb598464408d59f65353947e1757a5c8a2e91f4da7aa5b4c64",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/4b/719d3620eb98b2027d1168ff1e7266/funbind_batch_022.manifest.tsv": "20def620a29b681866485151d06cc92895c31910e45b939f0a518792332758a5",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/a9/b231b9fe37fbb5d9b60878f89e4fd9/funbind_batch_023.tsv": "302fc95ca0e77fa1d3fce5f699989cd93604620012b8b082c755e1406282f699",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/a9/b231b9fe37fbb5d9b60878f89e4fd9/funbind_batch_023.manifest.tsv": "3ce80b6001700b74f934def86c951cdf00fd3ee5f5f199c1f02b8713b9b9c819",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/bb/be132678883ed2d3e4043757f7288a/funbind_batch_024.tsv": "715690aed45de13e9e4d26b1b7459633ac3224254db1baf36b0f6891865525c9",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/bb/be132678883ed2d3e4043757f7288a/funbind_batch_024.manifest.tsv": "16e45a73a9eac809b40d526afb85a98af1652d60753495b1bc4a9fd41673a6f5",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/1c/2fcb4076d13c3815acd8ff4e60d34a/funbind_batch_025.tsv": "f74a074b3b233fd9088f02c65b7cb6fb6fc07a0f1bf2333c0d8948e3dfef0cb1",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/1c/2fcb4076d13c3815acd8ff4e60d34a/funbind_batch_025.manifest.tsv": "662cd11023d04736174509969f65beb3e3a4666736b061bbc6516f08cda53867",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/10/dc779499ef1f812aa82ffee0e51fd5/funbind_batch_026.tsv": "306d0af66258789de67fa18ab4499f966adcdbf096c4e17c2f3020161891caba",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/10/dc779499ef1f812aa82ffee0e51fd5/funbind_batch_026.manifest.tsv": "04d2fed85af1f0a58a8e6fe2180d8b7c1268391ab735949d5a30932cc399ac71",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/14/f5d84afd1dc11c4558fc8137d08112/funbind_batch_027.tsv": "4142c75613223e6599b2a9e326fbe94fd769ced78cdd2ca72593bc13d56b3ecb",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/14/f5d84afd1dc11c4558fc8137d08112/funbind_batch_027.manifest.tsv": "860905492fc4fe441d98c00353092c032568ad1f6eaafb7315a6d93ee0470ecb",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/84/bb775b38b9720fe55dcc4aa1485fe2/funbind_batch_028.tsv": "8b5f348c99652a4ed902da7a78d46dbbb6f116a3f12bb2beae8f860c6148e171",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/84/bb775b38b9720fe55dcc4aa1485fe2/funbind_batch_028.manifest.tsv": "1b7e7c55cb7f3be462fefa3aa4e7a375afc5146f99ba64dc76b2aa90d75a2e02",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/98/8a8ddb84ed74332ffcf701007e11f7/funbind_batch_029.tsv": "eef3eec80af12bc62495d60dfa0d8a5c5e20a5a91b4abff45ab54763dd5a3f9d",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/98/8a8ddb84ed74332ffcf701007e11f7/funbind_batch_029.manifest.tsv": "68064804e59b454651e26acfacc296031e01fceb11b00d3986195c1898dab61e",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/3c/fa960a8606ef4631e0a93166bac262/funbind_batch_030.tsv": "3575de29663128c5fe3ecf3d0ad49832e662ef4585de75abab292fe6ec748507",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/3c/fa960a8606ef4631e0a93166bac262/funbind_batch_030.manifest.tsv": "81e9ea49188b0e417fc5b97e782a7d39750d85fe621aed599b23ab9d59c214de",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/46/c6a1fce575da3aabd1dd82f90e7b80/funbind_batch_031.tsv": "1b0978277e894e5aead40a45f98884c1658876613b5d55a9c53cd8c97f40d3f9",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/46/c6a1fce575da3aabd1dd82f90e7b80/funbind_batch_031.manifest.tsv": "7104410c719ce66eeb19349550a608a4364dfd1ab24b28dd5bc6965de6f7344f",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/6d/142e0d2ac5d3fba022084abd8591fb/funbind_batch_032.tsv": "56439006e2c108704ba9b11e8bd3a50445ac07d0961a37074d4acfedd8c00315",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/6d/142e0d2ac5d3fba022084abd8591fb/funbind_batch_032.manifest.tsv": "ac3263db0971c75d6d328ff55606aafc11ad37127425ffcc44a46dfc3f859b3c",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/9b/e74f34c33a327c566487a6d0ac19d2/funbind_batch_033.tsv": "bb4336135266bd64b6152cf79753ca5d445d1ed1d87cd6c64e600b182f5c7c9d",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/9b/e74f34c33a327c566487a6d0ac19d2/funbind_batch_033.manifest.tsv": "fafba263cd0a8f60d0c753fe8feeb4cb715d6a14d7da79959bda239a65d63279",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/b9/de9aa7a0c795bf5e5092e30c695c3b/funbind_batch_034.tsv": "6f44a45d53136ad42c937ff602c5e3a4e4b20b444fd1c9040336391b6bf0d6a0",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/b9/de9aa7a0c795bf5e5092e30c695c3b/funbind_batch_034.manifest.tsv": "fd87a13ba18dc94187c615bd5ea73d2da70d0c1539644c5aedf00e3277f25a81",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/ce/ce148618829b3761ba129181058902/funbind_batch_035.tsv": "0e716c3f1ff427c4344d3927059d72f3082b6fe7ea0b217198b62892c6a3eb12",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/ce/ce148618829b3761ba129181058902/funbind_batch_035.manifest.tsv": "60696bab352d409b87c24f4e6ead67d063d8898b7ec86fccb5d66d0413654702",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/4a/42d7f02e230f0464e888dad06e156c/funbind_batch_036.tsv": "950c0102e22ea409d8ef84b0e7a8b4ec7b7b5fd424104252a049c199f3f48235",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/4a/42d7f02e230f0464e888dad06e156c/funbind_batch_036.manifest.tsv": "06246d54a7db7c698bbf7ad7d322500481efa1ef472eab92a10175b0c57598f9",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/74/57bb295e7bbeca82a324d735511e77/funbind_batch_037.tsv": "486860e52b8b4fca16d88c338ea724cfbb6efde04db099bcda4d3c4ca05d9dcb",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/74/57bb295e7bbeca82a324d735511e77/funbind_batch_037.manifest.tsv": "41912fa61e2684589caeb1e48c2ac84afa0b587541ffbcff33923eff1b9b71dc",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/4c/aa11cc7cadfeb94b203e9dcded2823/funbind_batch_040.tsv": "845b6d97865c21d08df92c1c7e052c9b6a827268de314e314cf0f8cd91aabe6e",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/4c/aa11cc7cadfeb94b203e9dcded2823/funbind_batch_040.manifest.tsv": "15dab2eba4bc60f21bd06dce49baea918892ba0099fddf1ee282dde8f3115c83",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/89/0a23105b6773b50cb089a191da71d8/funbind_batch_041.tsv": "c31fe0102bf2d38e0f5c5815832d9f60a4985162d4a840ff536d537feb44d20c",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/89/0a23105b6773b50cb089a191da71d8/funbind_batch_041.manifest.tsv": "198bb272b5e4961b5b3bc9fc70b63b8d428d98a013f70acd08b19fcdb3f22113",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/b8/d87656c8f7db45c4e38ae5ed692b98/funbind_batch_042.tsv": "6ae818d9ad2ae4e1d8d40390d8a1cb5e06439291e922c27b730ec22bd4d1cdac",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/b8/d87656c8f7db45c4e38ae5ed692b98/funbind_batch_042.manifest.tsv": "b31154dc0f0b36bbdf7baed2dfdde5770015eb063ff9660480470312e05a8eee",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/98/3f820fed2f23d4c650678d67613148/funbind_batch_043.tsv": "61758237900c243265693634cb4b9e933ab4024ac0bc0911b1ea9e511ff5674f",
+    "/work/idoerg/ahphan/CAFA_forever/new_data/work/windows/Mar_2026_Jun_2026/98/3f820fed2f23d4c650678d67613148/funbind_batch_043.manifest.tsv": "ca53f3243aee40f87ebb18abf4e1aaf2ed3a0381713c8fb324e0e07c2a48aab9"
+  },
+  "recovery_source_sha256": {}
+}

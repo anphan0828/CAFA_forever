@@ -1,10 +1,20 @@
 {
-  "generated_at": "2026-04-12T21:45:19+00:00",
+  "generated_at": "2026-11-18T20:45:30+00:00",
   "validator": "scripts/publish_release_windows.py",
   "releases": [
     {
       "release_id": "Dec_2025_Mar_2026",
       "path": "data/releases/Dec_2025_Mar_2026",
+      "status": "ready"
+    },
+    {
+      "release_id": "Mar_2026_Jun_2026",
+      "path": "data/releases/Mar_2026_Jun_2026",
+      "status": "ready"
+    },
+    {
+      "release_id": "Mar_2026_Sep_2026",
+      "path": "data/releases/Mar_2026_Sep_2026",
       "status": "ready"
     },
     {

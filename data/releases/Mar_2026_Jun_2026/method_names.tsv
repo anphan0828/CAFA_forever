@@ -1,0 +1,9 @@
+filename	label	group
+blast_predictions.tsv	BLAST	BLAST
+deepgoplus_predictions.tsv	DeepGOPlus	DeepGOPlus
+funbind_predictions.tsv	FunBind	FunBind
+goa_nonexp_predictions.tsv	GOA Non-exp	GOA Non-exp
+naive_predictions.tsv	Naive	Naive
+prott5_predictions.tsv	ProtT5	ProtT5
+transfew_predictions.tsv	TransFew	TransFew
+protea_predictions.tsv	PROTEA	PROTEA

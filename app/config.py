@@ -37,6 +37,16 @@ DATA_DATES = {
         "goa": "2026-03-04",
         "uniprot": "2026_01 (2026-01-28)",
     },
+    "Jun_2026": {
+        "goa": "2026-04-30",
+        "uniprot": "2026_01 (2026-01-28)",
+        "go": "2026-05-19",
+        },
+    "Sep_2026": {
+        "goa": "2026-07-09",
+        "uniprot": "2026_02 (2026-06-10)",
+        "go": "2026-08-05",
+        },
 }
 
 METHOD_HELP_MSG = dict({
@@ -47,6 +57,7 @@ METHOD_HELP_MSG = dict({
     "FunBind": "Summary: Multi-modality based model combining sequence, structure, domains, textual descriptions, and GO terms. Input: protein sequences (FASTA, required), protein structures (PDB, optional), domains (InterPro, optional), textual descriptions (UniProt flat text, optional). Publication: https://doi.org/10.1101/2025.05.09.653226",
     "TransFew": "Summary: ESM-2-based pipeline combinining representations of both protein sequences and GO terms to improve prediction accuracy for common and rare functions. Input: protein sequences (FASTA). Publication: https://doi.org/10.1093/bioadv/vbae120",
     "DeepGOPlus": "Summary: Combining sequence motifs from deep learning and sequence similarity-based predictions. Input: protein sequences (FASTA). Publication: https://doi.org/10.1093/bioinformatics/btz595",
+    "PROTEA": "Summary: nearest-neighbour GO transfer in the space of a learned sparse encoder over Ankh-base embeddings. Input: protein sequences (FASTA, required), GO graph (OBO, required). Documentation: https://github.com/frapercan/PROTEA",
 })
 
 METHOD_DOCKER_URLS = dict({
@@ -57,6 +68,7 @@ METHOD_DOCKER_URLS = dict({
     "FunBind": "https://hub.docker.com/r/yw7bh/funbind_predictor",
     "TransFew": "https://hub.docker.com/r/yw7bh/transfew_predictor",
     "DeepGOPlus": "https://hub.docker.com/r/coolmaksat/deepgoplus",
+    "PROTEA": "ghcr.io/frapercan/protea/sparse-knn",
 })
 
 BASELINE_METHOD_LABELS = {"Naive", "BLAST", "ProtT5", "GOA Non-exp"}

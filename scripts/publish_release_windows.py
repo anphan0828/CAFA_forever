@@ -350,6 +350,8 @@ def copy_release_contract(
     if method_source.exists():
         shutil.copy2(method_source, staging_dir / "method_names.tsv")
 
+    copy_release_provenance(source_dir, staging_dir)
+
     for subset in SUBSETS:
         src_subset_dir = source_dir / f"results_{subset}"
         dst_subset_dir = staging_dir / f"results_{subset}"
@@ -369,6 +371,28 @@ def copy_release_contract(
     if target_dir.exists():
         shutil.rmtree(target_dir)
     staging_dir.rename(target_dir)
+
+
+def copy_release_provenance(source_dir: Path, target_dir: Path) -> None:
+    """Preserve audit evidence independently of the evaluation-table copy mode.
+
+    Late-run raw predictions are intentionally not part of the web release;
+    their hashes and acceptance/runtime records remain in the copied audits.
+    Older releases without provenance remain publishable.
+    """
+    target_dir.mkdir(parents=True, exist_ok=True)
+    for pattern in ("source_policy_comparison.json", "*provenance.json",
+                    "*.acceptance.json", "*_skipped_batches.tsv"):
+        for source_path in source_dir.glob(pattern):
+            if source_path.is_file():
+                shutil.copy2(source_path, target_dir / source_path.name)
+    for name in ("method_acceptance", "late_predictions"):
+        source_path = source_dir / name
+        if source_path.is_dir():
+            shutil.copytree(
+                source_path, target_dir / name, dirs_exist_ok=True,
+                ignore=shutil.ignore_patterns("predictions") if name == "late_predictions" else None,
+            )
 
 
 def build_catalog_entries(
@@ -413,7 +437,12 @@ def main() -> int:
         print(f"Error: source directory does not exist: {source_dir}")
         return 2
 
-    release_dirs = sorted(path for path in source_dir.iterdir() if path.is_dir())
+    # Late publication keeps hidden staging/rollback directories beside the
+    # canonical releases. They satisfy the artifact contract but are not windows.
+    release_dirs = sorted(
+        path for path in source_dir.iterdir()
+        if path.is_dir() and not path.name.startswith('.')
+    )
     if not release_dirs:
         print(f"No release directories found in: {source_dir}")
         return 0

@@ -23,6 +23,10 @@ downloads/
 eggs/
 .eggs/
 lib/
+# Nextflow source helpers are not Python installation artifacts.
+!/lib/
+/lib/*
+!/lib/*.groovy
 lib64/
 parts/
 sdist/
@@ -50,15 +54,20 @@ lafa/
 Thumbs.db
 
 # Data files (temporary/cache)
+.scratch/*
 *.tmp
 *.cache
 cache/*
 checkpoints_*/
 deepgoplus_data/*
+/goboost_data/
+/protea_data/
+/.scratch/container-onboarding/
 groundtruth_targets.fasta*
 data/time_points/*
 data/time_periods/*
 data/old_releases/*
+data/test_runs/*
 new_data/time_points/*
 tests/
 work/
@@ -68,6 +77,7 @@ frontend/public/data/
 image.png
 paper.pdf
 tooltip_error*.png
+.codex
 
 # Logs
 *.log

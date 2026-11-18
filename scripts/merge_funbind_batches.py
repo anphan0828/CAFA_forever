@@ -28,6 +28,17 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="Output path for merged FunBind predictions.",
     )
+    parser.add_argument(
+        "--allow-missing-batches",
+        action="store_true",
+        help="Merge available FunBind batches and report missing batch indexes instead of failing.",
+    )
+    parser.add_argument(
+        "--skipped-report",
+        type=pathlib.Path,
+        default=pathlib.Path("funbind_skipped_batches.tsv"),
+        help="Output TSV reporting missing FunBind batch indexes.",
+    )
     return parser.parse_args()
 
 
@@ -36,6 +47,7 @@ def main() -> int:
 
     batch_dir = args.batch_dir.resolve()
     output_path = args.output
+    skipped_report_path = args.skipped_report
     expected_batch_count = args.expected_batch_count
 
     batch_pattern = re.compile(r"^funbind_batch_(\d{3})\.tsv$")
@@ -77,16 +89,18 @@ def main() -> int:
     if batch_indexes != manifest_indexes:
         raise SystemExit("FunBind batch predictions and manifests are not aligned")
 
-    if len(batch_files) != expected_batch_count:
-        raise SystemExit(
-            f"Expected {expected_batch_count} FunBind batch files but found {len(batch_files)}"
-        )
-
     expected_indexes = list(range(1, expected_batch_count + 1))
-    if batch_indexes != expected_indexes:
-        raise SystemExit(
-            f"Missing FunBind batch indexes: expected {expected_indexes}, observed {batch_indexes}"
-        )
+    missing_indexes = [idx for idx in expected_indexes if idx not in set(batch_indexes)]
+    unexpected_indexes = [idx for idx in batch_indexes if idx not in set(expected_indexes)]
+    if missing_indexes or unexpected_indexes or len(batch_files) != expected_batch_count:
+        if not args.allow_missing_batches:
+            raise SystemExit(
+                f"Expected FunBind batch indexes {expected_indexes}, observed {batch_indexes}"
+            )
+        if unexpected_indexes:
+            raise SystemExit(
+                f"Unexpected FunBind batch indexes observed: {unexpected_indexes}"
+            )
 
     part_names = set()
     for manifest_path in manifest_files:
@@ -109,6 +123,18 @@ def main() -> int:
             with batch_path.open("r", encoding="utf-8") as in_handle:
                 for line in in_handle:
                     out_handle.write(line)
+
+    skipped_report_path.parent.mkdir(parents=True, exist_ok=True)
+    with skipped_report_path.open("w", encoding="utf-8") as report:
+        report.write("batch_index\treason\n")
+        for batch_index in missing_indexes:
+            report.write(f"{batch_index}\tmissing_or_failed_funbind_batch\n")
+
+    if missing_indexes:
+        print(
+            "WARNING: Missing FunBind batch indexes were skipped: "
+            + ", ".join(str(idx) for idx in missing_indexes)
+        )
 
     return 0
 
