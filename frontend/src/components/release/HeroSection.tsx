@@ -25,7 +25,7 @@ export function HeroSection() {
 
         <div className="hero__badges">
           <a
-            href="https://arxiv.org/abs/2604.20782"
+            href="https://academic.oup.com/bioinformaticsadvances/article/6/1/vbag221/8756688"
             target="_blank"
             rel="noopener noreferrer"
             className="hero__badge hero__badge--secondary"

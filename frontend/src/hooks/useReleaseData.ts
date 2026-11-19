@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type {
   ReleaseMeta,
   ReleaseMethods,
@@ -34,90 +34,113 @@ interface UseReleaseDataResult {
  * Loads meta, methods, and best metrics immediately
  * Curves are loaded on demand via loadCurves() due to their size
  */
+interface ReleaseState {
+  releaseId: string | null
+  data: ReleaseData
+  loading: boolean
+  curvesLoading: boolean
+  error: string | null
+}
+
+function emptyRelease(releaseId: string | null): ReleaseState {
+  return {
+    releaseId,
+    data: { meta: null, methods: null, best: null, curves: null },
+    loading: releaseId !== null,
+    curvesLoading: false,
+    error: null,
+  }
+}
+
 export function useReleaseData(releaseId: string | null): UseReleaseDataResult {
-  const [data, setData] = useState<ReleaseData>({
-    meta: null,
-    methods: null,
-    best: null,
-    curves: null,
-  })
-  const [loading, setLoading] = useState(false)
-  const [curvesLoading, setCurvesLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [state, setState] = useState(() => emptyRelease(releaseId))
+  const activeRequest = useRef<{
+    releaseId: string
+    controller: AbortController
+    curvesPromise: Promise<void> | null
+  } | null>(null)
 
-  // Load essential data when releaseId changes
   useEffect(() => {
-    if (!releaseId) {
-      setData({ meta: null, methods: null, best: null, curves: null })
-      return
-    }
+    setState(emptyRelease(releaseId))
+    if (!releaseId) return
 
-    let cancelled = false
-    setLoading(true)
-    setError(null)
+    const request = { releaseId, controller: new AbortController(), curvesPromise: null as Promise<void> | null }
+    activeRequest.current = request
+    const { signal } = request.controller
 
     async function fetchData() {
       try {
         const basePath = `/data/releases/${releaseId}`
-
         const [metaRes, methodsRes, bestRes] = await Promise.all([
-          fetch(`${basePath}/meta.json`, { cache: 'no-store' }),
-          fetch(`${basePath}/methods.json`, { cache: 'no-store' }),
-          fetch(`${basePath}/best.json`, { cache: 'no-store' }),
+          fetch(`${basePath}/meta.json`, { cache: 'no-store', signal }),
+          fetch(`${basePath}/methods.json`, { cache: 'no-store', signal }),
+          fetch(`${basePath}/best.json`, { cache: 'no-store', signal }),
         ])
-
         if (!metaRes.ok || !methodsRes.ok || !bestRes.ok) {
           throw new Error('Failed to load release data')
         }
-
         const [metaRaw, methodsRaw, bestRaw] = await Promise.all([
-          metaRes.json(),
-          methodsRes.json(),
-          bestRes.json(),
+          metaRes.json(), methodsRes.json(), bestRes.json(),
         ])
         const meta = validateReleaseMeta(metaRaw)
         const methods = validateReleaseMethods(methodsRaw)
         const best = validateBestMetrics(bestRaw)
-
-        if (!cancelled) {
-          setData((prev) => ({ ...prev, meta, methods, best }))
-          setLoading(false)
+        if (!signal.aborted) {
+          setState(prev => signal.aborted ? prev : {
+            ...prev, data: { ...prev.data, meta, methods, best }, loading: false,
+          })
         }
       } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Unknown error')
-          setLoading(false)
+        if (!signal.aborted) {
+          setState(prev => signal.aborted ? prev : {
+            ...prev, loading: false, error: err instanceof Error ? err.message : 'Unknown error',
+          })
         }
       }
     }
 
-    fetchData()
-
+    void fetchData()
     return () => {
-      cancelled = true
+      request.controller.abort()
+      if (activeRequest.current === request) activeRequest.current = null
     }
   }, [releaseId])
 
-  // Lazy load curves data
+  // One lazy request per selection. Cleanup also invalidates responses whose
+  // body parsing finishes after abort, including an A -> B -> A selection.
   const loadCurves = useCallback(async () => {
-    if (!releaseId || data.curves) return
-
-    setCurvesLoading(true)
-    try {
-      const response = await fetch(`/data/releases/${releaseId}/curves.json`, { cache: 'no-store' })
-      if (!response.ok) {
-        throw new Error('Failed to load curves data')
+    const request = activeRequest.current
+    if (!request || request.releaseId !== releaseId) return
+    if (request.curvesPromise) return request.curvesPromise
+    const { signal } = request.controller
+    setState(prev => ({ ...prev, curvesLoading: true }))
+    request.curvesPromise = (async () => {
+      try {
+        const response = await fetch(`/data/releases/${releaseId}/curves.json`, { cache: 'no-store', signal })
+        if (!response.ok) throw new Error('Failed to load curves data')
+        const curves = validateCurvesMap(await response.json())
+        if (!signal.aborted) {
+          setState(prev => signal.aborted ? prev : { ...prev, data: { ...prev.data, curves } })
+        }
+      } catch (err) {
+        if (!signal.aborted) {
+          setState(prev => signal.aborted ? prev : {
+            ...prev, error: err instanceof Error ? err.message : 'Failed to load curves',
+          })
+        }
+      } finally {
+        if (!signal.aborted) {
+          setState(prev => signal.aborted ? prev : { ...prev, curvesLoading: false })
+        }
       }
-      const curves = validateCurvesMap(await response.json())
-      setData((prev) => ({ ...prev, curves }))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load curves')
-    } finally {
-      setCurvesLoading(false)
-    }
-  }, [releaseId, data.curves])
+    })()
+    return request.curvesPromise
+  }, [releaseId])
 
-  return { data, loading, error, loadCurves, curvesLoading }
+  // Hide the previous release immediately, before the new selection's effect
+  // runs, so a render can never label old data with the newly selected window.
+  const current = state.releaseId === releaseId ? state : emptyRelease(releaseId)
+  return { data: current.data, loading: current.loading, error: current.error, loadCurves, curvesLoading: current.curvesLoading }
 }
 
 /**
